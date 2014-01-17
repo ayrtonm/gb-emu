@@ -1,42 +1,32 @@
-#include <stdio.h>
+#include "cpu.h"
 #include "mem.h"
-#include "z80.h"
-#include "gpu.h"
-#include "log.h"
-#include "input.h"
-
-void init_abstractions(void)
-{
-  update_palette(0,obp0);
-  update_palette(1,obp1);
-  update_palette(2,bgp);
-  init_input();
-//  init_bank(mbc);
-}
+#include "debug.h"
+#include "globals.h"
+#include <stdio.h>
 
 int main(int argc, char *argv[])
 {
-  //write a better help text and a better way to parse arguments
-  if (argc < 2) {printf("No rom file given\n");return 0;}
-
-  //remove old log.txt and start a new one
-  init_log(LOG_FILE);
-
-  //read rom file and display cartridge info
-  cart = load_cart(argv[1]);
-//  int mbc = print_header(cart);
-
-  //initialize registers and z80 struct
-  z80 *gameboy = init_z80();
-
-  //initialize sdl and pointer to screen
-  screen = init_gpu();
-
-  //palette and input variables for now
-  //can include any other general abstractions if necessary
-  init_abstractions();
-
-  //self explanatory
-  emulate(gameboy);
+  uint16 action = handle_args(argc,argv);
+  gameboy *X;
+  X.z80 = init_cpu();
+  if (action == 0) {print_help();}
+  else if (action == 1) //normal rom loading procedure goes here
+  {
+    uint8 *cartridge = load_cart(argv[2]);
+    X.cart = parse_header(cartridge);
+    emulate(X);
+  }
+/*
+  else if (action == 2)
+  {
+    debug_mode(gameboy);
+  }
+  else if ((action & 0xFF00) == 0x0100 || (action & 0xFF00) == 0xCB00) //test opcode
+  {
+    uint8 opcode = action & 0x00FF;
+    uint8 type = action >> 8;
+    test_opcode(opcode,type,gameboy);
+  }
+*/
   return 0;
 }

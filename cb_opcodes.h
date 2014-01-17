@@ -254,4 +254,4 @@ case 0xfc:  {SET(0x80,_H);break;}
 case 0xfd:  {SET(0x80,_L);break;}
 case 0xfe:  {uint8 temp = read_byte(_HL);SET(0x80,temp);write_byte(_HL,temp);break;}
 case 0xff:  {SET(0x80,_A);break;}
-default:  {char string[22];snprintf(string,22,"cb opcode 0x%x not found\n",opcode);write_log(string);getchar();}
+default:  {printf("cb opcode 0x%x not found\n",opcode);getchar();}

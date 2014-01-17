@@ -1,16 +1,15 @@
 CC = gcc
-CFLAGS = #-g -O3 -fomit-frame-pointer
-SRCS = main.c mem.c z80.c gpu.c input.c
+CFLAGS = -g
+SRCS = main.c mem.c cpu.c debug.c
 OBJS = $(SRCS:.c=.o)
-LIBS = -lSDL -lm #-lwiringPi
+LIBS =
 MAIN = main
-
 
 all: $(MAIN)
 	@echo emulator has been compiled
 $(MAIN): $(OBJS)
 	$(CC) $(CFLAGS) $(LIBS) $(OBJS) -o $(MAIN)
 .c.o:
-	$(CC) -c  $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 clean:
 	rm -rf *.o *~ $(MAIN)

@@ -4,11 +4,11 @@
 #include "mem.h"
 #include "common.h"
 
-typedef struct gameboy
+typedef struct gb
 {
   //main variables
   cpu *cpu;
-  mbc *cart;
+  mbc *mbc;
   uint8 mem[0x010000];
 
   uint8 tile_data_0[0x0C00];
@@ -18,6 +18,6 @@ typedef struct gameboy
   uint8 oam[0xA0];
   uint8 io[0x80];
 
-} gameboy;
+} gb;
 
 #endif

@@ -7,7 +7,7 @@
 typedef struct gameboy
 {
   //main variables
-  cpu *z80;
+  cpu *cpu;
   mbc *cart;
   uint8 mem[0x010000];
 

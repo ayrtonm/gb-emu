@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -g
+CFLAGS = -g #-O3
 SRCS = main.c mem.c cpu.c debug.c
 OBJS = $(SRCS:.c=.o)
 LIBS =

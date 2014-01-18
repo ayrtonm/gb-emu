@@ -56,7 +56,7 @@ mbc parse_header(uint8 *cart)
     case 0x1E: type = "MBC5+RUMBLE+RAM+BATTERY";break;
     default: type = "OTHER";break;
   }
-  printf("\n%s",type);
+  printf("\n%s\n",type);
   mbc m;
   m.cart = cart;
   m.version = version;

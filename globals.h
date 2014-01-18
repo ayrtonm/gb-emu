@@ -16,7 +16,7 @@
 
 //typedefs and structs
 typedef unsigned char uint8;
-typedef short int uint16;
+typedef unsigned short int uint16;
 typedef union
 {
   uint16 W;

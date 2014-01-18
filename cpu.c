@@ -23,7 +23,6 @@ int emulate(void)
   int period;
   for (;;)
   {
-    getchar();
     op = READ_BYTE(_PC);
     printf("PC:[0x%x]=0x%x,AF:0x%x,BC:0x%x,DE:0x%x,HL:0x%x,SP:0x%x\n",_PC,op,_AF,_BC,_DE,_HL,_SP);
     if (op == 0xCB)

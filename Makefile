@@ -1,8 +1,8 @@
 CC = gcc
 CFLAGS = -g #-O3
-SRCS = main.c mem.c cpu.c debug.c
+SRCS = main.c mem.c cpu.c gpu.c debug.c
 OBJS = $(SRCS:.c=.o)
-LIBS =
+LIBS = -lSDL
 MAIN = main
 
 all: $(MAIN)

@@ -1,5 +1,10 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
+//no local headers should be included here
+//only sdl and possibly ncurses for debug mode ui
+//most other header files should only include
+//globals.h,stdio, and stdlib
+#include <SDL/SDL.h>
 
 //general bit manipulation
 #define BIT(x)		(1 << (x))
@@ -59,6 +64,7 @@ typedef struct gb
   cpu cpu;
   mbc mbc;
   mem mem;
+  SDL_Surface *screen;
 } gb;
 
 //global gb struct pointer

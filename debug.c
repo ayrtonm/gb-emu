@@ -11,6 +11,7 @@ void print_help(void)
   printf("  -cb  [opcode]   test the given 0xCB opcode\n");
   printf("  -r   [filename] load the given file and start the emulator\n");
   printf("  -i              interactive debug mode\n");
+  printf("note: test opcode and interactive debug mode aren't currently supported\n");
 }
 
 uint16 handle_args(int argc, char *argv[])
@@ -20,6 +21,8 @@ uint16 handle_args(int argc, char *argv[])
   for (i = 1; i < argc; i++)
   {
     if (!strcmp(argv[i],"-h")) {return 0;}
+    //remove next line if adding opcode test and interactive debug mode
+    else if (argc < 3) {return 0;}
 /*    else if (!strcmp(argv[i],"-i")) {return 2;}
     else if (argc < 3) {return 0;}
     else if (!strcmp(argv[i],"-t"))

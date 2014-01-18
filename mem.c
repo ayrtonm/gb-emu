@@ -1,4 +1,5 @@
 #include "mem.h"
+#include "globals.h"
 #include "common.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,61 +58,57 @@ mbc *parse_header(char *cartridge)
     default: type = "OTHER";break;
   }
   printf("\n%s",type);
-  for (i = 0; i < _VRAM; i++) mem[i] = cartridge[i];
-  mbc cart;
-  cart.cart = cartridge;
-  cart.version = version;
-  cart.rombank = 0;
-  cart.rambank = 0;
-  cart.mode = 0;
-  cart.enable = 0;
+  for (i = 0; i < _VRAM; i++) MEM(i) = cartridge[i];
+  for (i = _IO; i < _HRAM; i++) MEM(i) = 0;
+  for (i = _OAM; i < _UNUSED; i++) MEM(i) = 0;
+  write_byte(_LCDC,0x91);
+  write_byte(_BGP,0xFC);
+  write_byte(_OBP0,0xFF);
+  write_byte(_OBP1,0xFF);
+  mbc *cart;
+  cart->cart = cartridge;
+  cart->version = version;
+  cart->rombank = 0;
+  cart->rambank = 0;
+  cart->mode = 0;
+  cart->enable = 0;
   return cart;
-}
-
-uint8 read_byte(uint16 address)
-{
-  return mem[address];
 }
 
 void write_byte(uint16 address, uint8 value)
 {
-  if (address < _BANK) {write_cart(address,value,X);}//write rom (mbc)
-  else if (address < _VRAM) {write_cart(address,value,X);}//write bank (mbc)
-  else if (address < _ERAM) {}//write vram
-  else if (address < _WRAM) {write_cart(address,value,X);}//write eram (mbc)
-  else if (address < _ECHO) {}//write wram
-  else if (address < _OAM) {}//write echo
-  else if (address < _UNUSED) {}//write oam
-  else if (address < _IO) {}//write unused
-  else if (address < _HRAM) {}//write IO
-  else if (address < _IE) {}//write hram
+  if (address < _BANK) {write_cart(address,value);}//write rom (mbc)
+  else if (address < _VRAM) {write_cart(address,value);}//write bank (mbc)
+  else if (address < _ERAM) {MEM(address) = value;}//write vram
+  else if (address < _WRAM) {write_cart(address,value);}//write eram (mbc)
+  else if (address < _ECHO) {MEM(address) = value;}//write wram
+  else if (address < _OAM) {MEM(address) = value;}//write echo
+  else if (address < _UNUSED) {MEM(address) = value;}//write oam
+  else if (address < _IO) {MEM(address) = value;}//write unused
+  else if (address < _HRAM) {MEM(address) = value;}//write IO
+  else if (address < _IE) {MEM(address) = value;}//write hram
 }
 
 void write_cart(uint16 address, uint8 value)
 {
   //modify mbc struct
-  if (X.version == 0) {break;}
-  else if (version == 1)
+  if (VERSION == 0) {return;}
+  else if (VERSION == 1)
   {
-    if (address < 0x2000) {X.enable = value & 0x0F;}
-    else if (address < 0x4000) {X.rombank |= value & 0x1F;}
+    if (address < 0x2000) {ENABLE = value & 0x0F;}
+    else if (address < 0x4000) {ROMBANK |= value & 0x1F;}
     else if (address < 0x6000)
     {
-      if (X.mode == 0) {X.rombank |= (value & 0x03) << 5;}
-      else if (X.mode == 1) {X.rambank = value & 0x03}
+      if (MODE == 0) {ROMBANK |= (value & 0x03) << 5;}
+      else if (MODE == 1) {RAMBANK = value & 0x03;}
     }
-    else if (address < 0x8000) {X.mode = value & 0x01;}
-    else if (address < 0xC000)
+    else if (address < 0x8000) {MODE = value & 0x01;}
+    else if (address < 0xC000) {}
     //update windows
     int i;
-    for (i = _BANK; i < _VRAM; i++) mem[i] = X.cart[]
+    for (i = _BANK; i < _VRAM; i++) MEM(i) = CART(i);
     return;
   }
-}
-
-uint16 read_word(uint16 address)
-{
-  return (read_byte(address)) + (read_byte(address+1)<<8);
 }
 
 void write_word(uint16 address, uint16 value)

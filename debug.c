@@ -12,6 +12,7 @@ void print_help(void)
   printf("  -r   [filename] load the given file and start the emulator\n");
   printf("  -i              interactive debug mode\n");
 }
+/*
 void test_opcode(uint8 opcode, uint8 cb, cpu *Z)
 {
   print_registers(Z);
@@ -86,7 +87,7 @@ void debug_mode(cpu *Z)
     }
   }
 }
-
+*/
 uint8 convert_hex(char *c)
 {
   uint8 x = 0;

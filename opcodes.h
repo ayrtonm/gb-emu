@@ -57,8 +57,8 @@ case 0x30:  {COND_JR((CARRY==0),IMM8);break;}
 case 0x31:  {LD(_SP,IMM16);break;}
 case 0x32:  {LD_RM(_HL--,_A);break;}
 case 0x33:  {_SP++;break;}
-case 0x34:  {uint8 temp = read_byte(_HL);INC(temp);write_byte(_HL,temp);break;}
-case 0x35:  {uint8 temp = read_byte(_HL);DEC(temp);write_byte(_HL,temp);break;}
+case 0x34:  {uint8 temp = READ_BYTE(_HL);INC(temp);write_byte(_HL,temp);break;}
+case 0x35:  {uint8 temp = READ_BYTE(_HL);DEC(temp);write_byte(_HL,temp);break;}
 case 0x36:  {LD_RM(_HL,IMM8);break;}
 case 0x37:  {SCL;break;}
 case 0x38:  {COND_JR((CARRY==1),IMM8);break;}
@@ -149,7 +149,7 @@ case 0x82:  {ADD(_D);break;}
 case 0x83:  {ADD(_E);break;}
 case 0x84:  {ADD(_H);break;}
 case 0x85:  {ADD(_L);break;}
-case 0x86:  {ADD(read_byte(_HL));break;}
+case 0x86:  {ADD(READ_BYTE(_HL));break;}
 case 0x87:  {ADD(_A);break;}
 case 0x88:  {ADC(_B);break;}
 
@@ -158,7 +158,7 @@ case 0x8a:  {ADC(_D);break;}
 case 0x8b:  {ADC(_E);break;}
 case 0x8c:  {ADC(_H);break;}
 case 0x8d:  {ADC(_L);break;}
-case 0x8e:  {ADC(read_byte(_HL));break;}
+case 0x8e:  {ADC(READ_BYTE(_HL));break;}
 case 0x8f:  {ADC(_A);break;}
 
 case 0x90:  {SUB(_B);break;}
@@ -167,7 +167,7 @@ case 0x92:  {SUB(_D);break;}
 case 0x93:  {SUB(_E);break;}
 case 0x94:  {SUB(_H);break;}
 case 0x95:  {SUB(_L);break;}
-case 0x96:  {SUB(read_byte(_HL));break;}
+case 0x96:  {SUB(READ_BYTE(_HL));break;}
 case 0x97:  {SUB(_A);break;}
 
 case 0x98:  {SBC(_B);break;}
@@ -176,7 +176,7 @@ case 0x9a:  {SBC(_D);break;}
 case 0x9b:  {SBC(_E);break;}
 case 0x9c:  {SBC(_H);break;}
 case 0x9d:  {SBC(_L);break;}
-case 0x9e:  {SBC(read_byte(_HL));break;}
+case 0x9e:  {SBC(READ_BYTE(_HL));break;}
 case 0x9f:  {SBC(_A);break;}
 
 case 0xa0:  {AND(_B);break;}
@@ -185,7 +185,7 @@ case 0xa2:  {AND(_D);break;}
 case 0xa3:  {AND(_E);break;}
 case 0xa4:  {AND(_H);break;}
 case 0xa5:  {AND(_L);break;}
-case 0xa6:  {AND(read_byte(_HL));break;}
+case 0xa6:  {AND(READ_BYTE(_HL));break;}
 case 0xa7:  {AND(_A);break;}
 
 case 0xa8:  {EOR(_B);break;}
@@ -194,7 +194,7 @@ case 0xaa:  {EOR(_D);break;}
 case 0xab:  {EOR(_E);break;}
 case 0xac:  {EOR(_H);break;}
 case 0xad:  {EOR(_L);break;}
-case 0xae:  {EOR(read_byte(_HL));break;}
+case 0xae:  {EOR(READ_BYTE(_HL));break;}
 case 0xaf:  {EOR(_A);break;}
 
 case 0xb0:  {OR(_B);break;}
@@ -203,7 +203,7 @@ case 0xb2:  {OR(_D);break;}
 case 0xb3:  {OR(_E);break;}
 case 0xb4:  {OR(_H);break;}
 case 0xb5:  {OR(_L);break;}
-case 0xb6:  {OR(read_byte(_HL));break;}
+case 0xb6:  {OR(READ_BYTE(_HL));break;}
 case 0xb7:  {OR(_A);break;}
 
 case 0xb8:  {CP(_B);break;}
@@ -212,7 +212,7 @@ case 0xba:  {CP(_D);break;}
 case 0xbb:  {CP(_E);break;}
 case 0xbc:  {CP(_H);break;}
 case 0xbd:  {CP(_L);break;}
-case 0xbe:  {CP(read_byte(_HL));break;}
+case 0xbe:  {CP(READ_BYTE(_HL));break;}
 case 0xbf:  {CP(_A);break;}
 
 case 0xc0:  {COND_RET((ZERO==0));break;}

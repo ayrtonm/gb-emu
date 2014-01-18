@@ -6,18 +6,13 @@
 
 typedef struct gb
 {
-  //main variables
   cpu *cpu;
   mbc *mbc;
-  uint8 mem[0x010000];
-
-  uint8 tile_data_0[0x0C00];
-  uint8 tile_data_1[0x0C00];
-  uint8 tile_map_0[0x0400];
-  uint8 tile_map_1[0x0400];
-  uint8 oam[0xA0];
-  uint8 io[0x80];
-
+  mem *mem;
 } gb;
+
+gb *gameboy;
+
+extern int emulate(gb *);
 
 #endif

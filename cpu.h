@@ -1,6 +1,5 @@
 #ifndef CPU_H
 #define CPU_H
-#include "globals.h"
 #include "common.h"
 
 typedef struct cpu
@@ -327,15 +326,15 @@ static uint8 cycles[0x0100] =
   _HL = mtemp & 0xFFFF
 
 #define JR(n) \
-  _PC += read_byte(_PC)+1
+  _PC += READ_BYTE(_PC)+1
 
 #define COND_JR(cond,n) \
-  if (cond) _PC += read_byte(_PC)+1;\
+  if (cond) _PC += READ_BYTE(_PC)+1;\
   else _PC++
 
 #define RET \
-  _PCBl = read_byte(_SP++);\
-  _PCBh = read_byte(_SP++)
+  _PCBl = READ_BYTE(_SP++);\
+  _PCBh = READ_BYTE(_SP++)
 
 #define COND_RET(cond) \
   if (cond) RET
@@ -358,8 +357,8 @@ static uint8 cycles[0x0100] =
   if (cond) CALL(n)
   
 #define POP(a,b) \
-  b = read_byte(_SP++);\
-  a = read_byte(_SP++)
+  b = READ_BYTE(_SP++);\
+  a = READ_BYTE(_SP++)
 
 #define PUSH(a,b) \
   write_byte(_SP--,a);\
@@ -389,7 +388,7 @@ static uint8 cycles[0x0100] =
   x=y
 
 #define LD_MR(x,y) \
-  x=read_byte(y)
+  x=READ_BYTE(y)
 
 #define LD_RM(x,y) \
   write_byte(x,y)
@@ -490,6 +489,5 @@ static uint8 cycles[0x0100] =
   
 
 extern cpu *init_cpu(void);
-extern int emulate(gameboy *);
 
 #endif

@@ -39,27 +39,48 @@ typedef union
 #define ZERO	((GET(Z_FLAG,_F)) >> 7)
 
 //registers
-#define _A	(X->z80->AF.B.h)
-#define _F	(X->z80->AF.B.l)
-#define _B	(X->z80->BC.B.h)
-#define _C	(X->z80->BC.B.l)
-#define _D	(X->z80->DE.B.h)
-#define _E	(X->z80->DE.B.l)
-#define _H	(X->z80->HL.B.h)
-#define _L	(X->z80->HL.B.l)
-#define _AF	(X->z80->AF.W)
-#define _BC	(X->z80->BC.W)
-#define _DE	(X->z80->DE.W)
-#define _HL	(X->z80->HL.W)
-#define _SP	(X->z80->SP.W)
-#define _PC	(X->z80->PC.W)
-#define _PCBl	(X->z80->PC.B.l)
-#define _PCBh	(X->z80->PC.B.h)
-#define _IME	(X->z80->IME)
+#define _A	(gameboy->cpu->AF.B.h)
+#define _F	(gameboy->cpu->AF.B.l)
+#define _B	(gameboy->cpu->BC.B.h)
+#define _C	(gameboy->cpu->BC.B.l)
+#define _D	(gameboy->cpu->DE.B.h)
+#define _E	(gameboy->cpu->DE.B.l)
+#define _H	(gameboy->cpu->HL.B.h)
+#define _L	(gameboy->cpu->HL.B.l)
+#define _AF	(gameboy->cpu->AF.W)
+#define _BC	(gameboy->cpu->BC.W)
+#define _DE	(gameboy->cpu->DE.W)
+#define _HL	(gameboy->cpu->HL.W)
+#define _SP	(gameboy->cpu->SP.W)
+#define _PC	(gameboy->cpu->PC.W)
+#define _PCBl	(gameboy->cpu->PC.B.l)
+#define _PCBh	(gameboy->cpu->PC.B.h)
+#define _IME	(gameboy->cpu->IME)
 
 //memory access
-#define IMM8	(read_byte(_PC-1))
-#define IMM16	(read_word(_PC-2))
+#define IMM8	(READ_BYTE(_PC-1))
+#define IMM16	(READ_WORD(_PC-2))
+
+//memory shortcuts
+#define MEM(x)		(gameboy->mem->map[x])
+#define T_DATA_0(x)	(gameboy->mem->tile_data_0[x])
+#define T_DATA_1(x)	(gameboy->mem->tile_data_1[x])
+#define T_MAP_0(x)	(gameboy->mem->tile_map_0[x])
+#define T_MAP_1(x)	(gameboy->mem->tile_map_1[x])
+#define IO(x)		(gameboy->mem->io[x])
+#define OAM(x)		(gameboy->mem->oam[x])
+
+//mbc shortcuts
+#define CART(x)		(gameboy->mbc->cart[x])
+#define VERSION		(gameboy->mbc->version)
+#define ROMBANK		(gameboy->mbc->rombank)
+#define RAMBANK		(gameboy->mbc->rambank)
+#define ENABLE		(gameboy->mbc->enable)
+#define MODE		(gameboy->mbc->mode)
+
+//memory read functions
+#define READ_BYTE(x)	(MEM(x))
+#define READ_WORD(x)	(MEM(x) + (MEM(x+1)<<8))
 
 //memory sections
 #define _ROM	0x0000

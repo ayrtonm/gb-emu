@@ -3,18 +3,19 @@
 #include "debug.h"
 #include "globals.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 int main(int argc, char *argv[])
 {
   uint16 action = handle_args(argc,argv);
-  gameboy *X;
-  X.z80 = init_cpu();
+  gameboy = malloc(sizeof(gb));
+  gameboy->cpu = init_cpu();
   if (action == 0) {print_help();}
   else if (action == 1) //normal rom loading procedure goes here
   {
     uint8 *cartridge = load_cart(argv[2]);
-    X.cart = parse_header(cartridge);
-    emulate(X);
+    gameboy->mbc = parse_header(cartridge);
+    emulate(gameboy);
   }
 /*
   else if (action == 2)

@@ -1,14 +1,13 @@
 #include "mem.h"
 #include "globals.h"
-#include "common.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
+#include <stdio.h>//open and load file
+#include <stdlib.h>//allocate memory
+#include <sys/stat.h>//get file size
 
 uint8 *load_cart(char *filename)
 {
   struct stat st;
-  stat(filename, &st);
+  stat(filename,&st);
   int size = st.st_size;
   uint8 *cart;
   cart = malloc(size*sizeof(uint8));
@@ -18,16 +17,16 @@ uint8 *load_cart(char *filename)
   return cart;
 }
 
-mbc *parse_header(char *cartridge)
+mbc parse_header(uint8 *cart)
 {
   int i;
-  for (i = 0x0134; i < 0x0144; i++) printf("%c",cartridge[i]);
-  printf("\nROM Size: %d bytes", rom_sizes[cartridge[0x0148] & 0x07] << 8);
-  printf("\nRAM Size: %d bytes", ram_sizes[cartridge[0x0149]] << 8);
-  if (cartridge[0x014A] == 0) printf("\nJapanese");
+  for (i = 0x0134; i < 0x0144; i++) printf("%c",cart[i]);//print title
+  printf("\nROM Size: %d bytes", rom_sizes[cart[0x0148] & 0x07] << 8);
+  printf("\nRAM Size: %d bytes", ram_sizes[cart[0x0149]] << 8);
+  if (cart[0x014A] == 0) printf("\nJapanese");
   else printf("\nNon-Japanese");
   char *type;
-  int version = cartridge[0x0147];
+  int version = cart[0x0147];
   switch(version)
   {
     case 0x00: type = "ROM ONLY";break;
@@ -58,61 +57,39 @@ mbc *parse_header(char *cartridge)
     default: type = "OTHER";break;
   }
   printf("\n%s",type);
-  for (i = 0; i < _VRAM; i++) MEM(i) = cartridge[i];
-  for (i = _IO; i < _HRAM; i++) MEM(i) = 0;
-  for (i = _OAM; i < _UNUSED; i++) MEM(i) = 0;
+  mbc m;
+  m.cart = cart;
+  m.version = version;
+  m.rombank = 0;
+  m.rambank = 0;
+  m.mode = 0;
+  m.enable = 0;
+  return m;
+}
+
+mem init_mem(void)
+{
+  int i;
+  mem m;
+  for (i = _VRAM; i < 0x010000; i++) m.map[i] = 0;
+  for (i = 0; i < _VRAM; i++) m.map[i] = CART(i);
   write_byte(_LCDC,0x91);
   write_byte(_BGP,0xFC);
   write_byte(_OBP0,0xFF);
   write_byte(_OBP1,0xFF);
-  mbc *cart;
-  cart->cart = cartridge;
-  cart->version = version;
-  cart->rombank = 0;
-  cart->rambank = 0;
-  cart->mode = 0;
-  cart->enable = 0;
-  return cart;
+  return m;
 }
 
 void write_byte(uint16 address, uint8 value)
 {
-  if (address < _BANK) {write_cart(address,value);}//write rom (mbc)
-  else if (address < _VRAM) {write_cart(address,value);}//write bank (mbc)
-  else if (address < _ERAM) {MEM(address) = value;}//write vram
-  else if (address < _WRAM) {write_cart(address,value);}//write eram (mbc)
-  else if (address < _ECHO) {MEM(address) = value;}//write wram
-  else if (address < _OAM) {MEM(address) = value;}//write echo
-  else if (address < _UNUSED) {MEM(address) = value;}//write oam
-  else if (address < _IO) {MEM(address) = value;}//write unused
-  else if (address < _HRAM) {MEM(address) = value;}//write IO
-  else if (address < _IE) {MEM(address) = value;}//write hram
+  MEM(address) = value;
 }
-
 void write_cart(uint16 address, uint8 value)
 {
-  //modify mbc struct
-  if (VERSION == 0) {return;}
-  else if (VERSION == 1)
-  {
-    if (address < 0x2000) {ENABLE = value & 0x0F;}
-    else if (address < 0x4000) {ROMBANK |= value & 0x1F;}
-    else if (address < 0x6000)
-    {
-      if (MODE == 0) {ROMBANK |= (value & 0x03) << 5;}
-      else if (MODE == 1) {RAMBANK = value & 0x03;}
-    }
-    else if (address < 0x8000) {MODE = value & 0x01;}
-    else if (address < 0xC000) {}
-    //update windows
-    int i;
-    for (i = _BANK; i < _VRAM; i++) MEM(i) = CART(i);
-    return;
-  }
-}
 
+}
 void write_word(uint16 address, uint16 value)
 {
-  write_byte(address,(value & 0x00FF));
-  write_byte(address+1,(value >> 8));
+  write_byte(address,value & 0x00FF);
+  write_byte(address+1,value >> 8);
 }

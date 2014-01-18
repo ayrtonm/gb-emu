@@ -1,12 +1,13 @@
 #ifndef CPU_H
 #define CPU_H
-#include "common.h"
+#include "globals.h"
 
-typedef struct cpu
-{
-  word16 AF,BC,DE,HL,PC,SP;
-  uint8 IME;
-} cpu;
+//initialize cpu struct pointer
+extern cpu init_cpu(void);
+
+//emulate function takes no variables
+//only uses global gb struct pointer
+extern int emulate(void);
 
 static const uint16 DAATable[] = {
   0x0080,0x0100,0x0200,0x0300,0x0400,0x0500,0x0600,0x0700,
@@ -486,8 +487,5 @@ static uint8 cycles[0x0100] =
   _F = (r & 0x01) ? C_FLAG : 0;\
   r >>= 1;\
   _F |= (r ? 0 : Z_FLAG)
-  
-
-extern cpu *init_cpu(void);
 
 #endif

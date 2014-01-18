@@ -287,4 +287,4 @@ case 0xfd:  {break;}//no opcode
 case 0xfe:  {CP(IMM8);break;}
 case 0xff:  {RST(0x38);break;}
 
-default:  {printf("opcode 0x%x not found\n",opcode);getchar();}
+default:  {printf("opcode 0x%x not found\n",op);getchar();}

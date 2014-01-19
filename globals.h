@@ -51,12 +51,6 @@ typedef struct mbc
 typedef struct mem
 {
   uint8 map[0x010000];
-  uint8 tile_data_0[0x1000];
-  uint8 tile_data_1[0x1000];
-  uint8 tile_map_0[0x0400];
-  uint8 tile_map_1[0x0400];
-  uint8 oam[0xA0];
-  uint8 io[0x80];
 } mem;
 
 typedef struct gb
@@ -100,26 +94,41 @@ gb *gameboy;
 #define _PCBh	(gameboy->cpu.PC.B.h)
 #define _IME	(gameboy->cpu.IME)
 
+//interrupts
+#define INT_VBL	0x01
+#define INT_LCD 0x02
+#define INT_TIM 0x04
+#define INT_SER 0x08
+#define INT_JOY 0x10
+
 //immediate memory
 #define IMM8	(READ_BYTE(_PC-1))
 #define IMM16	(READ_WORD(_PC-2))
 
 //memory shortcuts
+//only MEM(x) and IO(x) should be used to write to memory
+//everything else (vram and oam) should only be used
+//for reading conveniently
+//ex: instead of reading the tile data at 0x83FD
+//read the data at 0x03FD or tile 0x3F,line 0x0D
+//oam can be used the same way except with sprite data
+//instead of tile data
 #define MEM(x)		(gameboy->mem.map[x])
 //0x8000 - 0x8FFF
-#define T_DATA_0(x)	(gameboy->mem.tile_data_0[x])
+//the last half of T_DATA_0 and the first half of T_DATA_1 overlap
+#define T_DATA_0(x)	(gameboy->mem.map[x+0x8000])
 //0x8800 - 0x97FF
-#define T_DATA_1(x)	(gameboy->mem.tile_data_1[x])
+#define T_DATA_1(x)	(gameboy->mem.map[x+0x8800])
 //0x9800 - 0x9BFF
-#define T_MAP_0(x)	(gameboy->mem.tile_map_0[x])
+#define T_MAP_0(x)	(gameboy->mem.map[x+0x9800])
 //0x9C00 - 0x9FFF
-#define T_MAP_1(x)	(gameboy->mem.tile_map_1[x])
-//the LOW(x) doesn't prevent overflows in either case,
-//but it does allow you to use the io register address
-//macros below which actually make the following
-//two shortcuts useful
-#define IO(x)		(gameboy->mem.io[LOW(x)])
-#define OAM(x)		(gameboy->mem.oam[LOW(x)])
+#define T_MAP_1(x)	(gameboy->mem.map[x+0x9C00])
+//same as MEM(x) but helps with readability
+#define IO(x)		(MEM(x))
+//LOW(x) doesn't stop 'overflows' into unused section,
+//but it should prevent overflows into io hw register section
+#define OAM(x)		(gameboy->mem.map[LOW(x)+_OAM])
+#define INTE		(gameboy->mem.map[_IE])
 
 //mbc shortcuts
 #define CART(x)		(gameboy->mbc.cart[x])
@@ -151,6 +160,7 @@ gb *gameboy;
 #define _TIMA		0xFF05
 #define _TMA		0xFF06
 #define _TAC		0xFF07
+#define _IF		0xFF0F
 #define _LCDC		0xFF40
 #define _LCDSTAT	0xFF41
 #define _SCY		0xFF42
@@ -163,7 +173,6 @@ gb *gameboy;
 #define _OBP1		0xFF49
 #define _WY		0xFF4A
 #define _WX		0xFF4B
-#define _IF		0xFF0F
 #define _IE		0xFFFF
 
 #endif

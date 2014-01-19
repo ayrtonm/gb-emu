@@ -272,7 +272,7 @@ case 0xef:  {RST(0x28);break;}
 case 0xf0:  {uint16 temp=IMM8+0xFF00;LD_MR(_A,temp);break;}
 case 0xf1:  {POP(_A,_F);break;}
 case 0xf2:  {uint16 temp=_C+0xFF00;LD_MR(_A,temp);break;}
-case 0xf3:  {break;}//di
+case 0xf3:  {_IME=0;break;}
 case 0xf4:  {break;}//no opcode
 case 0xf5:  {PUSH(_A,_F);break;}
 case 0xf6:  {OR(IMM8);break;}
@@ -281,7 +281,7 @@ case 0xf8:  {break;}//ld hl, sp+r8
 
 case 0xf9:  {LD(_SP,_HL);break;}
 case 0xfa:  {LD_MR(_A,IMM16);break;}
-case 0xfb:  {break;}//ei
+case 0xfb:  {_IME=1;break;}
 case 0xfc:  {break;}//no opcode
 case 0xfd:  {break;}//no opcode
 case 0xfe:  {CP(IMM8);break;}

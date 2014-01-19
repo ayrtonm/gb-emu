@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -g #-O3
 SRCS = main.c mem.c cpu.c gpu.c debug.c
 OBJS = $(SRCS:.c=.o)
-LIBS = -lSDL
+LIBS = -lSDL -lm
 MAIN = main
 
 all: $(MAIN)

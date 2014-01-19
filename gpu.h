@@ -3,7 +3,7 @@
 #include "globals.h"
 
 extern SDL_Surface *init_gpu(void);
-extern void step_gpu(void);
+extern void step_gpu(uint8);
 extern void update_palette(uint8,uint8);
 //draw_screen() should only be called from step_gpu()
 void draw_screen(void);

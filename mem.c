@@ -73,10 +73,10 @@ mem init_mem(void)
   mem m;
   for (i = _VRAM; i < 0x010000; i++) m.map[i] = 0;
   for (i = 0; i < _VRAM; i++) m.map[i] = CART(i);
-  write_byte(_LCDC,0x91);
-  write_byte(_BGP,0xFC);
-  write_byte(_OBP0,0xFF);
-  write_byte(_OBP1,0xFF);
+  m.map[_LCDC] = 0x91;
+  m.map[_BGP] = 0xFC;
+  m.map[_OBP0] = 0xFF;
+  m.map[_OBP1] = 0xFF;
   return m;
 }
 
@@ -87,15 +87,7 @@ void write_byte(uint16 address, uint8 value)
   //write to external rombank
   else if (address < _VRAM) {write_cart(address,value);}
   //write to vram(unfinished)
-  else if (address < _ERAM)
-  {
-    MEM(address) = value;
-    if (address < 0x8800) {T_DATA_0(address - 0x8000) = value;}
-    else if (address < 0x9000) {T_DATA_0(address - 0x8000) = value;T_DATA_1(address - 0x8800) = value;}
-    else if (address < 0x9800) {T_DATA_1(address - 0x8800) = value;}
-    else if (address < 0x9C00) {T_MAP_0(address - 0x9800) = value;}
-    else {T_MAP_1(address - 0x9C00) = value;}
-  }
+  else if (address < _ERAM) {MEM(address) = value;}
   //write to external rambank
   else if (address < _WRAM) {write_cart(address,value);}
   //write to wram
@@ -103,13 +95,12 @@ void write_byte(uint16 address, uint8 value)
   //write to echo space then copy to wram
   else if (address < _OAM) {MEM(address) = value;address -= 0x2000;write_byte(address,value);}
   //write to oam
-  else if (address < _UNUSED) {MEM(address) = value;OAM(address) = value;}
+  else if (address < _UNUSED) {MEM(address) = value;}
   //shouldn't actually be used
   else if (address < _IO) {MEM(address) = value;}
   //write to io hw registers
   else if (address < _HRAM)
   {
-    MEM(address) = value;
     IO(address) = value;
     if (address == _DMA && value <= 0xF1)
     {

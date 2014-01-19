@@ -8,6 +8,7 @@ extern cpu init_cpu(void);
 //emulate function takes no variables
 //only uses global gb struct pointer
 extern int emulate(void);
+void interrupt(uint8);
 
 static const uint16 DAATable[] = {
   0x0080,0x0100,0x0200,0x0300,0x0400,0x0500,0x0600,0x0700,
@@ -341,8 +342,8 @@ static uint8 cycles[0x0100] =
   if (cond) RET
 
 #define RETI \
-  POP(_PCBh,_PCBl)
-//unfinished
+  POP(_PCBh,_PCBl);\
+  _IME=1
 
 #define JP(n) \
   _PC = n

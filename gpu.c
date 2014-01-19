@@ -59,3 +59,8 @@ void update_palette(uint8 palette, uint8 value)
     }
   }
 }
+
+void step_gpu(uint8 dt)
+{
+
+}

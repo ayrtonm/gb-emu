@@ -2,6 +2,7 @@
 #include "globals.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>//for log2 function
 
 cpu init_cpu(void)
 {
@@ -20,11 +21,18 @@ int emulate(void)
   uint8 op;
   int clk = 0;
   int dt = 0;
-  int period;
+  int snooze;
   for (;;)
   {
+    if (_IME)
+    {
+      if (INTE & IO(_IF) & INT_VBL) interrupt(INT_VBL);
+      else if (INTE & IO(_IF) & INT_LCD) interrupt(INT_LCD);
+      else if (INTE & IO(_IF) & INT_TIM) interrupt(INT_TIM);
+      else if (INTE & IO(_IF) & INT_SER) interrupt(INT_SER);
+      else if (INTE & IO(_IF) & INT_JOY) interrupt(INT_JOY);
+    }
     op = READ_BYTE(_PC);
-//    printf("PC:[0x%x]=0x%x,AF:0x%x,BC:0x%x,DE:0x%x,HL:0x%x,SP:0x%x\n",_PC,op,_AF,_BC,_DE,_HL,_SP);
     if (op == 0xCB)
     {
       _PC++;
@@ -46,5 +54,22 @@ int emulate(void)
       }
     }
     clk += dt;
+    if (snooze > 0)
+    {
+      snooze -= dt;
+      if (snooze <= 0)
+      {
+        write_byte(_IF,SET(INT_VBL,IO(_IF)));
+        if (IO(_LCDSTAT & 0x10)) write_byte(_IF,SET(INT_LCD,IO(_IF)));
+      }
+    }
+    if (IO(_LCDC & 0x80)) step_gpu(dt);
   }
+}
+
+void interrupt(uint8 which)
+{
+  write_byte(_IF,CLEAR(which,IO(_IF)));
+  PUSH(_PCBh,_PCBl);
+  _PC = 0x40 + ((int)(log2(which)) << 3);
 }

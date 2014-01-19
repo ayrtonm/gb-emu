@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
   {
     gameboy = malloc(sizeof(gb));
     gameboy->cpu = init_cpu();
-    gameboy->screen = init_gpu();
+    gameboy->gpu = init_gpu();
     uint8 *cart = load_cart(argv[2]);
     gameboy->mbc = parse_header(cart);
     gameboy->mem = init_mem();

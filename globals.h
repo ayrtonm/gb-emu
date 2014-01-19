@@ -53,12 +53,18 @@ typedef struct mem
   uint8 map[0x010000];
 } mem;
 
+typedef struct gpu
+{
+  SDL_Surface *screen;
+  int snooze;
+} gpu;
+
 typedef struct gb
 {
   cpu cpu;
   mbc mbc;
   mem mem;
-  SDL_Surface *screen;
+  gpu gpu;
 } gb;
 
 //global gb struct pointer
@@ -100,6 +106,12 @@ gb *gameboy;
 #define INT_TIM 0x04
 #define INT_SER 0x08
 #define INT_JOY 0x10
+
+//lcd modes
+#define MODE_VBLANK
+#define MODE_HBLANK
+#define MODE_OAM
+#define MODE_VRAM
 
 //immediate memory
 #define IMM8	(READ_BYTE(_PC-1))

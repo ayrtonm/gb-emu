@@ -51,8 +51,8 @@ typedef struct mbc
 typedef struct mem
 {
   uint8 map[0x010000];
-  uint8 tile_data_0[0x0C00];
-  uint8 tile_data_1[0x0C00];
+  uint8 tile_data_0[0x1000];
+  uint8 tile_data_1[0x1000];
   uint8 tile_map_0[0x0400];
   uint8 tile_map_1[0x0400];
   uint8 oam[0xA0];
@@ -106,12 +106,20 @@ gb *gameboy;
 
 //memory shortcuts
 #define MEM(x)		(gameboy->mem.map[x])
+//0x8000 - 0x8FFF
 #define T_DATA_0(x)	(gameboy->mem.tile_data_0[x])
+//0x8800 - 0x97FF
 #define T_DATA_1(x)	(gameboy->mem.tile_data_1[x])
+//0x9800 - 0x9BFF
 #define T_MAP_0(x)	(gameboy->mem.tile_map_0[x])
+//0x9C00 - 0x9FFF
 #define T_MAP_1(x)	(gameboy->mem.tile_map_1[x])
-#define IO(x)		(gameboy->mem.io[x])
-#define OAM(x)		(gameboy->mem.oam[x])
+//the LOW(x) doesn't prevent overflows in either case,
+//but it does allow you to use the io register address
+//macros below which actually make the following
+//two shortcuts useful
+#define IO(x)		(gameboy->mem.io[LOW(x)])
+#define OAM(x)		(gameboy->mem.oam[LOW(x)])
 
 //mbc shortcuts
 #define CART(x)		(gameboy->mbc.cart[x])

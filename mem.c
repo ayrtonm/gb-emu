@@ -82,14 +82,57 @@ mem init_mem(void)
 
 void write_byte(uint16 address, uint8 value)
 {
-  MEM(address) = value;
+  //write to rom
+  if (address < _BANK) {write_cart(address,value);}
+  //write to external rombank
+  else if (address < _VRAM) {write_cart(address,value);}
+  //write to vram(unfinished)
+  else if (address < _ERAM)
+  {
+    MEM(address) = value;
+    if (address < 0x8800) {T_DATA_0(address - 0x8000) = value;}
+    else if (address < 0x9000) {T_DATA_0(address - 0x8000) = value;T_DATA_1(address - 0x8800) = value;}
+    else if (address < 0x9800) {T_DATA_1(address - 0x8800) = value;}
+    else if (address < 0x9C00) {T_MAP_0(address - 0x9800) = value;}
+    else {T_MAP_1(address - 0x9C00) = value;}
+  }
+  //write to external rambank
+  else if (address < _WRAM) {write_cart(address,value);}
+  //write to wram
+  else if (address < _ECHO) {MEM(address) = value;}
+  //write to echo space then copy to wram
+  else if (address < _OAM) {MEM(address) = value;address -= 0x2000;write_byte(address,value);}
+  //write to oam
+  else if (address < _UNUSED) {MEM(address) = value;OAM(address) = value;}
+  //shouldn't actually be used
+  else if (address < _IO) {MEM(address) = value;}
+  //write to io hw registers
+  else if (address < _HRAM)
+  {
+    MEM(address) = value;
+    IO(address) = value;
+    if (address == _DMA && value <= 0xF1)
+    {
+      int i;
+      for (i = 0; i < 0xA0; i++)
+      {
+        write_byte(0xFE00 + i,READ_BYTE((value << 8) + i));
+      }
+    }
+    else if (address == _BGP) {update_palette(2,value);}
+    else if (address == _OBP0) {update_palette(0,value);}
+    else if (address == _OBP1) {update_palette(1,value);}
+  }
+  //write to hram(stack)
+  else if (address < _IE) {MEM(address) = value;}
 }
 void write_cart(uint16 address, uint8 value)
 {
-
+  if (VERSION == 0) {return;}
+  else if (VERSION == 1) {return;}
 }
 void write_word(uint16 address, uint16 value)
 {
-  write_byte(address,value & 0x00FF);
-  write_byte(address+1,value >> 8);
+  write_byte(address,LOW(value));
+  write_byte(address+1,HIGH(value));
 }

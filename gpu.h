@@ -5,6 +5,8 @@
 extern SDL_Surface *init_gpu(void);
 extern void step_gpu(void);
 extern void update_palette(uint8,uint8);
+//draw_screen() should only be called from step_gpu()
+void draw_screen(void);
 
 //useful abstractions for handling palettes
 Uint32 pal_obp0[4];

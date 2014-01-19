@@ -56,7 +56,11 @@ typedef struct mem
 typedef struct lcd
 {
   SDL_Surface *screen;
+  uint16 linebuffer[160];
+  uint16 linemix[160];
   int snooze;
+  int clk;
+  int ly;//this is a clock not the ly register
 } lcd;
 
 typedef struct gb
@@ -65,6 +69,10 @@ typedef struct gb
   mbc mbc;
   mem mem;
   lcd lcd;
+  int timer_on;
+  int timer_clk;
+  int timer_period;
+  int div_clk;
 } gb;
 
 //global gb struct pointer
@@ -102,16 +110,35 @@ gb *gameboy;
 
 //interrupts
 #define INT_VBL	0x01
-#define INT_LCD 0x02
-#define INT_TIM 0x04
-#define INT_SER 0x08
-#define INT_JOY 0x10
+#define INT_LCD	0x02
+#define INT_TIM	0x04
+#define INT_SER	0x08
+#define INT_JOY	0x10
 
 //lcd modes
-#define MODE_VBLANK
-#define MODE_HBLANK
-#define MODE_OAM
-#define MODE_VRAM
+#define MODE_HBLANK	0x00
+#define MODE_VBLANK	0x01
+#define MODE_OAM	0x02
+#define MODE_VRAM	0x03
+//mode shortcut
+#define LCD_MODE	(IO(_LCDSTAT) & 0x03)
+#define SET_MODE_HBLANK	CLEAR(0x03,IO(_LCDSTAT))
+#define SET_MODE_VBLANK	SET(0x01,IO(_LCDSTAT));CLEAR(0x02,IO(_LCDSTAT))
+#define SET_MODE_OAM	SET(0x02,IO(_LCDSTAT));CLEAR(0x01,IO(_LCDSTAT))
+#define SET_MODE_VRAM	SET(0x03,IO(_LCDSTAT))
+
+//periods
+#define T_LY_INC	144
+#define T_LCDMODE_0	51
+#define T_LCDMODE_1	1140
+#define T_LCDMODE_2	20
+#define T_LCDMODE_3	43
+//timer period modes are completely unrelated to lcd modes
+#define T_TIMEMODE_0	256
+#define T_TIMEMODE_1	4
+#define T_TIMEMODE_2	16
+#define T_TIMEMODE_3	64
+#define T_DIV		64
 
 //immediate memory
 #define IMM8	(READ_BYTE(_PC-1))
@@ -126,11 +153,12 @@ gb *gameboy;
 //oam can be used the same way except with sprite data
 //instead of tile data
 #define MEM(x)		(gameboy->mem.map[x])
-//0x8000 - 0x8FFF
+//next two macros return uint16 because it's more convenient in lcd.c
 //the last half of T_DATA_0 and the first half of T_DATA_1 overlap
-#define T_DATA_0(x)	(gameboy->mem.map[x+0x8000])
+//0x8000 - 0x8FFF
+#define T_DATA_0(x)	(READ_WORD(x+0x8000))
 //0x8800 - 0x97FF
-#define T_DATA_1(x)	(gameboy->mem.map[x+0x8800])
+#define T_DATA_1(x)	(READ_WORD(x+0x8800))
 //0x9800 - 0x9BFF
 #define T_MAP_0(x)	(gameboy->mem.map[x+0x9800])
 //0x9C00 - 0x9FFF

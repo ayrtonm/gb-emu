@@ -102,7 +102,37 @@ void write_byte(uint16 address, uint8 value)
   else if (address < _HRAM)
   {
     IO(address) = value;
-    if (address == _DMA && value <= 0xF1)
+    if (address == _JOYP) {}
+    else if (address == _DIV) {IO(address) = 0;}
+    else if (address == _TAC)
+    {
+      if (IO(_TAC & 0x04)) {gameboy->timer_on = 1;}
+      else {gameboy->timer_on = 0;}
+      switch (IO(_TAC) & 0x03)
+      {
+        case 0: gameboy->timer_clk = gameboy->timer_period = T_TIMEMODE_0;
+        case 1: gameboy->timer_clk = gameboy->timer_period = T_TIMEMODE_1;
+        case 2: gameboy->timer_clk = gameboy->timer_period = T_TIMEMODE_2;
+        case 3: gameboy->timer_clk = gameboy->timer_period = T_TIMEMODE_3;
+      }
+    }
+    else if (address == _LCDC)
+    {
+      //if lcd disp enable bit is changed
+      if ((IO(_LCDC) & 0x80) ^ (value & 0x80))
+      {
+        gameboy->lcd.clk = T_LCDMODE_1;
+        SET_MODE_HBLANK;
+        IO(_LY) = 0x00;
+      }
+      else
+      {
+        gameboy->lcd.clk = 0;
+        SET_MODE_HBLANK;
+        IO(_LY) = 0x00;
+      }
+    }
+    else if (address == _DMA && value <= 0xF1)
     {
       int i;
       for (i = 0; i < 0xA0; i++)

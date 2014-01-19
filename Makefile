@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -g #-O3
-SRCS = main.c mem.c cpu.c gpu.c debug.c
+SRCS = main.c mem.c cpu.c lcd.c debug.c
 OBJS = $(SRCS:.c=.o)
 LIBS = -lSDL -lm
 MAIN = main

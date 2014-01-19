@@ -53,18 +53,18 @@ typedef struct mem
   uint8 map[0x010000];
 } mem;
 
-typedef struct gpu
+typedef struct lcd
 {
   SDL_Surface *screen;
   int snooze;
-} gpu;
+} lcd;
 
 typedef struct gb
 {
   cpu cpu;
   mbc mbc;
   mem mem;
-  gpu gpu;
+  lcd lcd;
 } gb;
 
 //global gb struct pointer

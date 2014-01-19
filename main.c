@@ -1,7 +1,7 @@
 #include "globals.h"
 #include "cpu.h"//initialize cpu struct
 #include "mem.h"//load rom and initialize memory struct
-#include "gpu.h"//initialize screen surface
+#include "lcd.h"//initialize screen surface
 #include "debug.h"//handling arguments no actual debugging yet
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
   {
     gameboy = malloc(sizeof(gb));
     gameboy->cpu = init_cpu();
-    gameboy->gpu = init_gpu();
+    gameboy->lcd = init_lcd();
     uint8 *cart = load_cart(argv[2]);
     gameboy->mbc = parse_header(cart);
     gameboy->mem = init_mem();

@@ -63,7 +63,7 @@ int emulate(void)
         if (IO(_LCDSTAT & 0x10)) write_byte(_IF,SET(INT_LCD,IO(_IF)));
       }
     }
-    if (IO(_LCDC & 0x80)) step_gpu(dt);
+    if (IO(_LCDC & 0x80)) step_lcd(dt);
   }
 }
 

@@ -66,6 +66,9 @@ typedef struct gb
   mbc mbc;
   mem mem;
   lcd lcd;
+  int div_clk;
+  int time_clk;
+  int time_period;
 } gb;
 
 //global gb struct pointer
@@ -113,18 +116,22 @@ gb *gameboy;
 #define MODE_VBLANK	0x01
 #define MODE_OAM	0x02
 #define MODE_VRAM	0x03
-//mode shortcut
+//get mode
 #define LCD_MODE	(IO(_LCDSTAT) & 0x03)
+//set mode
 #define SET_MODE_HBLANK	CLEAR(0x03,IO(_LCDSTAT))
 #define SET_MODE_VBLANK	SET(0x01,IO(_LCDSTAT));CLEAR(0x02,IO(_LCDSTAT))
 #define SET_MODE_OAM	SET(0x02,IO(_LCDSTAT));CLEAR(0x01,IO(_LCDSTAT))
 #define SET_MODE_VRAM	SET(0x03,IO(_LCDSTAT))
 
+//timer shortcuts
+#define TIMER_ON	(IO(_TAC) & 0x04)
+
 //periods
 //time for ly increment during vblank
 #define T_LY_INC	((T_HBLANK)+(T_OAM)+(T_VRAM))
 #define T_HBLANK	204
-//not used (yet?)
+//T_VBLANK not used
 #define T_VBLANK	4560
 #define T_OAM		80
 #define T_VRAM		172

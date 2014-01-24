@@ -55,7 +55,21 @@ int emulate(void)
     }
     clk += dt;
     step_lcd(dt);
-//    printf("on line %d, in mode %x %d\n",IO(_LY),(LCD_MODE),clk);
+    gameboy->div_clk -= dt*4;
+    gameboy->time_clk -= dt*4;
+    if (gameboy->div_clk <= 0)
+    {
+      IO(_DIV)++;
+    }
+    if (gameboy->time_clk <= 0 && TIMER_ON)
+    {
+      IO(_TIMA)++;
+      if (IO(_TIMA) == 0)
+      {
+        IO(_TIMA) = IO(_TMA);
+        write_byte(_IF,SET(INT_TIM,IO(_IF)));//request interrupt
+      }
+    }
   }
 }
 

@@ -105,7 +105,17 @@ void write_byte(uint16 address, uint8 value)
     else if (address == _DIV) {IO(_DIV) = 0;}//write any value resets div register
     else if (address == _TIMA) {IO(_TIMA) = value;}
     else if (address == _TMA) {IO(_TMA) = value;}
-    else if (address == _TAC) {IO(_TAC) = value & 0x07;}//bit 2 - start/stop timer,bit 0-1 - input clock select
+    else if (address == _TAC)//bit 2 - start/stop timer,bit 0-1 - input clock select
+    {
+      IO(_TAC) = value & 0x07;
+      switch(IO(_TAC) & 0x03)
+      {
+        case 0x00: {gameboy->time_period = gameboy->time_clk = T_TIMER_0;break;}
+        case 0x01: {gameboy->time_period = gameboy->time_clk = T_TIMER_1;break;}
+        case 0x02: {gameboy->time_period = gameboy->time_clk = T_TIMER_2;break;}
+        case 0x03: {gameboy->time_period = gameboy->time_clk = T_TIMER_3;break;}
+      }
+    }
     else if (address == _IF) {IO(_IF) = value & 0x1F;}//request interrupt only bits 0-4 used
     else if (address == _LCDC) {IO(_LCDC) = value;}//all can be controlled by user
     else if (address == _LCDSTAT) {IO(_LCDSTAT) = value & 0x78;}//bits 3-6 enable different interrupts, 0-2 read only
@@ -115,9 +125,9 @@ void write_byte(uint16 address, uint8 value)
     else if (address == _LYC) {IO(_LYC);}//"ly compare" arbitrary register that is always compared to ly register
     else if (address == _DMA && value <= 0xF1)//direct memory access transfer
       {int i; for (i = 0; i < 0xA0; i++) {write_byte(0xFE00 + i, READ_BYTE((value << 8) + i));}}
-    else if (address == _BGP) {IO(_BGP) = value;}//background palette
-    else if (address == _OBP0) {IO(_OBP0) = value;}//obj0 palette
-    else if (address == _OBP1) {IO(_OBP1) = value;}//obj1 palette
+    else if (address == _BGP) {IO(_BGP) = value;update_palette(2,value);}//background palette
+    else if (address == _OBP0) {IO(_OBP0) = value;update_palette(0,value);}//obj0 palette
+    else if (address == _OBP1) {IO(_OBP1) = value;update_palette(1,value);}//obj1 palette
     else if (address == _WY) {IO(_WY) = value;}//window y position
     else if (address == _WX) {IO(_WX) = value;}//window x position
   }

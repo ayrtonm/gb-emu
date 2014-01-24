@@ -6,7 +6,7 @@ lcd init_lcd(void)
   lcd g;
   SDL_Init(SDL_INIT_EVERYTHING);
   g.screen = NULL;
-  g.screen = SDL_SetVideoMode(160,140,32,SDL_SWSURFACE);
+  g.screen = SDL_SetVideoMode(160,144,32,SDL_SWSURFACE);
   g.clk = 0;
   return g;
 }
@@ -86,6 +86,7 @@ void step_lcd(uint8 dt)
   {
     case MODE_HBLANK:
     {
+      compareLYtoLYC();
       if (IO(_LY) < 143)
       {
         if (gameboy->lcd.clk <= 0)
@@ -100,6 +101,7 @@ void step_lcd(uint8 dt)
         if (gameboy->lcd.clk <= 0)
         {
           IO(_LY)++;
+          interrupt(INT_VBL);
           SET_MODE_VBLANK;
           gameboy->lcd.clk += T_LY_INC;
         }
@@ -108,6 +110,7 @@ void step_lcd(uint8 dt)
     }
     case MODE_VBLANK:
     {
+      compareLYtoLYC();
       if (IO(_LY) < 153)
       {
         if (gameboy->lcd.clk <= 0)
@@ -129,6 +132,7 @@ void step_lcd(uint8 dt)
     }
     case MODE_OAM:
     {
+      compareLYtoLYC();
       if (gameboy->lcd.clk <= 0)
       {
         SET_MODE_VRAM;
@@ -138,10 +142,11 @@ void step_lcd(uint8 dt)
     }
     case MODE_VRAM:
     {
+      compareLYtoLYC();
       if (gameboy->lcd.clk <= 0)
       {
-        printf("drawing line %d\n",IO(_LY));
         draw_bkg();
+        draw_sprites();
         int i;
         Uint32 color;
         Uint32 *pixels = (Uint32 *)gameboy->lcd.screen->pixels;
@@ -220,11 +225,15 @@ void draw_sprites(void)
     int address = 0;
     for (i = 0; i < 40; i++)
     {
-      y = OAM(address++);
-      x = OAM(address++);
-      int tile = OAM(address++);
+      y = OAM(address);
+      address++;
+      x = OAM(address);
+      address++;
+      int tile = OAM(address);
+      address++;
       if (size) tile &= 254;
-      int flags = OAM(address++);
+      int flags = OAM(address);
+      address++;
       if (x > 0 && y > 0 && x < 168 && y < 160)
       {
         int t = yc - y + 16;

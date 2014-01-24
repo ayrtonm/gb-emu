@@ -27,7 +27,7 @@ void compareLYtoLYC(void)
     IO(_LCDSTAT) &= 0xFB;
   }
 }
-//logic verified in update_palette
+
 void update_palette(uint8 palette, uint8 value)
 {
   int i,j;
@@ -82,90 +82,94 @@ void update_palette(uint8 palette, uint8 value)
 void step_lcd(uint8 dt)
 {
   gameboy->lcd.clk -= 4*dt;
-  switch(LCD_MODE)
+  if (gameboy->lcd.clk <= 0)
   {
-    case MODE_HBLANK:
+    switch(LCD_MODE)
     {
-      compareLYtoLYC();
-      if (IO(_LY) < 143)
+      case MODE_HBLANK:
       {
-        if (gameboy->lcd.clk <= 0)
+        IO(_LY)++;
+        compareLYtoLYC();
+        if (IO(_LY) < 144)
         {
-          IO(_LY)++;
           SET_MODE_OAM;
           gameboy->lcd.clk += T_OAM;
+/*
+          if ((!(IO(_LCDSTAT) & 0x40)) || (IO(_LY) != IO(_LYC)))
+          {
+            if (IO(_LCDSTAT) & 0x28 == 0x20) REQUEST_INT(INT_LCD);
+          }
+*/
         }
-      }
-      else //if (IO(_LY) == 143) on last line of screen
-      {
-        if (gameboy->lcd.clk <= 0)
+        else //if (IO(_LY) == 144) on last line of screen
         {
-          IO(_LY)++;
-          interrupt(INT_VBL);
+          //not needed?
+          //interrupt(INT_VBL);
           SET_MODE_VBLANK;
           gameboy->lcd.clk += T_LY_INC;
         }
+        break;
       }
-      break;
-    }
-    case MODE_VBLANK:
-    {
-      compareLYtoLYC();
-      if (IO(_LY) < 153)
+      case MODE_VBLANK:
       {
-        if (gameboy->lcd.clk <= 0)
+        compareLYtoLYC();
+        if (IO(_LY) < 154)
         {
           IO(_LY)++;
           gameboy->lcd.clk += T_LY_INC;
         }
-      }
-      else //if (IO(_LY) == 153) on last line of vblank
-      {
-        if (gameboy->lcd.clk <= 0)
+        else //if (IO(_LY) == 154) on last line of vblank
         {
-          IO(_LY) = 0;
+          IO(_LY) = 1;
           SET_MODE_OAM;
           gameboy->lcd.clk += T_OAM;
+/*
+          if ((!(IO(_LCDSTAT) & 0x40)) || (IO(_LY) != IO(_LYC)))
+          {
+            if (IO(_LCDSTAT) & 0x28 == 0x20) REQUEST_INT(INT_LCD);
+          }
+*/
         }
+        break;
       }
-      break;
-    }
-    case MODE_OAM:
-    {
-      compareLYtoLYC();
-      if (gameboy->lcd.clk <= 0)
+      case MODE_OAM:
       {
         SET_MODE_VRAM;
         gameboy->lcd.clk += T_VRAM;
+        break;
       }
-      break;
-    }
-    case MODE_VRAM:
-    {
-      compareLYtoLYC();
-      if (gameboy->lcd.clk <= 0)
+      case MODE_VRAM:
       {
-        draw_bkg();
+        compareLYtoLYC();
+        draw_line();
         draw_sprites();
         int i;
         Uint32 color;
         Uint32 *pixels = (Uint32 *)gameboy->lcd.screen->pixels;
         for (i = 0; i < 160; i++)
         {
+#ifdef DEBUG
+          mvprintw(18,0,"coloring pixel at (%d,%d)",i,IO(_LY));refresh();usleep(10000);
+#endif
           color = pal_bgp[gameboy->lcd.linebuffer[i]];
           pixels[(IO(_LY) * gameboy->lcd.screen->w) + i] = color;
         }
+/*
+        if ((!(IO(_LCDSTAT) & 0x40)) || (IO(_LY) != IO(_LYC)))
+        {
+          if (IO(_LCDSTAT) & 0x28 == 0x20) REQUEST_INT(INT_LCD);
+        }
+*/
         SET_MODE_HBLANK;
         gameboy->lcd.clk = T_HBLANK;
+        break;
       }
-      break;
     }
   }
 }
 
-//somewhat verified "should" just work
-void draw_bkg(void)
-{
+void draw_line(void)
+{/*
   //'vertical' offset in tile map
   uint16 mapoffs = ((IO(_LY) + IO(_SCY)) & 0xFF) >> 3;
 
@@ -180,7 +184,7 @@ void draw_bkg(void)
   uint8 y = (IO(_LY) + IO(_SCY)) & 7;
 
   //fix tile data for certain tile set
-  if (!(IO(_LCDC) & 0x10)) index += 0xFF;
+  //if (!(IO(_LCDC) & 0x10)) index += 0xFF;
 
   int i;
   for (i = 0; i < 160; i++)
@@ -206,12 +210,13 @@ void draw_bkg(void)
       index = (IO(_LCDC) & 0x08 ? T_MAP_1(mapoffs+lineoffs) : T_MAP_0(mapoffs+lineoffs));
       if (!(IO(_LCDC) & 0x10)) index += 0xFF;
     }
-  }
+  }*/
+  int i;
+  for (i = 0; i < 160; i++) gameboy->lcd.linebuffer[i] = i & 0x03;
 }
 
-//hopefully this is correct
 void draw_sprites(void)
-{
+{/*
   int i;
   int x = 0;
   int y = 0;
@@ -250,9 +255,9 @@ void draw_sprites(void)
       }
       if (count >= 10) break;
     }
-  }
+  }*/
 }
-//DOUBLE CHECK EVERYTHING HERE
+
 void draw_sprite_tile(int tile, int x, int y, int t, int flags, int size, int number)
 {
   Uint32 *pal = pal_obp0;

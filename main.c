@@ -14,7 +14,7 @@ void print_help(void)
   printf("  -cb  [opcode]   test the given 0xCB opcode\n");
   printf("  -r   [filename] load the given file and start the emulator\n");
   printf("  -i              interactive debug mode\n");
-  printf("note: test opcode and interactive debug mode aren't currently supported\n");
+  printf("note: test opcode mode is currently unsupported\n");
 }
 
 uint16 handle_args(int argc, char *argv[])
@@ -26,8 +26,8 @@ uint16 handle_args(int argc, char *argv[])
     if (!strcmp(argv[i],"-h")) {return 0;}
     //remove next line if adding opcode test and interactive debug mode
     else if (argc < 3) {return 0;}
-/*    else if (!strcmp(argv[i],"-i")) {return 2;}
-    else if (argc < 3) {return 0;}
+    else if (!strcmp(argv[i],"-i")) {return 2;}
+/*    else if (argc < 3) {return 0;}
     else if (!strcmp(argv[i],"-t"))
     {
       uint8 opcode = convert_hex(argv[i+1]);
@@ -57,6 +57,7 @@ int main(int argc, char *argv[])
     uint8 *cart = load_cart(argv[2]);
     gameboy->mbc = parse_header(cart);
     gameboy->mem = init_mem();
+    gameboy->time_period = 
     emulate();
   }
   return 0;

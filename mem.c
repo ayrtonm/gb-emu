@@ -73,7 +73,17 @@ mem init_mem(void)
   mem m;
   for (i = _VRAM; i < 0x010000; i++) m.map[i] = 0;
   for (i = 0; i < _VRAM; i++) m.map[i] = CART(i);
+  m.map[_TIMA] = 0x00;
+  m.map[_TMA] = 0x00;
+  m.map[_TAC] = 0x00;
   m.map[_LCDC] = 0x91;
+  m.map[_SCY] = 0x00;
+  m.map[_SCX] = 0x00;
+  m.map[_LY] = 0x00;
+  m.map[_LYC] = 0x00;
+  m.map[_WY] = 0x00;
+  m.map[_WX] = 0x00;
+  m.map[_IE] = 0x00;
   m.map[_BGP] = 0xFC;
   m.map[_OBP0] = 0xFF;
   m.map[_OBP1] = 0xFF;

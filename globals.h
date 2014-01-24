@@ -105,6 +105,7 @@ gb *gameboy;
 #define _IME	(gameboy->cpu.IME)
 
 //interrupts
+#define REQUEST_INT(x)	write_byte(_IF,SET(x,IO(_IF)))
 #define INT_VBL	0x01
 #define INT_LCD	0x02
 #define INT_TIM	0x04

@@ -7,20 +7,27 @@ lcd init_lcd(void)
   SDL_Init(SDL_INIT_EVERYTHING);
   g.screen = NULL;
   g.screen = SDL_SetVideoMode(160,140,32,SDL_SWSURFACE);
+  g.clk = 0;
   return g;
 }
 void compareLYtoLYC(void)
 {
+  //if equal
   if (IO(_LY) == IO(_LYC))
   {
-    IO(_LCDSTAT) |= 4;
+    //set coincidence bit
+    IO(_LCDSTAT) |= 0x04;
+    //if interrupt enabled
     if (IO(_LCDSTAT) & 0x40) IO(_IF) |= INT_LCD;
   }
+  //if not equal
   else
   {
+    //clear coincidence bit
     IO(_LCDSTAT) &= 0xFB;
   }
 }
+//logic verified in update_palette
 void update_palette(uint8 palette, uint8 value)
 {
   int i,j;
@@ -74,99 +81,85 @@ void update_palette(uint8 palette, uint8 value)
 
 void step_lcd(uint8 dt)
 {
-  gameboy->lcd.clk -= dt;
-  if (LCD_MODE == MODE_VBLANK)
+  gameboy->lcd.clk -= 4*dt;
+  switch(LCD_MODE)
   {
-    gameboy->lcd.ly -= dt;
-    while (gameboy->lcd.ly <= 0)
+    case MODE_HBLANK:
     {
-      gameboy->lcd.ly += T_LY_INC;
+      if (IO(_LY) < 143)
+      {
+        if (gameboy->lcd.clk <= 0)
+        {
+          IO(_LY)++;
+          SET_MODE_OAM;
+          gameboy->lcd.clk += T_OAM;
+        }
+      }
+      else //if (IO(_LY) == 143) on last line of screen
+      {
+        if (gameboy->lcd.clk <= 0)
+        {
+          IO(_LY)++;
+          SET_MODE_VBLANK;
+          gameboy->lcd.clk += T_LY_INC;
+        }
+      }
+      break;
+    }
+    case MODE_VBLANK:
+    {
       if (IO(_LY) < 153)
       {
-        IO(_LY)++;
-        compareLYtoLYC();
-        if (IO(_LY) >= 153) gameboy->lcd.ly =6;
+        if (gameboy->lcd.clk <= 0)
+        {
+          IO(_LY)++;
+          gameboy->lcd.clk += T_LY_INC;
+        }
       }
-      else
+      else //if (IO(_LY) == 153) on last line of vblank
       {
-        IO(_LY) = 0x00;
-        //reset the window line
-        gameboy->lcd.ly = T_LY_INC * 2;
-        compareLYtoLYC();
+        if (gameboy->lcd.clk <= 0)
+        {
+          IO(_LY) = 0;
+          SET_MODE_OAM;
+          gameboy->lcd.clk += T_OAM;
+        }
       }
+      break;
     }
-  }
-  while (gameboy->lcd.clk <= 0)
-  {
-    switch(LCD_MODE)
+    case MODE_OAM:
     {
-      case MODE_HBLANK:
+      if (gameboy->lcd.clk <= 0)
       {
-        IO(_LY)++;
-        compareLYtoLYC();
-
-        //check if reached the Vblank period
-        if (IO(_LY) == T_LY_INC)
-        {
-          //in Vblank
-          gameboy->lcd.ly = gameboy->lcd.clk + T_LY_INC;
-          gameboy->lcd.clk += T_LCDMODE_1;
-          SET_MODE_VBLANK;
-          if (IO(_LCDC) & 0x80)
-          {
-            gameboy->lcd.snooze = 6;
-          }
-          else
-          {
-            gameboy->lcd.clk += T_LCDMODE_2;
-            SET_MODE_HBLANK;
-            if (!(IO(_LCDSTAT) & 0x40) || (IO(_LY) != IO(_LYC)))
-            {
-              if ((IO(_LCDSTAT) & 0x28) == 0x20) IO(_IF) |= 2;
-            }
-          }
-        }
-      }
-      break;
-      case MODE_VBLANK:
-      {
-        gameboy->lcd.clk += T_LCDMODE_2;
-        SET_MODE_OAM;
-        if (!(IO(_LCDSTAT) & 0x40) ||  (IO(_LY) != IO(_LYC)))
-        {
-          if ((IO(_LCDSTAT) & 0x28) == 0x20) IO(_IF) |= 2;
-        }
-      }
-      break;
-      case MODE_OAM:
-      {
-        gameboy->lcd.clk += T_LCDMODE_3;
         SET_MODE_VRAM;
+        gameboy->lcd.clk += T_VRAM;
       }
       break;
-      case MODE_VRAM:
+    }
+    case MODE_VRAM:
+    {
+      if (gameboy->lcd.clk <= 0)
       {
-        if (IO(_LY) < 144)
+        printf("drawing line %d\n",IO(_LY));
+        draw_bkg();
+        int i;
+        Uint32 color;
+        Uint32 *pixels = (Uint32 *)gameboy->lcd.screen->pixels;
+        for (i = 0; i < 160; i++)
         {
-          draw_line();
-          draw_sprites();
+          color = pal_bgp[gameboy->lcd.linebuffer[i]];
+          pixels[(IO(_LY) * gameboy->lcd.screen->w) + i] = color;
         }
         SET_MODE_HBLANK;
-        if (!(IO(_LCDSTAT) & 0x40) ||  (IO(_LY) != IO(_LYC)))
-        {
-          if ((IO(_LCDSTAT) & 0x28) == 0x20) IO(_IF) |= 2;
-        }
-        else
-        {
-          gameboy->lcd.clk += T_LCDMODE_0;
-        }
+        gameboy->lcd.clk = T_HBLANK;
       }
       break;
     }
   }
 }
 
-void draw_line(void)
+//somewhat verified "should" just work
+void draw_bkg(void)
 {
   //'vertical' offset in tile map
   uint16 mapoffs = ((IO(_LY) + IO(_SCY)) & 0xFF) >> 3;
@@ -194,11 +187,8 @@ void draw_line(void)
     //then add the 2 bits
     uint8 pixel = ((LOW(tile) & BIT(x)) << 1) + (HIGH(tile) & BIT(x));
 
-    //load palette
-    Uint32 color = pal_bgp[pixel];
-    //draw pixel
-    Uint32 *pixels = (Uint32 *)gameboy->lcd.screen->pixels;
-    pixels[(IO(_LY)*gameboy->lcd.screen->w)+i] = color;
+    //write to linebuffer
+    gameboy->lcd.linebuffer[i] = pal_bgp[pixel];
 
     //increment x pixel within tile
     x++;
@@ -213,6 +203,8 @@ void draw_line(void)
     }
   }
 }
+
+//hopefully this is correct
 void draw_sprites(void)
 {
   int i;
@@ -251,10 +243,10 @@ void draw_sprites(void)
     }
   }
 }
-
+//DOUBLE CHECK EVERYTHING HERE
 void draw_sprite_tile(int tile, int x, int y, int t, int flags, int size, int number)
 {
-  uint8 *pal = pal_obp0;
+  Uint32 *pal = pal_obp0;
   uint8 c;
   if (flags & 0x10) pal = pal_obp1;
   int flipx = (flags & 0x20);
@@ -265,35 +257,28 @@ void draw_sprite_tile(int tile, int x, int y, int t, int flags, int size, int nu
   }
   int priority = (flags & 0x80);
   int address = tile * 16 + 2 * t;
+  int a = 0;
+  int b = 0;
+  a = T_DATA_0(address++);
+  b = T_DATA_0(address++);
   int xx;
+  //x is tile x coordinate
+  //xx is x coordinate within tile
+  //xxx is x + xx
   for (xx = 0; xx < 8; xx++)
   {
     uint8 mask = 1 << (7 - xx);
+    uint8 c = 0;
+    if ((a & mask)) c++;
+    if ((b & mask)) c += 2;
+    if (c == 0) continue;
+
     int xxx = xx+x;
     if (flipx)
     {
       xxx = (7 - xx + x);
     }
     if (xxx < 0 || xxx > 159) continue;
-    uint16 color = gameboy->lcd.linebuffer[xxx];
-    if (priority)
-    {
-      if (color < 0x200 && (color & 0xFF) != 0) continue;
-    }
-    if (color >= 0x300 && color != 0x300) continue;
-    else if (color >= 0x200 && color < 0x300)
-    {
-      int sprite = color & 0xFF;
-      int spritex = OAM(4 * sprite + 1) - 8;
-      if (spritex == x)
-      {
-        if (sprite < number) continue;
-        else if (spritex < x+8) continue;
-      }
-    }
-    gameboy->lcd.linebuffer[xxx] = 0x200 + number;
-    c = pal[c];
-    c += 4;
-    gameboy->lcd.linemix[xxx] = c;
+    gameboy->lcd.linebuffer[xxx] = pal[c];
   }
 }

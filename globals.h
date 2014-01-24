@@ -56,11 +56,8 @@ typedef struct mem
 typedef struct lcd
 {
   SDL_Surface *screen;
-  uint16 linebuffer[160];
-  uint16 linemix[160];
-  int snooze;
+  uint8 linebuffer[160];
   int clk;
-  int ly;//this is a clock not the ly register
 } lcd;
 
 typedef struct gb
@@ -69,10 +66,6 @@ typedef struct gb
   mbc mbc;
   mem mem;
   lcd lcd;
-  int timer_on;
-  int timer_clk;
-  int timer_period;
-  int div_clk;
 } gb;
 
 //global gb struct pointer
@@ -128,17 +121,21 @@ gb *gameboy;
 #define SET_MODE_VRAM	SET(0x03,IO(_LCDSTAT))
 
 //periods
-#define T_LY_INC	144
-#define T_LCDMODE_0	51
-#define T_LCDMODE_1	1140
-#define T_LCDMODE_2	20
-#define T_LCDMODE_3	43
+//time for ly increment during vblank
+#define T_LY_INC	((T_HBLANK)+(T_OAM)+(T_VRAM))
+#define T_HBLANK	204
+//not used (yet?)
+#define T_VBLANK	4560
+#define T_OAM		80
+#define T_VRAM		172
+
 //timer period modes are completely unrelated to lcd modes
-#define T_TIMEMODE_0	256
-#define T_TIMEMODE_1	4
-#define T_TIMEMODE_2	16
-#define T_TIMEMODE_3	64
-#define T_DIV		64
+#define T_TIMER_0	256	//4096 Hz
+#define T_TIMER_1	4	//262144 Hz
+#define T_TIMER_2	16	//65536 Hz
+#define T_TIMER_3	64	//16384 Hz
+//separate from timers
+#define T_DIV		64	//16384 Hz
 
 //immediate memory
 #define IMM8	(READ_BYTE(_PC-1))

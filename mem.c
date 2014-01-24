@@ -101,48 +101,25 @@ void write_byte(uint16 address, uint8 value)
   //write to io hw registers
   else if (address < _HRAM)
   {
-    IO(address) = value;
-    if (address == _JOYP) {}
-    else if (address == _DIV) {IO(address) = 0;}
-    else if (address == _TAC)
-    {
-      if (IO(_TAC & 0x04)) {gameboy->timer_on = 1;}
-      else {gameboy->timer_on = 0;}
-      switch (IO(_TAC) & 0x03)
-      {
-        case 0: gameboy->timer_clk = gameboy->timer_period = T_TIMEMODE_0;
-        case 1: gameboy->timer_clk = gameboy->timer_period = T_TIMEMODE_1;
-        case 2: gameboy->timer_clk = gameboy->timer_period = T_TIMEMODE_2;
-        case 3: gameboy->timer_clk = gameboy->timer_period = T_TIMEMODE_3;
-      }
-    }
-    else if (address == _LCDC)
-    {
-      //if lcd disp enable bit is changed
-      if ((IO(_LCDC) & 0x80) ^ (value & 0x80))
-      {
-        gameboy->lcd.clk = T_LCDMODE_1;
-        SET_MODE_HBLANK;
-        IO(_LY) = 0x00;
-      }
-      else
-      {
-        gameboy->lcd.clk = 0;
-        SET_MODE_HBLANK;
-        IO(_LY) = 0x00;
-      }
-    }
-    else if (address == _DMA && value <= 0xF1)
-    {
-      int i;
-      for (i = 0; i < 0xA0; i++)
-      {
-        write_byte(0xFE00 + i,READ_BYTE((value << 8) + i));
-      }
-    }
-    else if (address == _BGP) {update_palette(2,value);}
-    else if (address == _OBP0) {update_palette(0,value);}
-    else if (address == _OBP1) {update_palette(1,value);}
+    if (address == _JOYP) {IO(_JOYP) = value & 0x30;}//filter out bits 0-3,6,7
+    else if (address == _DIV) {IO(_DIV) = 0;}//write any value resets div register
+    else if (address == _TIMA) {IO(_TIMA) = value;}
+    else if (address == _TMA) {IO(_TMA) = value;}
+    else if (address == _TAC) {IO(_TAC) = value & 0x07;}//bit 2 - start/stop timer,bit 0-1 - input clock select
+    else if (address == _IF) {IO(_IF) = value & 0x1F;}//request interrupt only bits 0-4 used
+    else if (address == _LCDC) {IO(_LCDC) = value;}//all can be controlled by user
+    else if (address == _LCDSTAT) {IO(_LCDSTAT) = value & 0x78;}//bits 3-6 enable different interrupts, 0-2 read only
+    else if (address == _SCY) {IO(_SCY) = value;}//scroll y
+    else if (address == _SCX) {IO(_SCX) = value;}//scroll x
+    else if (address == _LY) {return;}//vertical line currently being used read only
+    else if (address == _LYC) {IO(_LYC);}//"ly compare" arbitrary register that is always compared to ly register
+    else if (address == _DMA && value <= 0xF1)//direct memory access transfer
+      {int i; for (i = 0; i < 0xA0; i++) {write_byte(0xFE00 + i, READ_BYTE((value << 8) + i));}}
+    else if (address == _BGP) {IO(_BGP) = value;}//background palette
+    else if (address == _OBP0) {IO(_OBP0) = value;}//obj0 palette
+    else if (address == _OBP1) {IO(_OBP1) = value;}//obj1 palette
+    else if (address == _WY) {IO(_WY) = value;}//window y position
+    else if (address == _WX) {IO(_WX) = value;}//window x position
   }
   //write to hram(stack)
   else if (address < _IE) {MEM(address) = value;}

@@ -21,6 +21,7 @@ int emulate(void)
   uint8 op;
   int clk = 0;
   int dt = 0;
+  int i = 0;
   for (;;)
   {
     if (_IME)
@@ -53,49 +54,8 @@ int emulate(void)
       }
     }
     clk += dt;
-    //seems to be stuck on line 151 for some roms and never in mode_vram for others
-    //need to double check lcd.c
-    if (LCD_MODE == MODE_VRAM) {printf("in vram mode, line = %d\n",IO(_LY));getchar();}
-    gameboy->div_clk -= dt;
-    while(gameboy->div_clk <= 0)
-    {
-      IO(_DIV)++;
-      gameboy->div_clk += T_DIV;
-    }
-    if (gameboy->lcd.snooze > 0)
-    {
-      gameboy->lcd.snooze -= dt;
-      if (gameboy->lcd.snooze <= 0)
-      {
-        IO(_IF) |= INT_VBL;
-        if (IO(_LCDSTAT & 0x10)) IO(_IF) |= INT_LCD;
-      }
-    }
-    if (IO(_LCDC) & 0x80) step_lcd(dt);
-    if (gameboy->timer_on)
-    {
-      gameboy->timer_clk -= dt;
-      while (gameboy->timer_clk <= 0)
-      {
-        IO(_TIMA)++;
-        if (!IO(_TIMA))
-        {
-          //timer overflow
-          IO(_TIMA) = IO(_TMA);
-          IO(_IF) |= INT_TIM;
-        }
-        gameboy->timer_clk += gameboy->timer_period;
-      }
-    }
-    int y,x;
-    for (y = 0; y < 144; y++)
-    {
-      Uint32 *pixels = (Uint32 *)gameboy->lcd.screen->pixels + y*gameboy->lcd.screen->w;
-      for (x = 0; x < 160; x++)
-      {
-        pixels[x] = 
-      }
-    }
+    step_lcd(dt);
+//    printf("on line %d, in mode %x %d\n",IO(_LY),(LCD_MODE),clk);
   }
 }
 

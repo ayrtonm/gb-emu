@@ -76,6 +76,7 @@ int emulate(void)
 void interrupt(uint8 which)
 {
   write_byte(_IF,CLEAR(which,IO(_IF)));
+  _IME = 0;
   PUSH(_PCBh,_PCBl);
   _PC = 0x40 + ((int)(log2(which)) << 3);
 }

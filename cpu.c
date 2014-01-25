@@ -17,6 +17,7 @@ cpu init_cpu(void)
   c.HL.W = 0x014D;
   c.SP.W = 0xFFFE;
   c.PC.W = 0x0100;
+  c.IME = 1;
   return c;
 }
 
@@ -29,12 +30,14 @@ int emulate(void)
   noecho();
   char c;
   int i = -1;
+  int j = -1;
   char *modes[4] = {"HBLANK","VBLANK","OAM","VRAM"};
 #endif
 
   uint8 op;
   int clk = 0;
   int dt = 0;
+  SDL_Event event;
   for (;;)
   {
 #ifdef DEBUG
@@ -58,12 +61,21 @@ int emulate(void)
   mvprintw(15,0,"TIMER CLK = %d",gameboy->time_clk);
   mvprintw(16,0,"TIMER PERIOD = %d",gameboy->time_period);
   mvprintw(17,0,"CLK = %d",clk);
+  mvprintw(18,0,"JOYP = 0x%x",IO(_JOYP));
+  mvprintw(19,0,"IMM8 = 0x%x",IMM8);
+  mvprintw(20,0,"IMM16 = 0x%x",IMM16);
   refresh();
-  if (i == -1) c = getch();
+  if (i == -1 && j == -1) c = getch();
   if (i == IO(_LY)) {c = 'n';}
   else {i = -1;}
+  if (j == 0)
+  {
+    if (IO(_LY) == 155) {j = -1;}
+    else {c == 'n';}
+  }
   if (c == 'q') {endwin();return 0;}
   if (c == 'l') {i = IO(_LY);c = 'n';}
+  if (c == 'f') {j = 0;c = 'n';}
   if (c == 'n') {
 #endif
     if (_IME)
@@ -112,6 +124,43 @@ int emulate(void)
       {
         IO(_TIMA) = IO(_TMA);
         REQUEST_INT(INT_TIM);
+      }
+    }
+    while (SDL_PollEvent (&event))
+    {
+      switch(event.type)
+      {
+        case SDL_KEYDOWN:
+        {
+          switch(event.key.keysym.sym)
+          {
+            case SDLK_LEFT: CLEAR(0x02,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x02;}break;
+            case SDLK_RIGHT: CLEAR(0x01,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x01;}break;
+            case SDLK_DOWN: CLEAR(0x08,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x08;}break;
+            case SDLK_UP: CLEAR(0x04,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x04;}break;
+            case SDLK_z: CLEAR(0x01,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x01;}break;
+            case SDLK_x: CLEAR(0x02,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x02;}break;
+            case SDLK_a: CLEAR(0x04,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x04;}break;
+            case SDLK_s: CLEAR(0x08,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x08;}break;
+          }
+          REQUEST_INT(INT_JOY);
+          break;
+        }
+        case SDL_KEYUP:
+        {
+          switch(event.key.keysym.sym)
+          {
+            case SDLK_LEFT: SET(0x02,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) |= 0x02;}break;
+            case SDLK_RIGHT: SET(0x01,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) |= 0x01;}break;
+            case SDLK_DOWN: SET(0x08,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) |= 0x08;}break;
+            case SDLK_UP: SET(0x04,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) |= 0x04;}break;
+            case SDLK_z: SET(0x01,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) |= 0x01;}break;
+            case SDLK_x: SET(0x02,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) |= 0x02;}break;
+            case SDLK_a: SET(0x04,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) |= 0x04;}break;
+            case SDLK_s: SET(0x08,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) |= 0x08;}break;
+          }
+          break;
+        }
       }
     }
   }

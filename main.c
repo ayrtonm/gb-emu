@@ -57,7 +57,9 @@ int main(int argc, char *argv[])
     uint8 *cart = load_cart(argv[2]);
     gameboy->mbc = parse_header(cart);
     gameboy->mem = init_mem();
-    gameboy->time_period = 
+    gameboy->time_period = 0;
+    gameboy->time_clk = 0;
+    gameboy->div_clk = 0;
     emulate();
   }
   return 0;

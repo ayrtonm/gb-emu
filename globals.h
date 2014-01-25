@@ -69,6 +69,7 @@ typedef struct gb
   int div_clk;
   int time_clk;
   int time_period;
+  uint8 joyp[2];
 } gb;
 
 //global gb struct pointer
@@ -161,9 +162,9 @@ gb *gameboy;
 //next two macros return uint16 because it's more convenient in lcd.c
 //the last half of T_DATA_0 and the first half of T_DATA_1 overlap
 //0x8000 - 0x8FFF
-#define T_DATA_0(x)	(READ_WORD(x+0x8000))
+#define T_DATA_0(x)	(READ_WORD((x << 1)+0x8000))
 //0x8800 - 0x97FF
-#define T_DATA_1(x)	(READ_WORD(x+0x8800))
+#define T_DATA_1(x)	(READ_WORD((x << 1)+0x8800))
 //0x9800 - 0x9BFF
 #define T_MAP_0(x)	(gameboy->mem.map[x+0x9800])
 //0x9C00 - 0x9FFF

@@ -87,6 +87,9 @@ mem init_mem(void)
   m.map[_BGP] = 0xFC;
   m.map[_OBP0] = 0xFF;
   m.map[_OBP1] = 0xFF;
+  update_palette(0,0xFF);
+  update_palette(1,0xFF);
+  update_palette(2,0xFC);
   return m;
 }
 
@@ -111,7 +114,13 @@ void write_byte(uint16 address, uint8 value)
   //write to io hw registers
   else if (address < _HRAM)
   {
-    if (address == _JOYP) {IO(_JOYP) = value & 0x30;}//filter out bits 0-3,6,7
+    if (address == _JOYP)//filter out writing to bits 0-3,6,7
+    {
+      IO(_JOYP) = value & 0x30;
+      if (value & 0x10) {IO(_JOYP) = (gameboy->joyp[0] & 0x0F)|0x10;}
+      else if (value & 0x20) {IO(_JOYP) = (gameboy->joyp[1] & 0x0F)|0x20;}
+      else if (value & 0x30) {IO(_JOYP) = (gameboy->joyp[1] & 0x0F)|0x30;}//what happens when both lines are on???
+    }
     else if (address == _DIV) {IO(_DIV) = 0;}//write any value resets div register
     else if (address == _TIMA) {IO(_TIMA) = value;}
     else if (address == _TMA) {IO(_TMA) = value;}

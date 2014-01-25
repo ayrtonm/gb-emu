@@ -328,10 +328,13 @@ static uint8 cycles[0x0100] =
   _HL = mtemp & 0xFFFF
 
 #define JR(n) \
-  _PC += READ_BYTE(_PC)+1
+  if (n & 0x80) _PC -= ~(n & 0x7F) + 1;\
+  else _PC += (n & 0x7F)
 
 #define COND_JR(cond,n) \
-  if (cond) _PC += READ_BYTE(_PC)+1;\
+  if (cond) {\
+    if (n & 0x80) _PC -= ~(n & 0x7F) + 1;\
+    else _PC += (n & 0x7F);}\
   else _PC++
 
 #define RET \

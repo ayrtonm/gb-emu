@@ -328,14 +328,10 @@ static uint8 cycles[0x0100] =
   _HL = mtemp & 0xFFFF
 
 #define JR(n) \
-  if (n & 0x80) _PC -= ~(n & 0x7F) + 1;\
-  else _PC += (n & 0x7F)
+  _PC += ((signed char)n)
 
 #define COND_JR(cond,n) \
-  if (cond) {\
-    if (n & 0x80) _PC -= ~(n & 0x7F) + 1;\
-    else _PC += (n & 0x7F);}\
-  else _PC++
+  if (cond) JR(n)
 
 #define RET \
   _PCBl = READ_BYTE(_SP++);\

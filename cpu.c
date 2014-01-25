@@ -32,6 +32,7 @@ int emulate(void)
   int i = -1;
   int j = -1;
   char *modes[4] = {"HBLANK","VBLANK","OAM","VRAM"};
+  int n = 1;
 #endif
 
   uint8 op;
@@ -64,6 +65,8 @@ int emulate(void)
   mvprintw(18,0,"JOYP = 0x%x",IO(_JOYP));
   mvprintw(19,0,"IMM8 = 0x%x",IMM8);
   mvprintw(20,0,"IMM16 = 0x%x",IMM16);
+  mvprintw(21,0,"number: %d",n);
+  n++;
   refresh();
   if (i == -1 && j == -1) c = getch();
   if (i == IO(_LY)) {c = 'n';}
@@ -87,6 +90,7 @@ int emulate(void)
       else if (INTE & IO(_IF) & INT_JOY) interrupt(INT_JOY);
     }
     op = READ_BYTE(_PC);
+//    printf("0x%x\n",op);
     if (op == 0xCB)
     {
       _PC++;

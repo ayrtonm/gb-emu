@@ -4,9 +4,6 @@
 #include <stdlib.h>
 #include <math.h>//for log2 function
 #define DEBUG
-#ifdef DEBUG
-#include <ncurses.h>//for debugging
-#endif
 
 cpu init_cpu(void)
 {
@@ -24,15 +21,12 @@ cpu init_cpu(void)
 int emulate(void)
 {
 #ifdef DEBUG
-  initscr();
-  raw();
-  keypad(stdscr,TRUE);
-  noecho();
-  char c;
-  int i = -1;
-  int j = -1;
   char *modes[4] = {"HBLANK","VBLANK","OAM","VRAM"};
+  system("clear");
+  printf("AF = 0x%x\nBC = 0x%x\nDE = 0x%x\nHL = 0x%x\nSP = 0x%x\nPC = 0x%x\n",_AF,_BC,_DE,_HL,_SP,_PC);
+  printf("LCDC = 0x%x\nLCDSTAT = 0x%x MODE = %s\nLY = %d\n",IO(_LCDC),IO(_LCDSTAT),modes[LCD_MODE],IO(_LY));
   int n = 1;
+  int run = 0;
 #endif
 
   uint8 op;
@@ -42,44 +36,7 @@ int emulate(void)
   for (;;)
   {
 #ifdef DEBUG
-  usleep(10000);
-  clear();
-  mvprintw(0,0,"AF = 0x%x",_AF);
-  mvprintw(1,0,"BC = 0x%x",_BC);
-  mvprintw(2,0,"DE = 0x%x",_DE);
-  mvprintw(3,0,"HL = 0x%x",_HL);
-  mvprintw(4,0,"SP = 0x%x",_SP);
-  mvprintw(5,0,"PC = 0x%x",_PC);
-  mvprintw(6,0,"LCDC = 0x%x",IO(_LCDC));
-  mvprintw(7,0,"LCDSTAT = 0x%x MODE = %s",IO(_LCDSTAT),modes[LCD_MODE]);
-  mvprintw(8,0,"LY = %d",IO(_LY));
-  mvprintw(9,0,"NEXT OPCODE = 0x%x",READ_BYTE(_PC));
-  mvprintw(10,0,"STACK = 0x%x",MEM(_SP));
-  mvprintw(11,0,"IF = 0x%x",MEM(_IF));
-  mvprintw(12,0,"IE = 0x%x",MEM(_IE));
-  mvprintw(13,0,"LCD CLK = %d",gameboy->lcd.clk);
-  mvprintw(14,0,"DIV CLK = %d",gameboy->div_clk);
-  mvprintw(15,0,"TIMER CLK = %d",gameboy->time_clk);
-  mvprintw(16,0,"TIMER PERIOD = %d",gameboy->time_period);
-  mvprintw(17,0,"CLK = %d",clk);
-  mvprintw(18,0,"JOYP = 0x%x",IO(_JOYP));
-  mvprintw(19,0,"IMM8 = 0x%x",IMM8);
-  mvprintw(20,0,"IMM16 = 0x%x",IMM16);
-  mvprintw(21,0,"number: %d",n);
-  n++;
-  refresh();
-  if (i == -1 && j == -1) c = getch();
-  if (i == IO(_LY)) {c = 'n';}
-  else {i = -1;}
-  if (j == 0)
-  {
-    if (IO(_LY) == 155) {j = -1;}
-    else {c == 'n';}
-  }
-  if (c == 'q') {endwin();return 0;}
-  if (c == 'l') {i = IO(_LY);c = 'n';}
-  if (c == 'f') {j = 0;c = 'n';}
-  if (c == 'n') {
+if (run == 1) {
 #endif
     if (_IME)
     {
@@ -90,7 +47,6 @@ int emulate(void)
       else if (INTE & IO(_IF) & INT_JOY) interrupt(INT_JOY);
     }
     op = READ_BYTE(_PC);
-//    printf("0x%x\n",op);
     if (op == 0xCB)
     {
       _PC++;
@@ -130,6 +86,16 @@ int emulate(void)
         REQUEST_INT(INT_TIM);
       }
     }
+#ifdef DEBUG
+}
+    if (run == 1)
+    {
+      system("clear");
+      printf("AF = 0x%x\nBC = 0x%x\nDE = 0x%x\nHL = 0x%x\nSP = 0x%x\nPC = 0x%x\n",_AF,_BC,_DE,_HL,_SP,_PC);
+      printf("LCDC = 0x%x\nLCDSTAT = 0x%x MODE = %s\nLY = %d\n",IO(_LCDC),IO(_LCDSTAT),modes[LCD_MODE],IO(_LY));
+    }
+    usleep(10000);
+#endif
     while (SDL_PollEvent (&event))
     {
       switch(event.type)
@@ -138,14 +104,18 @@ int emulate(void)
         {
           switch(event.key.keysym.sym)
           {
-            case SDLK_LEFT: CLEAR(0x02,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x02;}break;
-            case SDLK_RIGHT: CLEAR(0x01,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x01;}break;
-            case SDLK_DOWN: CLEAR(0x08,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x08;}break;
-            case SDLK_UP: CLEAR(0x04,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x04;}break;
-            case SDLK_z: CLEAR(0x01,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x01;}break;
-            case SDLK_x: CLEAR(0x02,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x02;}break;
-            case SDLK_a: CLEAR(0x04,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x04;}break;
-            case SDLK_s: CLEAR(0x08,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x08;}break;
+            case SDLK_LEFT: CLEAR(0x02,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x02;REQUEST_INT(INT_JOY);}break;
+            case SDLK_RIGHT: CLEAR(0x01,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x01;REQUEST_INT(INT_JOY);}break;
+            case SDLK_DOWN: CLEAR(0x08,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x08;REQUEST_INT(INT_JOY);}break;
+            case SDLK_UP: CLEAR(0x04,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x04;REQUEST_INT(INT_JOY);}break;
+            case SDLK_z: CLEAR(0x01,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x01;REQUEST_INT(INT_JOY);}break;
+            case SDLK_x: CLEAR(0x02,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x02;REQUEST_INT(INT_JOY);}break;
+            case SDLK_a: CLEAR(0x04,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x04;REQUEST_INT(INT_JOY);}break;
+            case SDLK_s: CLEAR(0x08,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x08;REQUEST_INT(INT_JOY);}break;
+            case SDLK_q: return 0;
+#ifdef DEBUG
+            case SDLK_p: run ^= 1;break;
+#endif
           }
           REQUEST_INT(INT_JOY);
           break;
@@ -168,9 +138,6 @@ int emulate(void)
       }
     }
   }
-#ifdef DEBUG
-  }
-#endif
 }
 
 void interrupt(uint8 which)
@@ -179,4 +146,5 @@ void interrupt(uint8 which)
   _IME = 0;
   PUSH(_PCBh,_PCBl);
   _PC = 0x40 + ((int)(log2(which)) << 3);
+  printf("0x%x PC = 0x%x\n",which,_PC);
 }

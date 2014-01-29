@@ -196,7 +196,7 @@ void draw_line(void)
 
     //mask all but 0x0n0n(or 0xn0n0) where n = 'pixel number'
     //then add the 2 bits
-    uint8 pixel = ((LOW(tile) & BIT(x)) << 1) + (HIGH(tile) & BIT(x));
+    uint8 pixel = ((LOW(tile) & BIT(x)) >> (x-1)) + ((HIGH(tile) & BIT(x) >> x));
 
     //write to linebuffer
     gameboy->lcd.linebuffer[i] = pixel;//pal_bgp[pixel];

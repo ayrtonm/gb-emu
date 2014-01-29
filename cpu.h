@@ -334,8 +334,7 @@ static uint8 cycles[0x0100] =
   if (cond) JR(n)
 
 #define RET \
-  _PCBl = READ_BYTE(_SP++);\
-  _PCBh = READ_BYTE(_SP++)
+  POP(_PCBh,_PCBl)
 
 #define COND_RET(cond) \
   if (cond) RET
@@ -362,8 +361,8 @@ static uint8 cycles[0x0100] =
   a = READ_BYTE(_SP++)
 
 #define PUSH(a,b) \
-  write_byte(_SP--,a);\
-  write_byte(_SP--,b)
+  write_byte(--_SP,a);\
+  write_byte(--_SP,b)
 
 #define RST(n) \
   PUSH(_PCBh,_PCBl);\

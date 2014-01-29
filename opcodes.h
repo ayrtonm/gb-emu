@@ -17,7 +17,7 @@ case 0xd:  {DEC(_C);break;}
 case 0xe:  {LD(_C,IMM8);break;}
 case 0xf:  {RRCA;break;}
 
-case 0x10:  {break;}//stop
+//case 0x10:  {break;}//stop
 case 0x11:  {LD(_DE,IMM16);break;}
 case 0x12:  {LD_RM(_DE,_A);break;}
 case 0x13:  {_DE++;break;}
@@ -37,7 +37,7 @@ case 0x1f:  {RRA;break;}
 
 case 0x20:  {COND_JR((ZERO==0),IMM8);dt+=1;break;}
 case 0x21:  {LD(_HL,IMM16);break;}
-case 0x22:  {LD_RM(_HL++,_A);break;}
+case 0x22:  {LD_RM(_HL++,_A);/*_HL++;*/break;}
 case 0x23:  {_HL++;break;}
 case 0x24:  {INC(_H);break;}
 case 0x25:  {DEC(_H);break;}
@@ -46,7 +46,7 @@ case 0x27:  {DAA;break;}
 case 0x28:  {COND_JR((ZERO==1),IMM8);dt+=1;break;}
 
 case 0x29:  {ADDHL(_HL);break;}
-case 0x2a:  {LD_MR(_A,_HL);_HL++;break;}
+case 0x2a:  {LD_MR(_A,_HL++);/*_HL++;*/break;}
 case 0x2b:  {_HL--;break;}
 case 0x2c:  {INC(_L);break;}
 case 0x2d:  {DEC(_L);break;}
@@ -55,7 +55,7 @@ case 0x2f:  {CPL;break;}
 
 case 0x30:  {COND_JR((CARRY==0),IMM8);dt+=1;break;}
 case 0x31:  {LD(_SP,IMM16);break;}
-case 0x32:  {LD_RM(_HL--,_A);break;}
+case 0x32:  {LD_RM(_HL--,_A);/*_HL--;*/break;}
 case 0x33:  {_SP++;break;}
 case 0x34:  {uint8 temp = READ_BYTE(_HL);INC(temp);write_byte(_HL,temp);break;}
 case 0x35:  {uint8 temp = READ_BYTE(_HL);DEC(temp);write_byte(_HL,temp);break;}
@@ -64,7 +64,7 @@ case 0x37:  {SCL;break;}
 case 0x38:  {COND_JR((CARRY==1),IMM8);dt+=1;break;}
 
 case 0x39:  {ADDHL(_SP);break;}
-case 0x3a:  {LD_MR(_A,_HL);_HL--;break;}
+case 0x3a:  {LD_MR(_A,_HL--);/*_HL--;*/break;}
 case 0x3b:  {_SP--;break;}
 case 0x3c:  {INC(_A);break;}
 case 0x3d:  {DEC(_A);break;}
@@ -131,7 +131,7 @@ case 0x72:  {LD_RM(_HL,_D);break;}
 case 0x73:  {LD_RM(_HL,_E);break;}
 case 0x74:  {LD_RM(_HL,_H);break;}
 case 0x75:  {LD_RM(_HL,_L);break;}
-case 0x76:  {break;}//halt
+//case 0x76:  {break;}//halt
 case 0x77:  {LD_RM(_HL,_A);break;}
 case 0x78:  {LD(_A,_B);break;}
 
@@ -259,7 +259,7 @@ case 0xe4:  {break;}//no opcode
 case 0xe5:  {PUSH(_H,_L);break;}
 case 0xe6:  {AND(IMM8);break;}
 case 0xe7:  {RST(0x20);break;}
-case 0xe8:  {break;}//add sp, r8
+//case 0xe8:  {break;}//add sp, r8
 
 case 0xe9:  {JP(_HL);break;}
 case 0xea:  {LD_RM(IMM16,_A);break;}
@@ -277,7 +277,7 @@ case 0xf4:  {break;}//no opcode
 case 0xf5:  {PUSH(_A,_F);break;}
 case 0xf6:  {OR(IMM8);break;}
 case 0xf7:  {RST(0x30);break;}
-case 0xf8:  {break;}//ld hl, sp+r8
+//case 0xf8:  {break;}//ld hl, sp+r8
 
 case 0xf9:  {LD(_SP,_HL);break;}
 case 0xfa:  {LD_MR(_A,IMM16);break;}

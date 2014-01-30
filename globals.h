@@ -159,6 +159,7 @@ gb *gameboy;
 //oam can be used the same way except with sprite data
 //instead of tile data
 #define MEM(x)		(gameboy->mem.map[x])
+#define VRAM(x)		(MEM(x))
 //next two macros return uint16 because it's more convenient in lcd.c
 //the last half of T_DATA_0 and the first half of T_DATA_1 overlap
 //0x8000 - 0x8FFF

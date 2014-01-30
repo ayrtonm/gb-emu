@@ -186,7 +186,11 @@ void draw_line(void)
   uint8 y = (IO(_LY) + IO(_SCY)) & 7;
 
   //fix tile data for certain tile set
-  //if (!(IO(_LCDC) & 0x10)) index += 0xFF;
+  if (!(IO(_LCDC) & 0x10))
+  {
+    if (index < 128) index += 128;
+    else index -= 128;
+  }
 
   int i;
   for (i = 0; i < 160; i++)
@@ -194,12 +198,14 @@ void draw_line(void)
     //get 16-bit tile data
     uint16 tile = (IO(_LCDC) & 0x10 ? T_DATA_0(index) : T_DATA_1(index));
 
-    //mask all but 0x0n0n(or 0xn0n0) where n = 'pixel number'
+    //mask all but 0xnn where n = 'pixel number'
     //then add the 2 bits
-    uint8 pixel = ((LOW(tile) & BIT(x)) >> (x-1)) + ((HIGH(tile) & BIT(x) >> x));
+    uint8 a = (LOW(tile) & BIT(x)) >> x;
+    uint8 b = (HIGH(tile) & BIT(x)) >> x;
+    uint8 c = a+(b>>1);
 
     //write to linebuffer
-    gameboy->lcd.linebuffer[i] = pixel;//pal_bgp[pixel];
+    gameboy->lcd.linebuffer[i] = c;//pal_bgp[pixel];
 
     //increment x pixel within tile
     x++;

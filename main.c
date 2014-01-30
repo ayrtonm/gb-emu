@@ -61,6 +61,8 @@ int main(int argc, char *argv[])
     gameboy->time_period = 0;
     gameboy->time_clk = 0;
     gameboy->div_clk = 0;
+    gameboy->joyp[0] = 0xFF;
+    gameboy->joyp[1] = 0xFF;
     emulate();
   }
   return 0;

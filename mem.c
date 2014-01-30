@@ -116,7 +116,7 @@ void write_byte(uint16 address, uint8 value)
   {
     if (address == _JOYP)//filter out writing to bits 0-3,6,7
     {
-      IO(_JOYP) = value & 0x30;
+//      IO(_JOYP) = value & 0x30;
       if (value & 0x10) {IO(_JOYP) = (gameboy->joyp[0] & 0x0F)|0x10;}
       else if (value & 0x20) {IO(_JOYP) = (gameboy->joyp[1] & 0x0F)|0x20;}
       else if (value & 0x30) {IO(_JOYP) = (gameboy->joyp[1] & 0x0F)|0x30;}//what happens when both lines are on???

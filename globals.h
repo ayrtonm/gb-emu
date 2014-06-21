@@ -172,8 +172,9 @@ gb *gameboy;
 #define T_MAP_1(x)	(gameboy->mem.map[x+0x9C00])
 //same as MEM(x) but helps with readability
 #define IO(x)		(MEM(x))
-//LOW(x) doesn't stop 'overflows' into unused section,
+//LOW(x) in OAM(x) doesn't stop 'overflows' into unused section,
 //but it should prevent overflows into io hw register section
+//I should probs add this to the other macros for accessing memory
 #define OAM(x)		(gameboy->mem.map[LOW(x)+_OAM])
 #define INTE		(gameboy->mem.map[_IE])
 

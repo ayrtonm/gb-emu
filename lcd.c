@@ -1,5 +1,6 @@
 #include "lcd.h"
 #include "globals.h"
+#undef GRID
 
 lcd init_lcd(void)
 {
@@ -113,6 +114,21 @@ void step_lcd(uint8 dt)
       }
       case MODE_VBLANK:
       {
+#ifdef GRID
+        //draw a grid
+        int i,j;
+        for (i = 0; i < 20; i++)
+        {
+          for (j = 0; j < 18; j++)
+          {
+            SDL_Rect dst = {(i*8),(j*8),160,1};
+            SDL_FillRect(gameboy->lcd.screen,&dst,SDL_MapRGB(gameboy->lcd.screen->format,0x00,0xFF,0x00));
+          }
+          SDL_Rect dst = {(i*8),0,1,144};
+          SDL_FillRect(gameboy->lcd.screen,&dst,SDL_MapRGB(gameboy->lcd.screen->format,0x00,0xFF,0x00));
+        }
+#endif
+        SDL_Flip(gameboy->lcd.screen);
         compareLYtoLYC();
         if (IO(_LY) < 155)
         {
@@ -152,7 +168,7 @@ void step_lcd(uint8 dt)
           color = pal_bgp[gameboy->lcd.linebuffer[i]];
           pixels[(IO(_LY) * gameboy->lcd.screen->w) + i] = color;
         }
-        SDL_Flip(gameboy->lcd.screen);
+//        SDL_Flip(gameboy->lcd.screen);
 ///*
         if ((!(IO(_LCDSTAT) & 0x40)) || (IO(_LY) != IO(_LYC)))
         {

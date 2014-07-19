@@ -60,7 +60,7 @@ mbc parse_header(uint8 *cart)
   mbc m;
   m.cart = cart;
   m.version = version;
-  m.rombank = 0;
+  m.rombank.W = 0;
   m.rambank = 0;
   m.mode = 0;
   m.enable = 0;
@@ -155,8 +155,27 @@ void write_byte(uint16 address, uint8 value)
 }
 void write_cart(uint16 address, uint8 value)
 {
-  if (VERSION == 0) {return;}
-  else if (VERSION == 1) {return;}
+  if (VERSION == 0) {return;} //ROM ONLY
+  else if (VERSION == 0x01 || VERSION == 0x02 || VERSION == 0x03) {return;} //MBC1
+  else if (VERSION == 0x0F || VERSION == 0x10 || VERSION == 0x11 || VERSION == 0x12 || VERSION == 0x13) //MBC3 for Pokemon Oro
+  {
+  }
+  else if (VERSION == 0x19 ||VERSION == 0x1A || VERSION == 0x1B ||VERSION == 0x1C || VERSION == 0x1E) //MBC5 for Pokemon Azul and Pokemon Amarillo
+  {
+    if (address < 0x2000)//ram enable
+    {
+      if ((value & 0x0F) == 0x0A) {ENABLE = 1;}
+      else {ENABLE = 0;}
+    }
+    //set low 8 bits of rom bank and change visible rombank
+    else if (address < 0x3000) {ROMBANK.B.l = value;ROMBANK.W &= (rom_sizes[CART(0x0148) & 0x07] << 8) - 1;int i;for (i = _ROM; i < _BANK; i++) {MEM(i + _BANK) = CART(i+ROMBANK.W*0x4000);}printf("current rombank %d\n",ROMBANK.W);}
+    //set high bit rom bank and change visible rombank
+    else if (address < 0x4000) {ROMBANK.B.h = value & 0x01;ROMBANK.W &= (rom_sizes[CART(0x0148) & 0x07] << 8) - 1;int i;for (i = _ROM; i < _BANK; i++) {MEM(i + _BANK) = CART(i+ROMBANK.W*0x4000);}printf("current rombank %d\n",ROMBANK.W);}
+    //ram bank number
+    //write mem.map in range of ERAM to scrathpad then switch visible rambank
+    else if (address < 0x6000) {RAMBANK = value & 0x0F;}
+    else if (address < _WRAM) {MEM(address) = value;}
+  }
 }
 void write_word(uint16 address, uint16 value)
 {

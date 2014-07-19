@@ -11,11 +11,6 @@ void print_help(void)
   printf("Usage:\n");
   printf("  -h              print this help text\n");
   printf("  -r   [filename] load the given file and start the emulator\n");
-  printf("To use debug mode, compile with #define DEBUG.\n");
-  printf("Debug Mode:\n");
-  printf("   n   next opcode\n");
-  printf("   l   run until LY changes (end of HBLANK or 1/10th of VBLANK)\n");
-  printf("   f   run until LY == 155 (end of VBLANK)\n");
 }
 
 uint16 handle_args(int argc, char *argv[])

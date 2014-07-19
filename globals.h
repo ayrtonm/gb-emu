@@ -19,6 +19,9 @@
 #define LOW(x)		((x) & 0xFF)
 #define HIGH(x)		((x) >> 8)
 
+#define MAX(a,b)		(a > b ? a : b)
+#define MIN(a,b)		(a > b ? b : a)
+
 //typedefs and structs
 typedef unsigned char uint8;
 typedef unsigned short int uint16;
@@ -44,8 +47,11 @@ typedef struct cpu
 typedef struct mbc
 {
   int version;
-  uint8 rombank,rambank,mode,enable;
+  //mode not used for every mbc version, enable used for ram
+  uint8 rambank,mode,enable;
+  word16 rombank;
   uint8 *cart;
+  uint8 *scratchpad;//ram area, size should be determined and set in parse_header()
 } mbc;
 
 typedef struct mem

@@ -33,7 +33,7 @@ int emulate(void)
       else if (INTE & IO(_IF) & INT_SER) interrupt(INT_SER);
       else if (INTE & IO(_IF) & INT_JOY) interrupt(INT_JOY);
     }
-    op = READ_BYTE(_PC);
+    op = READ_BYTE(_PC);printf("%x\n",op);
     if (op == 0xCB)
     {
       _PC++;

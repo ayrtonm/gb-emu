@@ -12,4 +12,4 @@ $(MAIN): $(OBJS)
 .c.o:
 	$(CC) $(CFLAGS) -c $< -o $@
 clean:
-	rm -rf *.o *~ $(MAIN)
+	rm -rf *.o $(MAIN)

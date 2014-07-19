@@ -156,22 +156,32 @@ void write_byte(uint16 address, uint8 value)
 void write_cart(uint16 address, uint8 value)
 {
   if (VERSION == 0) {return;} //ROM ONLY
-  else if (VERSION == 0x01 || VERSION == 0x02 || VERSION == 0x03) {return;} //MBC1
+  else if (VERSION == 0x08 || VERSION == 0x09) //ROM + RAM (+ BATTERY)
+  {
+    if (_ERAM <= address < _WRAM) {MEM(address) = value;}
+  }
+  else if (VERSION == 0x01 || VERSION == 0x02 || VERSION == 0x03) //MBC1
+  {
+    if (address < 0x2000) {ENABLE = ((value & 0x0F) == 0x0A) ? 1 : 0;}
+    else if (address < 0x4000) {SET(value & 0x1F,ROMBANK.B.l);if (ROMBANK.B.l == 0) {SET(0x01,ROMBANK.B.l);}ROMBANK.W &= 0x007F;int i;for (i = _ROM; i < _BANK; i++) {MEM(i + _BANK) = CART(i+ROMBANK.W*0x4000);}}
+    else if (address < 0x6000)
+    {
+      if (MODE == 0) {SET(value & 0x60,ROMBANK.B.l);ROMBANK.W &= 0x007F;int i;for (i = _ROM; i < _BANK; i++) {MEM(i + _BANK) = CART(i + ROMBANK.W*0x4000);}}
+      else if (MODE == 1) {uint8 oldbank = RAMBANK; SET(value & 0x03,RAMBANK);int i;for (i = _ERAM; i < _WRAM; i++) {ERAM((i - _ERAM) + oldbank*0x2000) = MEM(i); MEM(i) = ERAM((i - _ERAM) + RAMBANK*0x2000);}}
+    }
+    else if (address < 0x8000) {MODE = value & 0x01;}
+    else if (_ERAM <= address < _WRAM) {MEM(address) = (ENABLE == 1) ? value : MEM(address);}
+  }
   else if (VERSION == 0x0F || VERSION == 0x10 || VERSION == 0x11 || VERSION == 0x12 || VERSION == 0x13) //MBC3 for Pokemon Oro
   {
   }
   else if (VERSION == 0x19 ||VERSION == 0x1A || VERSION == 0x1B ||VERSION == 0x1C || VERSION == 0x1E) //MBC5 for Pokemon Azul and Pokemon Amarillo
   {
-    //ram enable 
     if (address < 0x2000) {ENABLE = ((value & 0x0F) == 0x0A) ? 1 : 0;}
-    //set low 8 bits of rom bank and change visible rombank
-    else if (address < 0x3000) {ROMBANK.B.l = value;ROMBANK.W &= (rom_sizes[CART(0x0148) & 0x07] << 8) - 1;int i;for (i = _ROM; i < _BANK; i++) {MEM(i + _BANK) = CART(i+ROMBANK.W*0x4000);}}
-    //set high bit rom bank and change visible rombank
-    else if (address < 0x4000) {ROMBANK.B.h = value & 0x01;ROMBANK.W &= (rom_sizes[CART(0x0148) & 0x07] << 8) - 1;int i;for (i = _ROM; i < _BANK; i++) {MEM(i + _BANK) = CART(i+ROMBANK.W*0x4000);}}
-    //ram bank number
-    //write mem.map in range of ERAM to mbc.eram then switch visible rambank
+    else if (address < 0x3000) {ROMBANK.B.l = value;ROMBANK.W &= 0x01FF;int i;for (i = _ROM; i < _BANK; i++) {MEM(i + _BANK) = CART(i+ROMBANK.W*0x4000);}}
+    else if (address < 0x4000) {ROMBANK.B.h = value & 0x01;ROMBANK.W &= 0x01FF;int i;for (i = _ROM; i < _BANK; i++) {MEM(i + _BANK) = CART(i+ROMBANK.W*0x4000);}}
     else if (address < 0x6000) {uint8 oldbank = RAMBANK; RAMBANK = value & 0x0F;int i;for (i = _ERAM; i < _WRAM; i++) {ERAM((i-_ERAM) + oldbank*0x2000) = MEM(i);MEM(i) = ERAM((i - _ERAM) + RAMBANK*0x2000);}}
-    else if (address < _WRAM) {MEM(address) = value;}
+    else if (_ERAM <= address < _WRAM) {MEM(address) = (ENABLE == 1) ? value : MEM(address);}
   }
 }
 void write_word(uint16 address, uint16 value)

@@ -51,7 +51,9 @@ typedef struct mbc
   uint8 rambank,mode,enable;
   word16 rombank;
   uint8 *cart;
-  uint8 *scratchpad;//ram area, size should be determined and set in parse_header()
+  //ram area, size should (hopefully) be determined and set in parse_header()
+  //using ram size for mbc5
+  uint8 eram[0x020000];
 } mbc;
 
 typedef struct mem
@@ -191,6 +193,7 @@ gb *gameboy;
 #define RAMBANK		(gameboy->mbc.rambank)
 #define ENABLE		(gameboy->mbc.enable)
 #define MODE		(gameboy->mbc.mode)
+#define ERAM(x)		(gameboy->mbc.eram[x])
 
 //read memory functions
 #define READ_BYTE(x)	(MEM(x))

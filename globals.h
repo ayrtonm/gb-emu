@@ -22,6 +22,9 @@
 #define MAX(a,b)		(a > b ? a : b)
 #define MIN(a,b)		(a > b ? b : a)
 
+//print opcodes
+int printing;
+
 //typedefs and structs
 typedef unsigned char uint8;
 typedef unsigned short int uint16;

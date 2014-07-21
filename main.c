@@ -11,6 +11,7 @@ void print_help(void)
   printf("Usage:\n");
   printf("  -h              print this help text\n");
   printf("  -r   [filename] load the given file and start the emulator\n");
+  printf("  -rp  [filename] load file and print executed opcodes to stdout\n");
 }
 
 uint16 handle_args(int argc, char *argv[])
@@ -21,6 +22,8 @@ uint16 handle_args(int argc, char *argv[])
   {
     if (!strcmp(argv[i],"-h")) {return 0;}
     //remove next line if adding opcode test and interactive debug mode
+    //07/20/2014 NEVER ADD INTERACTIVE DEBUG MODE EVER AGAIN
+    //IT ONLY ADDS UNNECESSARY COMPLEXITY AND SHIT
     else if (argc < 3) {return 0;}
     else if (!strcmp(argv[i],"-i")) {return 2;}
 /*    else if (argc < 3) {return 0;}
@@ -37,7 +40,8 @@ uint16 handle_args(int argc, char *argv[])
       return ret;
     }
 */
-    else if (!strcmp(argv[i],"-r")) {return 1;}
+    else if (!strcmp(argv[i],"-r")) {printing = 0;return 1;}
+    else if (!strcmp(argv[i],"-rp")) {printing = 1;return 1;}
   }
 }
 

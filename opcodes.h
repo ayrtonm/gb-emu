@@ -131,7 +131,12 @@ case 0x72:  {LD_RM(_HL,_D);break;}
 case 0x73:  {LD_RM(_HL,_E);break;}
 case 0x74:  {LD_RM(_HL,_H);break;}
 case 0x75:  {LD_RM(_HL,_L);break;}
-//case 0x76:  {break;}//halt
+//I'm still not entirely sure how to implement halt
+//considering adding a variable that will be checked before executing opcodes
+//that will(should) allow emulate() to continue and keep checking for keypresses
+//trying to make halt the same as nop since it should execute the next opcode anyway
+//I wonder if the fact that it doesn't stop for the same amount of time would make a difference
+case 0x76:  {break;}//halt
 case 0x77:  {LD_RM(_HL,_A);break;}
 case 0x78:  {LD(_A,_B);break;}
 

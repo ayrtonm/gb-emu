@@ -327,6 +327,8 @@ static uint8 cycles[0x0100] =
   _F = (_F & Z_FLAG)|(mtemp & 0x010000 ? C_FLAG : 0)|(_HL^(r)^(mtemp & 0xFFFF) & 0x1000 ? H_FLAG : 0);\
   _HL = mtemp & 0xFFFF
 
+//mednafen uses _PC += (signed char)n + 1 for all relative jumps...wtf??
+//maybe I shouldn't use (signed char) cast
 #define JR(n) \
   _PC += ((signed char)n)
 

@@ -167,7 +167,7 @@ void write_cart(uint16 address, uint8 value)
     else if (address < 0x6000)
     {
       if (MODE == 0) {ROMBANK.B.h = value & 0x03;ROMBANK.W &= 0x031F;int i;for (i = _ROM; i < _BANK; i++) {MEM(i + _BANK) = CART(i + (ROMBANK.B.l + (ROMBANK.B.h << 5))*0x4000);}}
-      else if (MODE == 1) {uint8 oldbank = RAMBANK; SET(value & 0x03,RAMBANK);int i;for (i = _ERAM; i < _WRAM; i++) {ERAM((i - _ERAM) + oldbank*0x2000) = MEM(i); MEM(i) = ERAM((i - _ERAM) + RAMBANK*0x2000);}}
+      else if (MODE == 1) {uint8 oldbank = RAMBANK; RAMBANK = value & 0x03;int i;for (i = _ERAM; i < _WRAM; i++) {ERAM((i - _ERAM) + oldbank*0x2000) = MEM(i); MEM(i) = ERAM((i - _ERAM) + RAMBANK*0x2000);}}
     }
     else if (address < 0x8000) {MODE = value & 0x01;}
     else if (_ERAM <= address < _WRAM) {MEM(address) = (ENABLE == 1) ? value : MEM(address);}
@@ -175,6 +175,14 @@ void write_cart(uint16 address, uint8 value)
   else if (VERSION == 0x0F || VERSION == 0x10 || VERSION == 0x11 || VERSION == 0x12 || VERSION == 0x13) //MBC3 for Pokemon Oro
   {
     if (address < 0x2000) {ENABLE = ((value & 0x0F) == 0x0A) ? 1 : 0;}
+    else if (address < 0x4000) {ROMBANK.B.l = value & 0x7F;if (ROMBANK.B.l == 0) {ROMBANK.B.l = 0x01;}ROMBANK.W &= 0x007F;int i;for (i = _ROM; i < _BANK; i++) {MEM(i + _BANK) = CART(i+ROMBANK.B.l*0x4000);}}
+    else if (address < 0x6000)
+    {
+      if (value < 0x04) {uint8 oldbank = RAMBANK; RAMBANK = value & 0x03;int i;for (i = _ERAM; i < _WRAM; i++) {ERAM((i - _ERAM) + oldbank*0x2000) = MEM(i); MEM(i) = ERAM((i - _ERAM) + RAMBANK*0x2000);}}
+      else if (value < 0x0C) {return;}//map corresponding rtc register to memory at a000-bfff, rtc register can be accessed by writing to any address in range
+    }
+    else if (address < 0x8000) {return;}//latch clock data by writing 0x00 then 0x01
+    else if (_ERAM <= address < _WRAM) {MEM(address) = (ENABLE == 1) ? value : MEM(address);}
   }
   else if (VERSION == 0x19 ||VERSION == 0x1A || VERSION == 0x1B ||VERSION == 0x1C || VERSION == 0x1E) //MBC5 for Pokemon Azul and Pokemon Amarillo
   {

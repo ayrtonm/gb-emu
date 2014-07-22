@@ -57,6 +57,7 @@ int emulate(void)
         printf("SP: 0x%x    PC: 0x%x\n",_SP,_PC);
         printf("ZF: 0x%x      NF: 0x%x\n",GET(Z_FLAG,_F),GET(N_FLAG,_F));
         printf("HF: 0x%x      CF: 0x%x\n",GET(H_FLAG,_F),GET(C_FLAG,_F));
+        printf("IMM16: 0x%x   opcode: 0x%x\n",IMM16,op);
         char a  = getchar();
         if (a == 'q') {return 0;}
       }

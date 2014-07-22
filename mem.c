@@ -95,6 +95,7 @@ mem init_mem(void)
 
 void write_byte(uint16 address, uint8 value)
 {
+  if (printing == 3) printf("[%x] = 0x%x\n",address,value);
   //write to rom
   if (address < _BANK) {write_cart(address,value);}
   //write to external rombank

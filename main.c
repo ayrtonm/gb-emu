@@ -12,6 +12,7 @@ void print_help(void)
   printf("  -h              print this help text\n");
   printf("  -r   [filename] load the given file and start the emulator\n");
   printf("  -p   [filename] load file and print executed opcodes to stdout\n");
+  printf("  -m   [filename] load file and print memory writes to stdout\n");
   printf("  -d   [filename] load file in debug mode\n");
 }
 
@@ -44,6 +45,7 @@ uint16 handle_args(int argc, char *argv[])
     else if (!strcmp(argv[i],"-r")) {printing = 0;return 1;}
     else if (!strcmp(argv[i],"-p")) {printing = 1;return 1;}
     else if (!strcmp(argv[i],"-d")) {printing = 2;return 1;}
+    else if (!strcmp(argv[i],"-m")) {printing = 3;return 1;}
   }
 }
 

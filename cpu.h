@@ -331,6 +331,7 @@ static uint8 cycles[0x0100] =
 //maybe I shouldn't use (signed char) cast
 //07/21/2014 something is definitely fundamentally wrong with my relative jump
 //both gold and tetris (and blue/yellow?) are failing after jr instructions
+//07/22/2014 JR and all branch instructions are correct
 #define JR(n) \
   _PC += ((n > 0x7F) ? -(((~n)+1) & 0xFF) : n)
 //  _PC += ((signed char)n)

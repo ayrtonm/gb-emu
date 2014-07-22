@@ -20,6 +20,7 @@ cpu init_cpu(void)
 int emulate(void)
 {
   uint8 op;
+  int halt = 0;
   int clk = 0;
   int dt = 0;
   SDL_Event event;
@@ -27,46 +28,50 @@ int emulate(void)
   {
     if (_IME)
     {
-      if (INTE & IO(_IF) & INT_VBL) interrupt(INT_VBL);
-      else if (INTE & IO(_IF) & INT_LCD) interrupt(INT_LCD);
-      else if (INTE & IO(_IF) & INT_TIM) interrupt(INT_TIM);
-      else if (INTE & IO(_IF) & INT_SER) interrupt(INT_SER);
-      else if (INTE & IO(_IF) & INT_JOY) interrupt(INT_JOY);
+      if (INTE & IO(_IF) & INT_VBL) {interrupt(INT_VBL);halt = 0;}
+      else if (INTE & IO(_IF) & INT_LCD) {interrupt(INT_LCD);halt = 0;}
+      else if (INTE & IO(_IF) & INT_TIM) {interrupt(INT_TIM);halt = 0;}
+      else if (INTE & IO(_IF) & INT_SER) {interrupt(INT_SER);halt = 0;}
+      else if (INTE & IO(_IF) & INT_JOY) {printf("joypad interrupt started\n");interrupt(INT_JOY);halt = 0;}
     }
-    op = READ_BYTE(_PC);
-    if (op == 0xCB)
+    if (halt == 0)
     {
-      _PC++;
       op = READ_BYTE(_PC);
-      _PC += 2;
-      dt = cb_cycles[op & 0x07];
-      switch(op)
+      if (op == 0xCB)
       {
-        #include "cb_opcodes.h"
+        _PC++;
+        op = READ_BYTE(_PC);
+        _PC += 2;
+        dt = cb_cycles[op & 0x07];
+        switch(op)
+        {
+          #include "cb_opcodes.h"
+        }
+      }
+      else
+      {
+        _PC += length[op];
+        if (printing == 1) printf("0x%x at [%x]\n",op,_PC-length[op]);
+        else if (printing == 2)
+        {
+          system("clear");
+          printf("AF: 0x%x    HL: 0x%x\n",_AF,_HL);
+          printf("BC: 0x%x    DE: 0x%x\n",_BC,_DE);
+          printf("SP: 0x%x    PC: 0x%x\n",_SP,_PC);
+          printf("ZF: 0x%x      NF: 0x%x\n",GET(Z_FLAG,_F),GET(N_FLAG,_F));
+          printf("HF: 0x%x      CF: 0x%x\n",GET(H_FLAG,_F),GET(C_FLAG,_F));
+          printf("IMM16: 0x%x   opcode: 0x%x\n",IMM16,op);
+          char a  = getchar();
+          if (a == 'q') {return 0;}
+        }
+        dt = cycles[op];
+        switch(op)
+        {
+          #include "opcodes.h"
+        }
       }
     }
-    else
-    {
-      _PC += length[op];
-      if (printing == 1) printf("0x%x\n",op);
-      else if (printing == 2)
-      {
-        system("clear");
-        printf("AF: 0x%x    HL: 0x%x\n",_AF,_HL);
-        printf("BC: 0x%x    DE: 0x%x\n",_BC,_DE);
-        printf("SP: 0x%x    PC: 0x%x\n",_SP,_PC);
-        printf("ZF: 0x%x      NF: 0x%x\n",GET(Z_FLAG,_F),GET(N_FLAG,_F));
-        printf("HF: 0x%x      CF: 0x%x\n",GET(H_FLAG,_F),GET(C_FLAG,_F));
-        printf("IMM16: 0x%x   opcode: 0x%x\n",IMM16,op);
-        char a  = getchar();
-        if (a == 'q') {return 0;}
-      }
-      dt = cycles[op];
-      switch(op)
-      {
-        #include "opcodes.h"
-      }
-    }
+    if (halt == 1) dt = 1;
     clk += dt;
     step_lcd(dt);
     gameboy->div_clk -= dt*4;
@@ -98,13 +103,12 @@ int emulate(void)
             case SDLK_RIGHT: CLEAR(0x01,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x01;REQUEST_INT(INT_JOY);}break;
             case SDLK_DOWN: CLEAR(0x08,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x08;REQUEST_INT(INT_JOY);}break;
             case SDLK_UP: CLEAR(0x04,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x04;REQUEST_INT(INT_JOY);}break;
-            case SDLK_z: CLEAR(0x01,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x01;REQUEST_INT(INT_JOY);}break;
+            case SDLK_z: CLEAR(0x01,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x01;REQUEST_INT(INT_JOY);printf("you pressed z\n");}break;
             case SDLK_x: CLEAR(0x02,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x02;REQUEST_INT(INT_JOY);}break;
             case SDLK_a: CLEAR(0x04,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x04;REQUEST_INT(INT_JOY);}break;
             case SDLK_s: CLEAR(0x08,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x08;REQUEST_INT(INT_JOY);}break;
             case SDLK_q: return 0;
           }
-          REQUEST_INT(INT_JOY);
           break;
         }
         case SDL_KEYUP:

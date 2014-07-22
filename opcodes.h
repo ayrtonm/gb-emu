@@ -46,6 +46,7 @@ case 0x27:  {DAA;break;}
 //07/21/2014
 //should be zero == 1
 //opcodes work like normal when zero == 0...wtf??
+//update: opcodes seemed to work normally for gold when conditions were inverted but instead I should check when/how the flags are set
 //inverting all(4 + 12) opcodes with conditions
 case 0x28:  {COND_JR((ZERO==1),IMM8);dt+=1;break;}
 

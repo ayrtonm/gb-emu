@@ -327,10 +327,13 @@ static uint8 cycles[0x0100] =
   _F = (_F & Z_FLAG)|(mtemp & 0x010000 ? C_FLAG : 0)|(_HL^(r)^(mtemp & 0xFFFF) & 0x1000 ? H_FLAG : 0);\
   _HL = mtemp & 0xFFFF
 
-//mednafen uses _PC += (signed char)n + 1 for all relative jumps...wtf??
+//mednafen uses _PC += (signed char)n + 1 for all relative jumps...two's complement?
 //maybe I shouldn't use (signed char) cast
+//07/21/2014 something is definitely fundamentally wrong with my relative jump
+//both gold and tetris (and blue/yellow?) are failing after jr instructions
 #define JR(n) \
-  _PC += ((signed char)n)
+  _PC += ((n > 0x7F) ? -(((~n)+1) & 0xFF) : n)
+//  _PC += ((signed char)n)
 
 #define COND_JR(cond,n) \
   if (cond) JR(n)
@@ -357,7 +360,7 @@ static uint8 cycles[0x0100] =
 
 #define COND_CALL(cond,n) \
   if (cond) CALL(n)
-  
+
 #define POP(a,b) \
   b = READ_BYTE(_SP++);\
   a = READ_BYTE(_SP++)

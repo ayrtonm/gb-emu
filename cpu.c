@@ -34,7 +34,6 @@ int emulate(void)
       else if (INTE & IO(_IF) & INT_JOY) interrupt(INT_JOY);
     }
     op = READ_BYTE(_PC);
-    if (printing) printf("0x%x\n",op);
     if (op == 0xCB)
     {
       _PC++;
@@ -49,6 +48,7 @@ int emulate(void)
     else
     {
       _PC += length[op];
+      if (printing) printf("0x%x\n",op);
       dt = cycles[op];
       switch(op)
       {

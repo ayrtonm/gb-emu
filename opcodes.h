@@ -35,7 +35,7 @@ case 0x1d:  {DEC(_E);break;}
 case 0x1e:  {LD(_E,IMM8);break;}
 case 0x1f:  {RRA;break;}
 
-case 0x20:  {COND_JR((ZERO==0),IMM8);dt+=1;break;}
+case 0x20:  {COND_JR((ZERO==1),IMM8);dt+=1;break;}
 case 0x21:  {LD(_HL,IMM16);break;}
 case 0x22:  {LD_RM(_HL++,_A);/*_HL++;*/break;}
 case 0x23:  {_HL++;break;}
@@ -43,7 +43,11 @@ case 0x24:  {INC(_H);break;}
 case 0x25:  {DEC(_H);break;}
 case 0x26:  {LD(_H,IMM8);break;}
 case 0x27:  {DAA;break;}
-case 0x28:  {COND_JR((ZERO==1),IMM8);dt+=1;break;}
+//07/21/2014
+//should be zero == 1
+//opcodes work like normal when zero == 0...wtf??
+//inverting all(4 + 12) opcodes with conditions
+case 0x28:  {COND_JR((ZERO==0),IMM8);dt+=1;break;}
 
 case 0x29:  {ADDHL(_HL);break;}
 case 0x2a:  {LD_MR(_A,_HL++);/*_HL++;*/break;}
@@ -53,7 +57,7 @@ case 0x2d:  {DEC(_L);break;}
 case 0x2e:  {LD(_L,IMM8);break;}
 case 0x2f:  {CPL;break;}
 
-case 0x30:  {COND_JR((CARRY==0),IMM8);dt+=1;break;}
+case 0x30:  {COND_JR((CARRY==1),IMM8);dt+=1;break;}
 case 0x31:  {LD(_SP,IMM16);break;}
 case 0x32:  {LD_RM(_HL--,_A);/*_HL--;*/break;}
 case 0x33:  {_SP++;break;}
@@ -61,7 +65,7 @@ case 0x34:  {uint8 temp = READ_BYTE(_HL);INC(temp);write_byte(_HL,temp);break;}
 case 0x35:  {uint8 temp = READ_BYTE(_HL);DEC(temp);write_byte(_HL,temp);break;}
 case 0x36:  {LD_RM(_HL,IMM8);break;}
 case 0x37:  {SCL;break;}
-case 0x38:  {COND_JR((CARRY==1),IMM8);dt+=1;break;}
+case 0x38:  {COND_JR((CARRY==0),IMM8);dt+=1;break;}
 
 case 0x39:  {ADDHL(_SP);break;}
 case 0x3a:  {LD_MR(_A,_HL--);/*_HL--;*/break;}
@@ -220,38 +224,38 @@ case 0xbd:  {CP(_L);break;}
 case 0xbe:  {CP(READ_BYTE(_HL));break;}
 case 0xbf:  {CP(_A);break;}
 
-case 0xc0:  {COND_RET((ZERO==0));dt+=3;break;}
+case 0xc0:  {COND_RET((ZERO==1));dt+=3;break;}
 case 0xc1:  {POP(_B,_C);break;}
-case 0xc2:  {COND_JP((ZERO==0),IMM16);dt+=1;break;}
+case 0xc2:  {COND_JP((ZERO==1),IMM16);dt+=1;break;}
 case 0xc3:  {JP(IMM16);break;}
-case 0xc4:  {COND_CALL((ZERO==0),IMM16);dt+=3;break;}
+case 0xc4:  {COND_CALL((ZERO==1),IMM16);dt+=3;break;}
 case 0xc5:  {PUSH(_B,_C);break;}
 case 0xc6:  {ADD(IMM8);break;}
 case 0xc7:  {RST(0x00);break;}
-case 0xc8:  {COND_RET((ZERO==1));dt+=3;break;}
+case 0xc8:  {COND_RET((ZERO==0));dt+=3;break;}
 
 case 0xc9:  {RET;break;}
-case 0xca:  {COND_JP((ZERO==1),IMM16);dt+=1;break;}
+case 0xca:  {COND_JP((ZERO==0),IMM16);dt+=1;break;}
 case 0xcb:  {break;}//cb opcodes (not used)
-case 0xcc:  {COND_CALL((ZERO==1),IMM16);dt+=3;break;}
+case 0xcc:  {COND_CALL((ZERO==0),IMM16);dt+=3;break;}
 case 0xcd:  {CALL(IMM16);break;}
 case 0xce:  {ADC(IMM8);break;}
 case 0xcf:  {RST(0x08);break;}
 
-case 0xd0:  {COND_RET((CARRY==0));dt+=3;break;}
+case 0xd0:  {COND_RET((CARRY==1));dt+=3;break;}
 case 0xd1:  {POP(_D,_E);break;}
-case 0xd2:  {COND_JP((CARRY==0),IMM16);dt+=1;break;}
+case 0xd2:  {COND_JP((CARRY==1),IMM16);dt+=1;break;}
 case 0xd3:  {break;}//no opcode
-case 0xd4:  {COND_CALL((CARRY==0),IMM16);dt+=3;break;}
+case 0xd4:  {COND_CALL((CARRY==1),IMM16);dt+=3;break;}
 case 0xd5:  {PUSH(_D,_E);break;}
 case 0xd6:  {SUB(IMM8);break;}
 case 0xd7:  {RST(0x10);break;}
-case 0xd8:  {COND_RET((CARRY==1));dt+=3;break;}
+case 0xd8:  {COND_RET((CARRY==0));dt+=3;break;}
 
 case 0xd9:  {RETI;break;}
-case 0xda:  {COND_JP((CARRY==1),IMM16);dt+=1;break;}
+case 0xda:  {COND_JP((CARRY==0),IMM16);dt+=1;break;}
 case 0xdb:  {break;}//no opcode
-case 0xdc:  {COND_CALL((CARRY==1),IMM16);dt+=3;break;}
+case 0xdc:  {COND_CALL((CARRY==0),IMM16);dt+=3;break;}
 case 0xdd:  {break;}//no opcode
 case 0xde:  {SBC(IMM8);break;}
 case 0xdf:  {RST(0x18);break;}

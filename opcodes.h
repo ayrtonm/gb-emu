@@ -1,5 +1,5 @@
-#define INVERT 1
-#define NINVERT 0
+#define INVERT 0
+#define NINVERT 1
 
 //finish commented opcodes
 case 0x0:  {break;}

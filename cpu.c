@@ -48,7 +48,18 @@ int emulate(void)
     else
     {
       _PC += length[op];
-      if (printing) printf("0x%x\n",op);
+      if (printing == 1) printf("0x%x\n",op);
+      else if (printing == 2)
+      {
+        system("clear");
+        printf("AF: 0x%x    HL: 0x%x\n",_AF,_HL);
+        printf("BC: 0x%x    DE: 0x%x\n",_BC,_DE);
+        printf("SP: 0x%x    PC: 0x%x\n",_SP,_PC);
+        printf("ZF: 0x%x      NF: 0x%x\n",GET(Z_FLAG,_F),GET(N_FLAG,_F));
+        printf("HF: 0x%x      CF: 0x%x\n",GET(H_FLAG,_F),GET(C_FLAG,_F));
+        char a  = getchar();
+        if (a == 'q') {return 0;}
+      }
       dt = cycles[op];
       switch(op)
       {

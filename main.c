@@ -18,34 +18,14 @@ void print_help(void)
 
 uint16 handle_args(int argc, char *argv[])
 {
-  if (argc < 2) {return 0;}
   int i;
   for (i = 1; i < argc; i++)
   {
-    if (!strcmp(argv[i],"-h")) {return 0;}
-    //remove next line if adding opcode test and interactive debug mode
-    //07/20/2014 NEVER ADD INTERACTIVE DEBUG MODE EVER AGAIN
-    //IT ONLY ADDS UNNECESSARY COMPLEXITY AND SHIT
-    else if (argc < 3) {return 0;}
-    else if (!strcmp(argv[i],"-i")) {return 2;}
-/*    else if (argc < 3) {return 0;}
-    else if (!strcmp(argv[i],"-t"))
-    {
-      uint8 opcode = convert_hex(argv[i+1]);
-      uint16 ret = (opcode|0x0100);
-      return ret;
-    }
-    else if (!strcmp(argv[i],"-cb"))
-    {
-      uint8 opcode = convert_hex(argv[i+1]);
-      uint16 ret = (opcode|0xCB00);
-      return ret;
-    }
-*/
-    else if (!strcmp(argv[i],"-r")) {printing = 0;return 1;}
-    else if (!strcmp(argv[i],"-p")) {printing = 1;return 1;}
-    else if (!strcmp(argv[i],"-d")) {printing = 2;return 1;}
-    else if (!strcmp(argv[i],"-m")) {printing = 3;return 1;}
+    if (!strcmp(argv[i],"-h") || argc < 3) {return 0;}
+    else if (!strcmp(argv[i],"-r")) {printing = run;return 1;}
+    else if (!strcmp(argv[i],"-p")) {printing = opcodes;return 1;}
+    else if (!strcmp(argv[i],"-d")) {printing = debug;return 1;}
+    else if (!strcmp(argv[i],"-m")) {printing = memory;return 1;}
   }
 }
 

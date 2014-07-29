@@ -26,6 +26,8 @@
 int printing;
 
 //typedefs and structs
+typedef enum {false, true} bool;
+enum {run,opcodes,debug,memory};
 typedef unsigned char uint8;
 typedef unsigned short int uint16;
 typedef union
@@ -45,6 +47,7 @@ typedef struct cpu
 {
   word16 AF,BC,DE,HL,PC,SP;
   uint8 IME;
+  bool halt,ei_delay;
 } cpu;
 
 typedef struct mbc
@@ -115,6 +118,9 @@ gb *gameboy;
 #define _PCBl	(gameboy->cpu.PC.B.l)
 #define _PCBh	(gameboy->cpu.PC.B.h)
 #define _IME	(gameboy->cpu.IME)
+
+#define _HALT		(gameboy->cpu.halt)
+#define EI_DELAY 	(gameboy->cpu.ei_delay)
 
 //interrupts
 #define REQUEST_INT(x)	write_byte(_IF,SET(x,IO(_IF)))

@@ -13,28 +13,34 @@ cpu init_cpu(void)
   c.HL.W = 0x014D;
   c.SP.W = 0xFFFE;
   c.PC.W = 0x0100;
-  c.IME = 1;
+  c.IME = 0;
+  c.ei_delay = false;
+  c.halt = false;
   return c;
 }
 
 int emulate(void)
 {
   uint8 op;
-  int halt = 0;
   int clk = 0;
   int dt = 0;
   SDL_Event event;
   for (;;)
   {
+    //HALT will be exited even when interrupts are disabled by IME
+    if (INTE & IO(_IF)) _HALT = false;
+    //if IME is enabled execute interrupt
     if (_IME)
     {
-      if (INTE & IO(_IF) & INT_VBL) {interrupt(INT_VBL);halt = 0;}
-      else if (INTE & IO(_IF) & INT_LCD) {interrupt(INT_LCD);halt = 0;}
-      else if (INTE & IO(_IF) & INT_TIM) {interrupt(INT_TIM);halt = 0;}
-      else if (INTE & IO(_IF) & INT_SER) {interrupt(INT_SER);halt = 0;}
-      else if (INTE & IO(_IF) & INT_JOY) {printf("joypad interrupt started\n");interrupt(INT_JOY);halt = 0;}
+      if (INTE & IO(_IF) & INT_VBL) {interrupt(INT_VBL);}
+      else if (INTE & IO(_IF) & INT_LCD) {interrupt(INT_LCD);}
+      else if (INTE & IO(_IF) & INT_TIM) {interrupt(INT_TIM);}
+      else if (INTE & IO(_IF) & INT_SER) {interrupt(INT_SER);}
+      else if (INTE & IO(_IF) & INT_JOY) {interrupt(INT_JOY);}
     }
-    if (halt == 0)
+    if (EI_DELAY) {_IME = 1;EI_DELAY = false;}
+    if (_HALT) dt = 4;//keep clk ticking even when cpu is halted
+    if (!_HALT)
     {
       op = READ_BYTE(_PC);
       if (op == 0xCB)
@@ -51,8 +57,8 @@ int emulate(void)
       else
       {
         _PC += length[op];
-        if (printing == 1) printf("0x%x at [%x]\n",op,_PC-length[op]);
-        else if (printing == 2)
+        if (printing == opcodes) printf("0x%x at [%x]\n",op,_PC-length[op]);
+        else if (printing == debug)
         {
           system("clear");
           printf("AF: 0x%x    HL: 0x%x\n",_AF,_HL);
@@ -71,7 +77,6 @@ int emulate(void)
         }
       }
     }
-    if (halt == 1) dt = 1;
     clk += dt;
     step_lcd(dt);
     gameboy->div_clk -= dt*4;
@@ -133,9 +138,10 @@ int emulate(void)
 
 void interrupt(uint8 which)
 {
+  printf("interrupt 0x%x executed\n",which);
+  EI_DELAY = false;
   write_byte(_IF,CLEAR(which,IO(_IF)));
   _IME = 0;
   PUSH(_PCBh,_PCBl);
   _PC = 0x40 + ((int)(log2(which)) << 3);
-  printf("0x%x PC = 0x%x\n",which,_PC);
 }

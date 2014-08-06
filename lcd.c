@@ -1,7 +1,5 @@
 #include "lcd.h"
 #include "globals.h"
-#undef GRID
-#undef LINEBYLINE
 
 lcd init_lcd(void)
 {
@@ -96,12 +94,6 @@ void step_lcd(uint8 dt)
         {
           SET_MODE_OAM;
           gameboy->lcd.clk += T_OAM;
-///*
-          if ((!(IO(_LCDSTAT) & 0x40)) || (IO(_LY) != IO(_LYC)))
-          {
-            if (IO(_LCDSTAT) & 0x28 == 0x20) REQUEST_INT(INT_LCD);
-          }
-//*/
         }
         else //if (IO(_LY) == 145) on last line of screen
         {
@@ -115,20 +107,6 @@ void step_lcd(uint8 dt)
       }
       case MODE_VBLANK:
       {
-#ifdef GRID
-        //draw a grid during vblank
-        int i,j;
-        for (i = 0; i < 20; i++)
-        {
-          for (j = 0; j < 18; j++)
-          {
-            SDL_Rect dst = {(i*8),(j*8),160,1};
-            SDL_FillRect(gameboy->lcd.screen,&dst,SDL_MapRGB(gameboy->lcd.screen->format,0x00,0xFF,0x00));
-          }
-          SDL_Rect dst = {(i*8),0,1,144};
-          SDL_FillRect(gameboy->lcd.screen,&dst,SDL_MapRGB(gameboy->lcd.screen->format,0x00,0xFF,0x00));
-        }
-#endif
         SDL_Flip(gameboy->lcd.screen);
         compareLYtoLYC();
         if (IO(_LY) < 155)
@@ -141,12 +119,6 @@ void step_lcd(uint8 dt)
           IO(_LY) = 1;
           SET_MODE_OAM;
           gameboy->lcd.clk += T_OAM;
-///*
-          if ((!(IO(_LCDSTAT) & 0x40)) || (IO(_LY) != IO(_LYC)))
-          {
-            if (IO(_LCDSTAT) & 0x28 == 0x20) REQUEST_INT(INT_LCD);
-          }
-//*/
         }
         break;
       }
@@ -166,18 +138,12 @@ void step_lcd(uint8 dt)
         Uint32 *pixels = (Uint32 *)gameboy->lcd.screen->pixels;
         for (i = 0; i < 160; i++)
         {
-          color = (gameboy->lcd.linebuffer[i] == 4 ? SDL_MapRGB(gameboy->lcd.screen->format,0xFF,0xFF,0xFF) : pal_bgp[gameboy->lcd.linebuffer[i]]);
+          //color = pal_bgp[gameboy->lcd.linebuffer[i]];
+          if (!(IO(_LCDC) & 0x21)) {color = SDL_MapRGB(gameboy->lcd.screen->format,0xFF,0xFF,0xFF);}
+          if (IO(_LCDC) & 0x01) {color = pal_bgp[gameboy->lcd.linebuffer[i] & 0x03];}
+          if (IO(_LCDC) & 0x20) {color = pal_bgp[gameboy->lcd.linebuffer[i] >> 2];if (color == SDL_MapRGB(gameboy->lcd.screen->format,0xFF,0xFF,0xFF)) {color = pal_bgp[gameboy->lcd.linebuffer[i] & 0x03];}}
           pixels[(IO(_LY) * gameboy->lcd.screen->w) + i] = color;
         }
-#ifdef LINEBYLINE
-        SDL_Flip(gameboy->lcd.screen);
-#endif
-///*
-        if ((!(IO(_LCDSTAT) & 0x40)) || (IO(_LY) != IO(_LYC)))
-        {
-          if (IO(_LCDSTAT) & 0x28 == 0x20) REQUEST_INT(INT_LCD);
-        }
-//*/
         SET_MODE_HBLANK;
         gameboy->lcd.clk = T_HBLANK;
         break;
@@ -237,22 +203,33 @@ void draw_line(void)
     }
   }
   }
-  else if (!(IO(_LCDC) & 0x01)) {int i; for(i = 0; i < 160; i++) {gameboy->lcd.linebuffer[i] = 4;}}
+  else if (!(IO(_LCDC) & 0x01)) {int i; for(i = 0; i < 160; i++) {gameboy->lcd.linebuffer[i] = 0;}}
   if (IO(_LCDC) & 0x20)
   {
-/*    x = 0;
-    y = IO(_LY);
-    uint8 w_map_number = ((IO(_LCDC) & 0x40) ? T_MAP_1((y << 5)) : T_MAP_0((y << 5)));
-    uint16 w_data = ((IO(_LCDC) & 0x10) ? T_DATA_0(16*w_map_number + 2*IO(_LY)) : T_DATA_1(16*w_map_number + 2*IO(_LY)));
+    uint8 w_offset = (IO(_LY)/8 & 31) << 5;
+    uint8 w_map_number = ((IO(_LCDC) & 0x40) ? T_MAP_1(w_offset) : T_MAP_0(w_offset));
+    //offsets within tile
+    uint8 x = 0;
+    uint8 y = IO(_LY) & 7;
+    uint16 w_data = ((IO(_LCDC) & 0x10) ? T_DATA_0(16*w_map_number + 2*y) : T_DATA_1(16*w_map_number + 2*y));
+    int i;
     for (i = 0; i < 160; i++)
     {
       uint8 a = (LOW(w_data) & BIT(x)) >> x;
       uint8 b = (HIGH(w_data) & BIT(x)) >> x;
-      uint8 c = a + (b << 1);
-      gameboy->lcd.linebuffer[i] = c;
+      uint8 c =  (a << 2) + (b << 3);
+      gameboy->lcd.linebuffer[i] += c;
       x++;
-    }*/
+      if (x == 8)
+      {
+        x = 0;
+        w_offset = (IO(_LY)/8 & 31) << 5;
+        uint8 w_map_number = ((IO(_LCDC) & 0x40) ? T_MAP_1(w_offset) : T_MAP_0(w_offset));
+        uint16 w_data = ((IO(_LCDC) & 0x10) ? T_DATA_0(16*w_map_number + 2*y) : T_DATA_1(16*w_map_number + 2*y));
+      }
+    }
   }
+  else if (!(IO(_LCDC) & 0x20)) {int i; for(i = 0; i < 160; i++) {gameboy->lcd.linebuffer[i] += 0;}}
 }
 
 void draw_sprites(void)

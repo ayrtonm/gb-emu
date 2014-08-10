@@ -104,14 +104,14 @@ int emulate(void)
         {
           switch(event.key.keysym.sym)
           {
-            case SDLK_LEFT: CLEAR(0x02,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x02;REQUEST_INT(INT_JOY);}break;
-            case SDLK_RIGHT: CLEAR(0x01,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x01;REQUEST_INT(INT_JOY);}break;
-            case SDLK_DOWN: CLEAR(0x08,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x08;REQUEST_INT(INT_JOY);}break;
-            case SDLK_UP: CLEAR(0x04,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x04;REQUEST_INT(INT_JOY);}break;
-            case SDLK_z: CLEAR(0x01,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x01;REQUEST_INT(INT_JOY);printf("you pressed z\n");}break;
-            case SDLK_x: CLEAR(0x02,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x02;REQUEST_INT(INT_JOY);}break;
-            case SDLK_a: CLEAR(0x04,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x04;REQUEST_INT(INT_JOY);}break;
-            case SDLK_s: CLEAR(0x08,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x08;REQUEST_INT(INT_JOY);}break;
+            case SDLK_LEFT: if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x02;REQUEST_INT(INT_JOY);}break;
+            case SDLK_RIGHT: if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x01;REQUEST_INT(INT_JOY);}break;
+            case SDLK_DOWN: if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x08;REQUEST_INT(INT_JOY);}break;
+            case SDLK_UP: if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x04;REQUEST_INT(INT_JOY);}break;
+            case SDLK_z: if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x01;REQUEST_INT(INT_JOY);}break;
+            case SDLK_x: if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x02;REQUEST_INT(INT_JOY);}break;
+            case SDLK_a: if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x04;REQUEST_INT(INT_JOY);}break;
+            case SDLK_s: if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x08;REQUEST_INT(INT_JOY);}break;
             case SDLK_q: return 0;
           }
           break;
@@ -120,14 +120,14 @@ int emulate(void)
         {
           switch(event.key.keysym.sym)
           {
-            case SDLK_LEFT: SET(0x02,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) |= 0x02;}break;
-            case SDLK_RIGHT: SET(0x01,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) |= 0x01;}break;
-            case SDLK_DOWN: SET(0x08,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) |= 0x08;}break;
-            case SDLK_UP: SET(0x04,gameboy->joyp[0]);if (IO(_JOYP) & 0x10) {IO(_JOYP) |= 0x04;}break;
-            case SDLK_z: SET(0x01,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) |= 0x01;}break;
-            case SDLK_x: SET(0x02,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) |= 0x02;}break;
-            case SDLK_a: SET(0x04,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) |= 0x04;}break;
-            case SDLK_s: SET(0x08,gameboy->joyp[1]);if (IO(_JOYP) & 0x20) {IO(_JOYP) |= 0x08;}break;
+            case SDLK_LEFT: if (IO(_JOYP) & 0x10) {IO(_JOYP) |= 0x02;}break;
+            case SDLK_RIGHT: if (IO(_JOYP) & 0x10) {IO(_JOYP) |= 0x01;}break;
+            case SDLK_DOWN: if (IO(_JOYP) & 0x10) {IO(_JOYP) |= 0x08;}break;
+            case SDLK_UP: if (IO(_JOYP) & 0x10) {IO(_JOYP) |= 0x04;}break;
+            case SDLK_z: if (IO(_JOYP) & 0x20) {IO(_JOYP) |= 0x01;}break;
+            case SDLK_x: if (IO(_JOYP) & 0x20) {IO(_JOYP) |= 0x02;}break;
+            case SDLK_a: if (IO(_JOYP) & 0x20) {IO(_JOYP) |= 0x04;}break;
+            case SDLK_s: if (IO(_JOYP) & 0x20) {IO(_JOYP) |= 0x08;}break;
           }
           break;
         }

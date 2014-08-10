@@ -132,7 +132,7 @@ void step_lcd(uint8 dt)
       {
         compareLYtoLYC();
         draw_line();
-        draw_sprites();
+        //draw_sprites();
         int i;
         Uint32 color;
         Uint32 *pixels = (Uint32 *)gameboy->lcd.screen->pixels;
@@ -144,6 +144,7 @@ void step_lcd(uint8 dt)
           if (IO(_LCDC) & 0x20) {color = pal_bgp[gameboy->lcd.linebuffer[i] >> 2];if (color == SDL_MapRGB(gameboy->lcd.screen->format,0xFF,0xFF,0xFF)) {color = pal_bgp[gameboy->lcd.linebuffer[i] & 0x03];}}
           pixels[(IO(_LY) * gameboy->lcd.screen->w) + i] = color;
         }
+        draw_sprites();
         SET_MODE_HBLANK;
         gameboy->lcd.clk = T_HBLANK;
         break;
@@ -155,28 +156,20 @@ void step_lcd(uint8 dt)
 void draw_line(void)
 {
   if (IO(_LCDC) & 0x01) {
-  //get offset within tile map for leftmost tile
-  //make mapoffset = line number then shift right 5 because there are 32 bytes in each line
-  uint16 mapoffset = (IO(_LY)/8);
-  //add scy part that moves lines
-  mapoffset += (IO(_SCY)/8);
-  mapoffset &= 31;
-  mapoffset <<= 5;
-  //add scx part that moves tiles
-  mapoffset += ((IO(_SCX)/8) & 31);
-  //read tile map number
+  //line number in tiles mod 32 then multiply by 32 because 32 tiles/bytes per line then add scx in tiles mod 32
+  uint16 mapoffset = ((((IO(_LY) + IO(_SCY)) >> 3) & 31) << 5) + ((IO(_SCX) >> 3) & 31);
   uint8 t_map_number = ((IO(_LCDC) & 0x08) ? T_MAP_1(mapoffset) : T_MAP_0(mapoffset));
   //fix tile number
   if (!(IO(_LCDC) & 0x10))
   {
     if (t_map_number > 127) {t_map_number -= 128;}
-    else if (t_map_number <= 127) {t_map_number += 128;}
+    else {t_map_number += 128;}
   }
   //get offset within tile
   uint8 x = IO(_SCX) & 7;
   uint8 y = (IO(_LY) + IO(_SCY)) & 7;
   //get tile line data using tile map number
-  uint16 t_data = ((IO(_LCDC) & 0x10) ? T_DATA_0(16*t_map_number + 2*y) : T_DATA_1(16*t_map_number + 2*y));
+  uint16 t_data = ((IO(_LCDC) & 0x10) ? T_DATA_0(16*t_map_number + (y << 1)) : T_DATA_1(16*t_map_number + (y << 1)));
   int i;
   for (i = 0; i < 160; i++)
   {
@@ -188,30 +181,26 @@ void draw_line(void)
     if (x == 8)
     {
       x = 0;
-      mapoffset = (IO(_LY)/8);
-      mapoffset += (IO(_SCY)/8);
-      mapoffset &= 31;
-      mapoffset <<= 5;
-      mapoffset += (((IO(_SCX) + i)/8) & 31);
+      mapoffset = ((((IO(_LY) + IO(_SCY)) >> 3) & 31) << 5) + (((IO(_SCX) + i) >> 3) & 31);
       uint8 t_map_number = ((IO(_LCDC) & 0x08) ? T_MAP_1(mapoffset) : T_MAP_0(mapoffset));
       if (!(IO(_LCDC) & 0x10))
       {
         if (t_map_number > 127) {t_map_number -= 128;}
-        else if (t_map_number <= 127) {t_map_number += 128;}
+        else {t_map_number += 128;}
       }
-      uint16 t_data = ((IO(_LCDC) & 0x10) ? T_DATA_0(16*t_map_number + 2*y) : T_DATA_1(16*t_map_number + 2*y));
+      uint16 t_data = ((IO(_LCDC) & 0x10) ? T_DATA_0(16*t_map_number + (y << 1)) : T_DATA_1(16*t_map_number + (y << 1)));
     }
   }
   }
   else if (!(IO(_LCDC) & 0x01)) {int i; for(i = 0; i < 160; i++) {gameboy->lcd.linebuffer[i] = 0;}}
   if (IO(_LCDC) & 0x20)
   {
-    uint8 w_offset = (IO(_LY)/8 & 31) << 5;
+    uint8 w_offset = ((IO(_LY) >> 3) & 31) << 5;
     uint8 w_map_number = ((IO(_LCDC) & 0x40) ? T_MAP_1(w_offset) : T_MAP_0(w_offset));
     //offsets within tile
     uint8 x = 0;
     uint8 y = IO(_LY) & 7;
-    uint16 w_data = ((IO(_LCDC) & 0x10) ? T_DATA_0(16*w_map_number + 2*y) : T_DATA_1(16*w_map_number + 2*y));
+    uint16 w_data = ((IO(_LCDC) & 0x10) ? T_DATA_0(16*w_map_number + (y << 1)) : T_DATA_1(16*w_map_number + (y << 1)));
     int i;
     for (i = 0; i < 160; i++)
     {
@@ -223,93 +212,69 @@ void draw_line(void)
       if (x == 8)
       {
         x = 0;
-        w_offset = (IO(_LY)/8 & 31) << 5;
+        w_offset = ((IO(_LY) >> 3) & 31) << 5;
         uint8 w_map_number = ((IO(_LCDC) & 0x40) ? T_MAP_1(w_offset) : T_MAP_0(w_offset));
-        uint16 w_data = ((IO(_LCDC) & 0x10) ? T_DATA_0(16*w_map_number + 2*y) : T_DATA_1(16*w_map_number + 2*y));
+        uint16 w_data = ((IO(_LCDC) & 0x10) ? T_DATA_0(16*w_map_number + (y << 1)) : T_DATA_1(16*w_map_number + (y << 1)));
       }
     }
   }
   else if (!(IO(_LCDC) & 0x20)) {int i; for(i = 0; i < 160; i++) {gameboy->lcd.linebuffer[i] += 0;}}
 }
 
-void draw_sprites(void)
+//reverses bits in each byte of 16 bit word doesn't change byte order, used for drawing sprites
+uint16 reverse_word(uint16 input)
 {
-  int i;
-  int x = 0;
-  int y = 0;
-  int count = 0;
-  int size = (IO(_LCDC) & 0x04);
-
-  if (!(IO(_LCDC) & 0x80)) return;
-  if (IO(_LCDC) & 0x02)
-  {
-    int yc = IO(_LY);
-    int address = 0;
-    for (i = 0; i < 40; i++)
-    {
-      y = OAM(address);
-      address++;
-      x = OAM(address);
-      address++;
-      int tile = OAM(address);
-      address++;
-      if (size) tile &= 254;
-      int flags = OAM(address);
-      address++;
-      if (x > 0 && y > 0 && x < 168 && y < 160)
-      {
-        int t = yc - y + 16;
-        if (size && t >= 0 && t < 16)
-        {
-          draw_sprite_tile(tile,x-8,yc,t,flags,size,i);
-          count++;
-        }
-        else if (!size && t >= 0 && t < 8)
-        {
-          draw_sprite_tile(tile,x-8,yc,t,flags,size,i);
-          count++;
-        }
-      }
-      if (count >= 10) break;
-    }
-  }
+  uint8 a = LOW(input);
+  uint8 b = HIGH(input);
+  b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+  b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+  b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+  a = (a & 0xF0) >> 4 | (a & 0x0F) << 4;
+  a = (a & 0xCC) >> 2 | (a & 0x33) << 2;
+  a = (a & 0xAA) >> 1 | (a & 0x55) << 1;
+  return a + (b << 8);
 }
 
-void draw_sprite_tile(int tile, int x, int y, int t, int flags, int size, int number)
+void draw_sprites(void)
 {
-  Uint32 *pal = pal_obp0;
-  uint8 c;
-  if (flags & 0x10) pal = pal_obp1;
-  int flipx = (flags & 0x20);
-  int flipy = (flags & 0x40);
-  if (flipy)
+  if (IO(_LCDC) & 0x02)
   {
-    t = (size ? 15 : 7) - t;
-  }
-  int priority = (flags & 0x80);
-  int address = tile * 16 + 2 * t;
-  int a = 0;
-  int b = 0;
-  a = T_DATA_0(address++);
-  b = T_DATA_0(address++);
-  int xx;
-  //x is tile x coordinate
-  //xx is x coordinate within tile
-  //xxx is x + xx
-  for (xx = 0; xx < 8; xx++)
-  {
-    uint8 mask = 1 << (7 - xx);
-    uint8 c = 0;
-    if ((a & mask)) c++;
-    if ((b & mask)) c += 2;
-    if (c == 0) continue;
-
-    int xxx = xx+x;
-    if (flipx)
+    int i = 0;
+    for (i = 0; i < 40; i++)
     {
-      xxx = (7 - xx + x);
+      if (OAM(i,OAM_Y) - 16 <= IO(_LY) && (OAM(i,OAM_Y) - 16 + ((IO(_LCDC) & 0x04) ? 16 : 8)) > IO(_LY))
+      {
+        uint8 y = (IO(_LY) & 7) << 1;
+        uint8 yflip = (7 - (IO(_LY) & 7)) << 1;
+        uint8 t_number = OAM(i,OAM_TILE);
+        uint16 t_data;
+        if (!(IO(_LCDC) & 0x04))//8x8 mode
+        {
+          t_data = T_DATA_0(16*t_number + ((OAM(i,OAM_FLAGS) & 0x40) ? yflip : y) );
+        }
+        else//8x16 mode
+        {
+          t_data = T_DATA_0(16 * (((IO(_LY) - OAM(i,OAM_Y)) > 7) ? t_number | 0x01 : t_number & 0xFE) + ((OAM(i,OAM_FLAGS) & 0x40) ? yflip : y) );
+        }
+        int x = 0;
+        for (x = 0; x < 8; x++)
+        {
+          if (OAM(i,OAM_X) + x - 8 >= 0 && OAM(i,OAM_X) + x - 8  < 160 && (!(OAM(i,OAM_FLAGS) & 0x80) || (gameboy->lcd.linebuffer[OAM(i,OAM_X) + x - 8] & 0x03) == 0))
+          {
+            if (OAM(i,OAM_FLAGS) & 0x20) t_data = reverse_word(t_data);
+            uint8 a = (LOW(t_data) & BIT(x)) >> x;
+            uint8 b = (HIGH(t_data) & BIT(x)) >> x;
+            uint8 c =  a + (b << 1);
+            if (c != 0)
+            {
+              Uint32 color;
+              Uint32 *pixels = (Uint32 *)gameboy->lcd.screen->pixels;
+              color = (OAM(i,OAM_FLAGS) & 0x10 ? pal_obp1[c] : pal_obp0[c]);
+              pixels[IO(_LY) * gameboy->lcd.screen->w + OAM(i,OAM_X) + x - 8] = color;
+            }
+          }
+        }
+      }
     }
-    if (xxx < 0 || xxx > 159) continue;
-    gameboy->lcd.linebuffer[xxx] = c;// pal[c];
   }
 }

@@ -118,9 +118,9 @@ void write_byte(uint16 address, uint8 value)
     if (address == _JOYP)//filter out writing to bits 0-3,6,7
     {
 //      IO(_JOYP) = value & 0x30;
-      if (value & 0x10) {IO(_JOYP) = (gameboy->joyp[0] & 0x0F)|0x10;}
-      else if (value & 0x20) {IO(_JOYP) = (gameboy->joyp[1] & 0x0F)|0x20;}
-      else if (value & 0x30) {IO(_JOYP) = (gameboy->joyp[1] & 0x0F)|0x30;}//what happens when both lines are on???
+      if (value & 0x10) {IO(_JOYP) |= 0x10;IO(_JOYP) &= ~0x20;}
+      else if (value & 0x20) {IO(_JOYP) |= 0x20;IO(_JOYP) &= ~0x10;}
+      else if (value & 0x30) {IO(_JOYP) = 0x10;IO(_JOYP) &= ~0x20;}//what ACTUALLY happens when both lines are on???
     }
     else if (address == _DIV) {IO(_DIV) = 0;}//write any value resets div register
     else if (address == _TIMA) {IO(_TIMA) = value;}

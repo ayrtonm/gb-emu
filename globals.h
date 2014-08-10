@@ -57,7 +57,7 @@ typedef struct mbc
   uint8 rambank,mode,enable;
   word16 rombank;
   uint8 *cart;
-  //ram area, size should (hopefully) be determined and set in parse_header()
+  //ram area, size should eventually be determined and set in parse_header()
   //using ram size for mbc5
   uint8 eram[0x020000];
 } mbc;
@@ -83,7 +83,6 @@ typedef struct gb
   int div_clk;
   int time_clk;
   int time_period;
-  uint8 joyp[2];
 } gb;
 
 //global gb struct pointer
@@ -143,6 +142,12 @@ gb *gameboy;
 #define SET_MODE_OAM	SET(0x02,IO(_LCDSTAT));CLEAR(0x01,IO(_LCDSTAT))
 #define SET_MODE_VRAM	SET(0x03,IO(_LCDSTAT))
 
+//oam shortcuts
+#define OAM_Y		0
+#define OAM_X		1
+#define OAM_TILE	2
+#define OAM_FLAGS	3
+
 //timer shortcuts
 #define TIMER_ON	(IO(_TAC) & 0x04)
 
@@ -169,12 +174,9 @@ gb *gameboy;
 
 //memory shortcuts
 //only MEM(x) and IO(x) should be used to write to memory
-//everything else (vram and oam) should only be used
-//for reading conveniently
-//ex: instead of reading the tile data at 0x83FD
-//read the data at 0x03FD or tile 0x3F,line 0x0D
-//oam can be used the same way except with sprite data
-//instead of tile data
+//everything else (vram and oam) should only be used for reading
+//ex: instead of reading the tile data at 0x83FD read the data at offset 0x03FD in tile data bank 0
+//oam can be used the same way except with sprite data instead of tile data
 #define MEM(x)		(gameboy->mem.map[x])
 #define VRAM(x)		(MEM(x))
 //next two macros return uint16 because it's more convenient in lcd.c
@@ -192,7 +194,8 @@ gb *gameboy;
 //LOW(x) in OAM(x) doesn't stop 'overflows' into unused section,
 //but it should prevent overflows into io hw register section
 //I should probs add this to the other macros for accessing memory
-#define OAM(x)		(gameboy->mem.map[LOW(x)+_OAM])
+//OAM is in terms of sprites not bytes, ex:
+#define OAM(sprite,property)		(gameboy->mem.map[LOW((sprite << 2) + property)+ _OAM])
 #define INTE		(gameboy->mem.map[_IE])
 
 //mbc shortcuts
@@ -208,7 +211,7 @@ gb *gameboy;
 #define READ_BYTE(x)	(MEM(x))
 #define READ_WORD(x)	(MEM(x) + (MEM(x+1)<<8))
 
-//memory sections
+//memory sections addresses
 #define _ROM	0x0000
 #define _BANK	0x4000
 #define _VRAM	0x8000

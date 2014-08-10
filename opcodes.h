@@ -264,7 +264,7 @@ case 0xe4:  {break;}//no opcode
 case 0xe5:  {PUSH(_H,_L);break;}
 case 0xe6:  {AND(IMM8);break;}
 case 0xe7:  {RST(0x20);break;}
-//case 0xe8:  {break;}//add sp, r8
+case 0xe8:  {int mtemp = _SP + ((IMM8 > 0x7F) ? -(((~IMM8)+1) & 0xFF) : IMM8);_F = (mtemp & 0x010000 ? C_FLAG : 0)|(_HL^(IMM8)^(mtemp & 0xFFFF) & 0x1000 ? H_FLAG : 0);_SP = mtemp & 0xFFFF;break;}//add sp, r8
 
 case 0xe9:  {JP(_HL);break;}
 case 0xea:  {LD_RM(IMM16,_A);break;}

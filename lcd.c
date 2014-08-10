@@ -244,8 +244,8 @@ void draw_sprites(void)
     {
       if (OAM(i,OAM_Y) - 16 <= IO(_LY) && (OAM(i,OAM_Y) - 16 + ((IO(_LCDC) & 0x04) ? 16 : 8)) > IO(_LY))
       {
-        uint8 y = (IO(_LY) & 7) << 1;
-        uint8 yflip = (7 - (IO(_LY) & 7)) << 1;
+        uint8 y = ((IO(_LY) - OAM(i,OAM_Y)) & 7) << 1;
+        uint8 yflip = (7 - ((IO(_LY) - OAM(i,OAM_Y)) & 7)) << 1;
         uint8 t_number = OAM(i,OAM_TILE);
         uint16 t_data;
         if (!(IO(_LCDC) & 0x04))//8x8 mode

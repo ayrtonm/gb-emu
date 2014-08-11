@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>//for log2 function
+#define BREAK 6090
 
 cpu init_cpu(void)
 {
@@ -21,6 +22,8 @@ cpu init_cpu(void)
 
 int emulate(void)
 {
+  //j is used for counting executed opcodes for debugging
+  int j = 1;
   uint8 op;
   int clk = 0;
   int dt = 0;
@@ -53,28 +56,44 @@ int emulate(void)
         {
           #include "cb_opcodes.h"
         }
+        j++;
       }
       else
       {
         _PC += length[op];
-        if (printing == opcodes) printf("0x%x at [%x]\n",op,_PC-length[op]);
+        if (printing == opcodes) printf("0x%x\n",op,_PC-length[op]);
         else if (printing == debug)
         {
+          if (j >= BREAK) {
           system("clear");
-          printf("AF: 0x%x    HL: 0x%x\n",_AF,_HL);
-          printf("BC: 0x%x    DE: 0x%x\n",_BC,_DE);
-          printf("SP: 0x%x    PC: 0x%x\n",_SP,_PC);
-          printf("ZF: 0x%x      NF: 0x%x\n",GET(Z_FLAG,_F),GET(N_FLAG,_F));
-          printf("HF: 0x%x      CF: 0x%x\n",GET(H_FLAG,_F),GET(C_FLAG,_F));
-          printf("IMM16: 0x%x   opcode: 0x%x\n",IMM16,op);
+          printf("AF: 0x%x      \nHL: 0x%x\n",_AF,_HL);
+          printf("BC: 0x%x      \nDE: 0x%x\n",_BC,_DE);
+          printf("SP: 0x%x      \nPC: 0x%x\n",_SP,_PC-length[op]);
+          printf("ZF: 0x%x      \nNF: 0x%x\n",GET(Z_FLAG,_F),GET(N_FLAG,_F));
+          printf("HF: 0x%x      \nCF: 0x%x\n",GET(H_FLAG,_F),GET(C_FLAG,_F));
+          printf("opcode: 0x%x  \n",op);
+          printf("IMM8: 0x%x    \nIMM16: 0x%x\n",IMM8,IMM16);
+          printf("IME: %d       \nn: %d\n",_IME,j);
+          printf("[  SP  ] =  0x%x\n",MEM(_SP));
+          printf("[ SP-1 ] =  0x%x\n",MEM(_SP-1));
+          printf("[ SP-2 ] =  0x%x\n",MEM(_SP-2));
+          printf("[ SP-3 ] =  0x%x\n",MEM(_SP-3));
+          printf("[ SP-4 ] =  0x%x\n",MEM(_SP-4));
+          printf("[ SP-5 ] =  0x%x\n",MEM(_SP-5));
+          printf("[ SP-6 ] =  0x%x\n",MEM(_SP-6));
+          printf("[ SP-7 ] =  0x%x\n",MEM(_SP-7));
+          printf("[ SP-8 ] =  0x%x\n",MEM(_SP-8));
+          printf("[%x][%x][%x][%x][%x][%x][%x]\n",MEM(_PC-length[op]-3),MEM(_PC-length[op]-2),MEM(_PC-length[op]-1),MEM(_PC-length[op]),MEM(_PC-length[op]+1),MEM(_PC-length[op]+2),MEM(_PC-length[op]+3));
           char a  = getchar();
           if (a == 'q') {return 0;}
+}
         }
         dt = cycles[op];
         switch(op)
         {
           #include "opcodes.h"
         }
+        j++;
       }
     }
     clk += dt;

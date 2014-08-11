@@ -297,8 +297,8 @@ static uint8 cycles[0x0100] =
 /*0 1 2 3 4 5 6 7 8 9 A B C D E F*/
   1,3,2,2,1,1,2,1,5,2,2,2,1,1,2,1, /*0x*/
   1,3,2,2,1,1,2,1,3,2,2,2,1,1,2,1, /*1x*/
-  1,3,2,2,1,1,2,1,3,2,2,2,1,1,2,1, /*2x*/
-  1,3,2,2,1,1,2,1,3,2,2,2,1,1,2,1, /*3x*/
+  2,3,2,2,1,1,2,1,2,2,2,2,1,1,2,1, /*2x*/
+  2,3,2,2,1,1,2,1,2,2,2,2,1,1,2,1, /*3x*/
   1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1, /*4x*/
   1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1, /*5x*/
   1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1, /*6x*/
@@ -327,23 +327,19 @@ static uint8 cycles[0x0100] =
   _F = (_F & Z_FLAG)|(mtemp & 0x010000 ? C_FLAG : 0)|(_HL^(r)^(mtemp & 0xFFFF) & 0x1000 ? H_FLAG : 0);\
   _HL = mtemp & 0xFFFF
 
-//mednafen uses _PC += (signed char)n + 1 for all relative jumps...two's complement?
-//maybe I shouldn't use (signed char) cast
-//07/21/2014 something is definitely fundamentally wrong with my relative jump
-//both gold and tetris (and blue/yellow?) are failing after jr instructions
 //07/22/2014 JR and all branch instructions are correct
 #define JR(n) \
-  _PC += ((n > 0x7F) ? -(((~n)+1) & 0xFF) : n)
-//  _PC += ((signed char)n)
+  _PC += ((signed char)n)
+//  _PC += ((n > 0x7F) ? -(((~n)+1) & 0xFF) : n)
 
 #define COND_JR(cond,n) \
-  if (cond) JR(n)
+  if (cond) {JR(n);dt += 1;}
 
 #define RET \
   POP(_PCBh,_PCBl)
 
 #define COND_RET(cond) \
-  if (cond) RET
+  if (cond) {RET;dt += 3;}
 
 #define RETI \
   POP(_PCBh,_PCBl);\
@@ -353,14 +349,14 @@ static uint8 cycles[0x0100] =
   _PC = n
 
 #define COND_JP(cond,n) \
-  if (cond) JP(n)
+  if (cond) {JP(n); dt += 1;}
 
 #define CALL(n) \
   PUSH(_PCBh,_PCBl);\
   _PC = n
 
 #define COND_CALL(cond,n) \
-  if (cond) CALL(n)
+  if (cond) {CALL(n);dt += 3;}
 
 #define POP(a,b) \
   b = READ_BYTE(_SP++);\
@@ -421,7 +417,7 @@ static uint8 cycles[0x0100] =
 
 #define AND(r) \
   _A &= (r);\
-  _F = H_FLAG|(_A ? 0 : Z_FLAG)
+  _F = H_FLAG|(_A > 0 ? 0 : Z_FLAG)
 
 #define EOR(r) \
   _A ^= (r);\

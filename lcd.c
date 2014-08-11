@@ -90,7 +90,7 @@ void step_lcd(uint8 dt)
       {
         IO(_LY)++;
         compareLYtoLYC();
-        if (IO(_LY) < 145)
+        if (IO(_LY) < 144)
         {
           SET_MODE_OAM;
           gameboy->lcd.clk += T_OAM;

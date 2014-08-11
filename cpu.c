@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>//for log2 function
-#define BREAK 6090
+#define BREAK 61160
 
 cpu init_cpu(void)
 {

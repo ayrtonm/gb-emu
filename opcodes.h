@@ -281,7 +281,7 @@ case 0xf7:  {RST(0x30);break;}
 
 case 0xf9:  {LD(_SP,_HL);break;}
 case 0xfa:  {LD_MR(_A,IMM16);break;}
-case 0xfb:  {_IME = 1;/*EI_DELAY = true;*/break;}
+case 0xfb:  {/*_IME = 1;*/EI_DELAY = true;break;}
 case 0xfc:  {break;}//no opcode
 case 0xfd:  {break;}//no opcode
 case 0xfe:  {CP(IMM8);break;}

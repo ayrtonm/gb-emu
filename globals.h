@@ -122,7 +122,7 @@ gb *gameboy;
 #define EI_DELAY 	(gameboy->cpu.ei_delay)
 
 //interrupts
-#define REQUEST_INT(x)	write_byte(_IF,SET(x,IO(_IF)))
+#define REQUEST_INT(x)	write_byte(_IR,SET(x,IO(_IR)))
 #define INT_VBL	0x01
 #define INT_LCD	0x02
 #define INT_TIM	0x04
@@ -229,7 +229,7 @@ gb *gameboy;
 #define _TIMA		0xFF05
 #define _TMA		0xFF06
 #define _TAC		0xFF07
-#define _IF		0xFF0F
+#define _IR		0xFF0F
 #define _LCDC		0xFF40
 #define _LCDSTAT	0xFF41
 #define _SCY		0xFF42

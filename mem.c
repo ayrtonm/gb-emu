@@ -136,7 +136,7 @@ void write_byte(uint16 address, uint8 value)
         case 0x03: {gameboy->time_period = gameboy->time_clk = T_TIMER_3;break;}
       }
     }
-    else if (address == _IF) {IO(_IF) = value & 0x1F;}//request interrupt only bits 0-4 used
+    else if (address == _IR) {IO(_IR) = value & 0x1F;}//request interrupt only bits 0-4 used
     else if (address == _LCDC) {IO(_LCDC) = value;}//all can be controlled by user
     else if (address == _LCDSTAT) {IO(_LCDSTAT) = value & 0x78;}//bits 3-6 enable different interrupts, 0-2 read only
     else if (address == _SCY) {IO(_SCY) = value;}//scroll y

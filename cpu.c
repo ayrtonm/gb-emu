@@ -31,15 +31,15 @@ int emulate(void)
   for (;;)
   {
     //HALT will be exited even when interrupts are disabled by IME
-    if (INTE & IO(_IF)) _HALT = false;
+    if (INTE & IO(_IR)) _HALT = false;
     //if IME is enabled execute interrupt
     if (_IME)
     {
-      if (INTE & IO(_IF) & INT_VBL) {interrupt(INT_VBL);}
-      else if (INTE & IO(_IF) & INT_LCD) {interrupt(INT_LCD);}
-      else if (INTE & IO(_IF) & INT_TIM) {interrupt(INT_TIM);}
-      else if (INTE & IO(_IF) & INT_SER) {interrupt(INT_SER);}
-      else if (INTE & IO(_IF) & INT_JOY) {interrupt(INT_JOY);}
+      if (INTE & IO(_IR) & INT_VBL) {interrupt(INT_VBL);}
+      else if (INTE & IO(_IR) & INT_LCD) {interrupt(INT_LCD);}
+      else if (INTE & IO(_IR) & INT_TIM) {interrupt(INT_TIM);}
+      else if (INTE & IO(_IR) & INT_SER) {interrupt(INT_SER);}
+      else if (INTE & IO(_IR) & INT_JOY) {interrupt(INT_JOY);}
     }
     if (EI_DELAY) {_IME = 1;EI_DELAY = false;}
     if (_HALT) dt = 4;//keep clk ticking even when cpu is halted
@@ -158,9 +158,9 @@ int emulate(void)
 void interrupt(uint8 which)
 {
   printf("interrupt 0x%x executed\n",which);
-  EI_DELAY = false;
-  write_byte(_IF,CLEAR(which,IO(_IF)));
+  write_byte(_IR,CLEAR(which,IO(_IR)));
   _IME = 0;
+  EI_DELAY = false;
   PUSH(_PCBh,_PCBl);
   _PC = 0x40 + ((int)(log2(which)) << 3);
 }

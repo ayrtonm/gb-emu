@@ -30,19 +30,28 @@ int emulate(void)
   SDL_Event event;
   for (;;)
   {
-    //HALT will be exited even when interrupts are disabled by IME
-    if (INTE & IO(_IR)) _HALT = false;
-    //if IME is enabled execute interrupt
-    if (_IME)
+    if (_HALT || _IME)
     {
-      if (INTE & IO(_IR) & INT_VBL) {interrupt(INT_VBL);}
-      else if (INTE & IO(_IR) & INT_LCD) {interrupt(INT_LCD);}
-      else if (INTE & IO(_IR) & INT_TIM) {interrupt(INT_TIM);}
-      else if (INTE & IO(_IR) & INT_SER) {interrupt(INT_SER);}
-      else if (INTE & IO(_IR) & INT_JOY) {interrupt(INT_JOY);}
+      int i = 1;
+      while ((!(IO(_IR) & i) || !(IO(_IE) & i)) && (i <= 0x10))
+      {
+        i <<= 1;
+      }
+      if (i <= 0x10)
+      {
+        if (_HALT) {_PC++;}
+        if (_IME)
+        {
+          _IME = 0;
+          write_byte(_IR,CLEAR(i,IO(_IR)));
+          EI_DELAY = false;
+          PUSH(_PCBh,_PCBl);
+          _PC = 0x40 + ((int)(log2(i)) << 3);
+        }
+      }
     }
+    if (_HALT) dt = 1;
     if (EI_DELAY) {_IME = 1;EI_DELAY = false;}
-    if (_HALT) dt = 4;//keep clk ticking even when cpu is halted
     if (!_HALT)
     {
       op = READ_BYTE(_PC);
@@ -74,6 +83,7 @@ int emulate(void)
           printf("opcode: 0x%x  \n",op);
           printf("IMM8: 0x%x    \nIMM16: 0x%x\n",IMM8,IMM16);
           printf("IME: %d       \nn: %d\n",_IME,j);
+          printf("IR: %x\nIE: %x\n",IO(_IR),IO(_IE));
           printf("[  SP  ] =  0x%x\n",MEM(_SP));
           printf("[ SP-1 ] =  0x%x\n",MEM(_SP-1));
           printf("[ SP-2 ] =  0x%x\n",MEM(_SP-2));
@@ -153,14 +163,4 @@ int emulate(void)
       }
     }
   }
-}
-
-void interrupt(uint8 which)
-{
-  printf("interrupt 0x%x executed\n",which);
-  write_byte(_IR,CLEAR(which,IO(_IR)));
-  _IME = 0;
-  EI_DELAY = false;
-  PUSH(_PCBh,_PCBl);
-  _PC = 0x40 + ((int)(log2(which)) << 3);
 }

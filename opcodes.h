@@ -17,7 +17,7 @@ case 0xd:  {DEC(_C);break;}
 case 0xe:  {LD(_C,IMM8);break;}
 case 0xf:  {RRCA;break;}
 
-//case 0x10:  {break;}//stop
+case 0x10:  {_HALT = true;break;}//stop
 case 0x11:  {LD(_DE,IMM16);break;}
 case 0x12:  {LD_RM(_DE,_A);break;}
 case 0x13:  {_DE++;break;}
@@ -281,7 +281,7 @@ case 0xf7:  {RST(0x30);break;}
 
 case 0xf9:  {LD(_SP,_HL);break;}
 case 0xfa:  {LD_MR(_A,IMM16);break;}
-case 0xfb:  {/*_IME = 1;*/EI_DELAY = true;break;}
+case 0xfb:  {EI_DELAY = true;break;}
 case 0xfc:  {break;}//no opcode
 case 0xfd:  {break;}//no opcode
 case 0xfe:  {CP(IMM8);break;}

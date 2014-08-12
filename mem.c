@@ -153,6 +153,7 @@ void write_byte(uint16 address, uint8 value)
   }
   //write to hram(stack)
   else if (address < _IE) {MEM(address) = value;}
+  else if (address == _IE) {MEM(address) = value & 0x1F;}
 }
 void write_cart(uint16 address, uint8 value)
 {

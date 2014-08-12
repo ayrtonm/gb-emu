@@ -205,7 +205,7 @@ void draw_line(void)
     uint8 y = (IO(_LY) - IO(_WY)) & 7;
     uint16 w_data = ((IO(_LCDC) & 0x10) ? T_DATA_0(16*w_map_number + (y << 1)) : T_DATA_1(16*w_map_number + (y << 1)));
     int i;
-    for (i = IO(_WX)-7; i < 160; i++)
+    for (i = MAX(IO(_WX)-7,0); i < 160; i++)
     {
       uint8 a = (LOW(w_data) & BIT(x)) >> x;
       uint8 b = (HIGH(w_data) & BIT(x)) >> x;
@@ -249,8 +249,8 @@ void draw_sprites(void)
     {
       if (OAM(i,OAM_Y) - 16 <= IO(_LY) && (OAM(i,OAM_Y) - 16 + ((IO(_LCDC) & 0x04) ? 16 : 8)) > IO(_LY))
       {
-        uint8 y = ((IO(_LY) - OAM(i,OAM_Y)) & 7) << 1;
-        uint8 yflip = (7 - ((IO(_LY) - OAM(i,OAM_Y)) & 7)) << 1;
+        uint8 y = ((IO(_LY) - OAM(i,OAM_Y) + 16) & 7) << 1;
+        uint8 yflip = (7 - ((IO(_LY) - OAM(i,OAM_Y) + 16) & 7)) << 1;
         uint8 t_number = OAM(i,OAM_TILE);
         uint16 t_data;
         if (!(IO(_LCDC) & 0x04))//8x8 mode
@@ -259,7 +259,7 @@ void draw_sprites(void)
         }
         else//8x16 mode
         {
-          t_data = T_DATA_0(16 * (((IO(_LY) - OAM(i,OAM_Y)) > 7) ? t_number | 0x01 : t_number & 0xFE) + ((OAM(i,OAM_FLAGS) & 0x40) ? yflip : y) );
+          t_data = T_DATA_0(16 * (((IO(_LY) - OAM(i,OAM_Y) + 16) > 7) ? (t_number | 0x01) : (t_number & 0xFE)) + ((OAM(i,OAM_FLAGS) & 0x40) ? yflip : y) );
         }
         int x = 0;
         count++;

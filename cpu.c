@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>//for log2 function
-#define BREAK 61160
+//#define BREAK 100000
+#undef BREAK
 
 cpu init_cpu(void)
 {
@@ -73,7 +74,9 @@ int emulate(void)
         if (printing == opcodes) printf("0x%x\n",op,_PC-length[op]);
         else if (printing == debug)
         {
+#ifdef BREAK
           if (j >= BREAK) {
+#endif
           system("clear");
           printf("AF: 0x%x      \nHL: 0x%x\n",_AF,_HL);
           printf("BC: 0x%x      \nDE: 0x%x\n",_BC,_DE);
@@ -84,6 +87,7 @@ int emulate(void)
           printf("IMM8: 0x%x    \nIMM16: 0x%x\n",IMM8,IMM16);
           printf("IME: %d       \nn: %d\n",_IME,j);
           printf("IR: %x\nIE: %x\n",IO(_IR),IO(_IE));
+          printf("JOYP: %x\n",IO(_JOYP));
           printf("[  SP  ] =  0x%x\n",MEM(_SP));
           printf("[ SP-1 ] =  0x%x\n",MEM(_SP-1));
           printf("[ SP-2 ] =  0x%x\n",MEM(_SP-2));
@@ -96,7 +100,9 @@ int emulate(void)
           printf("[%x][%x][%x][%x][%x][%x][%x]\n",MEM(_PC-length[op]-3),MEM(_PC-length[op]-2),MEM(_PC-length[op]-1),MEM(_PC-length[op]),MEM(_PC-length[op]+1),MEM(_PC-length[op]+2),MEM(_PC-length[op]+3));
           char a  = getchar();
           if (a == 'q') {return 0;}
+#ifdef BREAK
 }
+#endif
         }
         dt = cycles[op];
         switch(op)
@@ -133,14 +139,14 @@ int emulate(void)
         {
           switch(event.key.keysym.sym)
           {
-            case SDLK_LEFT: if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x02;REQUEST_INT(INT_JOY);}break;
-            case SDLK_RIGHT: if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x01;REQUEST_INT(INT_JOY);}break;
-            case SDLK_DOWN: if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x08;REQUEST_INT(INT_JOY);}break;
-            case SDLK_UP: if (IO(_JOYP) & 0x10) {IO(_JOYP) &= ~0x04;REQUEST_INT(INT_JOY);}break;
-            case SDLK_z: if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x01;REQUEST_INT(INT_JOY);}break;
-            case SDLK_x: if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x02;REQUEST_INT(INT_JOY);}break;
-            case SDLK_a: if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x04;REQUEST_INT(INT_JOY);}break;
-            case SDLK_s: if (IO(_JOYP) & 0x20) {IO(_JOYP) &= ~0x08;REQUEST_INT(INT_JOY);}break;
+            case SDLK_LEFT: gameboy->key_bitmap |= LEFT_K;break;
+            case SDLK_RIGHT: gameboy->key_bitmap |= RIGHT_K;break;
+            case SDLK_DOWN: gameboy->key_bitmap |= DOWN_K;break;
+            case SDLK_UP: gameboy->key_bitmap |= UP_K;break;
+            case SDLK_z: gameboy->key_bitmap |= A_K;break;
+            case SDLK_x: gameboy->key_bitmap |= B_K;break;
+            case SDLK_a: gameboy->key_bitmap |= STA_K;break;
+            case SDLK_s: gameboy->key_bitmap |= SEL_K;break;
             case SDLK_q: return 0;
           }
           break;
@@ -149,14 +155,14 @@ int emulate(void)
         {
           switch(event.key.keysym.sym)
           {
-            case SDLK_LEFT: if (IO(_JOYP) & 0x10) {IO(_JOYP) |= 0x02;}break;
-            case SDLK_RIGHT: if (IO(_JOYP) & 0x10) {IO(_JOYP) |= 0x01;}break;
-            case SDLK_DOWN: if (IO(_JOYP) & 0x10) {IO(_JOYP) |= 0x08;}break;
-            case SDLK_UP: if (IO(_JOYP) & 0x10) {IO(_JOYP) |= 0x04;}break;
-            case SDLK_z: if (IO(_JOYP) & 0x20) {IO(_JOYP) |= 0x01;}break;
-            case SDLK_x: if (IO(_JOYP) & 0x20) {IO(_JOYP) |= 0x02;}break;
-            case SDLK_a: if (IO(_JOYP) & 0x20) {IO(_JOYP) |= 0x04;}break;
-            case SDLK_s: if (IO(_JOYP) & 0x20) {IO(_JOYP) |= 0x08;}break;
+            case SDLK_LEFT: gameboy->key_bitmap &= ~LEFT_K;break;
+            case SDLK_RIGHT: gameboy->key_bitmap &= ~RIGHT_K;break;
+            case SDLK_DOWN: gameboy->key_bitmap &= ~DOWN_K;break;
+            case SDLK_UP: gameboy->key_bitmap &= ~UP_K;break;
+            case SDLK_z: gameboy->key_bitmap &= ~A_K;break;
+            case SDLK_x: gameboy->key_bitmap &= ~B_K;break;
+            case SDLK_a: gameboy->key_bitmap &= ~STA_K;break;
+            case SDLK_s: gameboy->key_bitmap &= ~SEL_K;break;
           }
           break;
         }

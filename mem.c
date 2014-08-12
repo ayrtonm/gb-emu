@@ -117,10 +117,21 @@ void write_byte(uint16 address, uint8 value)
   {
     if (address == _JOYP)//filter out writing to bits 0-3,6,7
     {
-//      IO(_JOYP) = value & 0x30;
-      if (value & 0x10) {IO(_JOYP) |= 0x10;IO(_JOYP) &= ~0x20;}
-      else if (value & 0x20) {IO(_JOYP) |= 0x20;IO(_JOYP) &= ~0x10;}
-      else if (value & 0x30) {IO(_JOYP) = 0x10;IO(_JOYP) &= ~0x20;}//what ACTUALLY happens when both lines are on???
+      IO(_JOYP) = value|0xCF;
+      if (!(value & 0x10))
+      {
+        if (gameboy->key_bitmap & UP_K) IO(_JOYP) &= ~0x04;
+        if (gameboy->key_bitmap & DOWN_K) IO(_JOYP) &= ~0x08;
+        if (gameboy->key_bitmap & LEFT_K) IO(_JOYP) &= ~0x02;
+        if (gameboy->key_bitmap & RIGHT_K) IO(_JOYP) &= ~0x01;
+      }
+      if (!(value & 0x20))
+      {
+        if (gameboy->key_bitmap & A_K) IO(_JOYP) &= ~0x01;
+        if (gameboy->key_bitmap & B_K) IO(_JOYP) &= ~0x02;
+        if (gameboy->key_bitmap & STA_K) IO(_JOYP) &= ~0x08;
+        if (gameboy->key_bitmap & SEL_K) IO(_JOYP) &= ~0x04;
+      }
     }
     else if (address == _DIV) {IO(_DIV) = 0;}//write any value resets div register
     else if (address == _TIMA) {IO(_TIMA) = value;}

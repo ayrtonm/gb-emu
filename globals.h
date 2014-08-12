@@ -83,6 +83,7 @@ typedef struct gb
   int div_clk;
   int time_clk;
   int time_period;
+  uint8 key_bitmap;
 } gb;
 
 //global gb struct pointer
@@ -128,6 +129,17 @@ gb *gameboy;
 #define INT_TIM	0x04
 #define INT_SER	0x08
 #define INT_JOY	0x10
+
+//key_bitmap
+//the 8 following macros are arbitrary choices
+#define DOWN_K	0x01
+#define UP_K	0x02
+#define LEFT_K	0x04
+#define RIGHT_K	0x08
+#define A_K	0x10
+#define B_K	0x20
+#define STA_K	0x40
+#define SEL_K	0x80
 
 //lcd modes
 #define MODE_HBLANK	0x00

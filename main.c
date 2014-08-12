@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
     gameboy->time_period = 0;
     gameboy->time_clk = 0;
     gameboy->div_clk = 0;
+    gameboy->key_bitmap = 0;
     emulate();
   }
   return 0;

@@ -6,6 +6,9 @@
 #define BREAK 6150
 //#undef BREAK
 
+/**
+This function initializes and returns a cpu struct
+*/
 cpu init_cpu(void)
 {
   cpu c;
@@ -20,7 +23,9 @@ cpu init_cpu(void)
   c.halt = false;
   return c;
 }
-
+/**
+This function emulates the gameboy's functions using an instance of gb struct
+*/
 int emulate(void)
 {
   uint8 op;

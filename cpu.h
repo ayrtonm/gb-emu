@@ -2,11 +2,7 @@
 #define CPU_H
 #include "globals.h"
 
-//initialize cpu struct pointer
 extern cpu init_cpu(void);
-
-//emulate function takes no variables
-//only uses global gb struct pointer
 extern int emulate(void);
 
 static const uint16 DAATable[] = {
@@ -268,6 +264,9 @@ static const uint16 DAATable[] = {
   0x9250,0x9350,0x9450,0x9550,0x9650,0x9750,0x9850,0x9950
 };
 
+/**
+This is a table of the opcode length in bytes. This information was obtained from http://pastraiser.com/cpu/gameboy/gameboy_opcodes.html, except for opcodes 0xE2 and 0xF2 which were wrong.
+*/
 static uint8 length[0x0100] = 
 {
 /*0 1 2 3 4 5 6 7 8 9 A B C D E F*/
@@ -287,11 +286,15 @@ static uint8 length[0x0100] =
   1,1,3,0,3,1,2,1,1,1,3,0,3,0,2,1, /*Dx*/
   2,1,1,0,0,1,2,1,2,1,3,0,0,0,2,1, /*Ex*/
   2,1,1,1,0,1,2,1,2,1,3,1,0,0,2,1  /*Fx*/
-//the source of these values was wrong for opcodes 0xE2, 0xF2
 };
 
+/**
+A table of cpu cycles each 0xCB opcode takes. This information was obtained from http://pastraiser.com/cpu/gameboy/gameboy_opcodes.html.
+*/
 static uint8 cb_cycles[0x08] = {2,2,2,2,2,2,4,2};
-
+/**
+A table of cpu cycles each opcode takes. This information was obtained from http://pastraiser.com/cpu/gameboy/gameboy_opcodes.html.
+*/
 static uint8 cycles[0x0100] =
 {
 /*0 1 2 3 4 5 6 7 8 9 A B C D E F*/

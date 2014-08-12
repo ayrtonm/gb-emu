@@ -3,7 +3,7 @@
 //no local headers should be included here
 //only sdl and possibly ncurses for debug mode ui
 //most other header files should only include
-//globals.h,stdio, and stdlib
+//globals.h, stdio, and stdlib
 #include <SDL/SDL.h>
 
 //general bit manipulation
@@ -22,7 +22,9 @@
 #define MAX(a,b)		(a > b ? a : b)
 #define MIN(a,b)		(a > b ? b : a)
 
-//print opcodes
+/**
+Variable used for printing registers and opcodes while debugging
+*/
 int printing;
 
 //typedefs and structs
@@ -30,6 +32,10 @@ typedef enum {false, true} bool;
 enum {run,opcodes,debug,memory};
 typedef unsigned char uint8;
 typedef unsigned short int uint16;
+
+/**
+word16 variable definition. word16 is mostly(only?) used for cpu registers.
+*/
 typedef union
 {
   uint16 W;
@@ -43,6 +49,9 @@ typedef union
   } B;
 } word16;
 
+/**
+cpu struct definition
+*/
 typedef struct cpu
 {
   word16 AF,BC,DE,HL,PC,SP;
@@ -50,6 +59,9 @@ typedef struct cpu
   bool halt,ei_delay;
 } cpu;
 
+/**
+mbc struct definition. eram will eventually be a pointer to memory that's allocated after reading the cartridge header.
+*/
 typedef struct mbc
 {
   int version;
@@ -62,11 +74,17 @@ typedef struct mbc
   uint8 eram[0x020000];
 } mbc;
 
+/**
+mem struct definition
+*/
 typedef struct mem
 {
   uint8 map[0x010000];
 } mem;
 
+/**
+lcd struct definition. linebuffer is only used drawing the background and window.
+*/
 typedef struct lcd
 {
   SDL_Surface *screen;
@@ -74,6 +92,9 @@ typedef struct lcd
   int clk;
 } lcd;
 
+/**
+gb struct definition
+*/
 typedef struct gb
 {
   cpu cpu;
@@ -87,20 +108,21 @@ typedef struct gb
 } gb;
 
 //global gb struct pointer
-//only use any of the following macros after
-//this pointer has been initialized
 gb *gameboy;
 
-//cpu specific
-//flags
+/**
+cpu specific macros
+  -flags
+  -registers
+  -interrupts
+  -interrupt helper variables
+*/
 #define Z_FLAG	0x80
 #define N_FLAG	0x40
 #define H_FLAG	0x20
 #define C_FLAG	0x10
 #define CARRY	((GET(C_FLAG,_F)) >> 4)
 #define ZERO	((GET(Z_FLAG,_F)) >> 7)
-
-//registers
 #define _A	(gameboy->cpu.AF.B.h)
 #define _F	(gameboy->cpu.AF.B.l)
 #define _B	(gameboy->cpu.BC.B.h)
@@ -118,20 +140,20 @@ gb *gameboy;
 #define _PCBl	(gameboy->cpu.PC.B.l)
 #define _PCBh	(gameboy->cpu.PC.B.h)
 #define _IME	(gameboy->cpu.IME)
-
-#define _HALT		(gameboy->cpu.halt)
-#define EI_DELAY 	(gameboy->cpu.ei_delay)
-
-//interrupts
 #define REQUEST_INT(x)	write_byte(_IR,SET(x,IO(_IR)))
 #define INT_VBL	0x01
 #define INT_LCD	0x02
 #define INT_TIM	0x04
 #define INT_SER	0x08
 #define INT_JOY	0x10
+#define _HALT		(gameboy->cpu.halt)
+#define EI_DELAY 	(gameboy->cpu.ei_delay)
 
-//key_bitmap
-//the 8 following macros are arbitrary choices
+
+/**
+Key bitmap
+The following choices are arbitrary and don't matter as long as they stay constant and don't overlap
+*/
 #define DOWN_K	0x01
 #define UP_K	0x02
 #define LEFT_K	0x04
@@ -141,36 +163,35 @@ gb *gameboy;
 #define STA_K	0x40
 #define SEL_K	0x80
 
-//lcd modes
+/**
+vram stuff
+  -lcd modes
+  -get lcd mode
+  -set lcd mode
+  -oam shortcuts
+  -lcd mode periods (vblank period macro is never used)
+*/
 #define MODE_HBLANK	0x00
 #define MODE_VBLANK	0x01
 #define MODE_OAM	0x02
 #define MODE_VRAM	0x03
-//get mode
 #define LCD_MODE	(IO(_LCDSTAT) & 0x03)
-//set mode
 #define SET_MODE_HBLANK	CLEAR(0x03,IO(_LCDSTAT))
 #define SET_MODE_VBLANK	SET(0x01,IO(_LCDSTAT));CLEAR(0x02,IO(_LCDSTAT))
 #define SET_MODE_OAM	SET(0x02,IO(_LCDSTAT));CLEAR(0x01,IO(_LCDSTAT))
 #define SET_MODE_VRAM	SET(0x03,IO(_LCDSTAT))
-
-//oam shortcuts
 #define OAM_Y		0
 #define OAM_X		1
 #define OAM_TILE	2
 #define OAM_FLAGS	3
-
-//timer shortcuts
-#define TIMER_ON	(IO(_TAC) & 0x04)
-
-//periods
 //time for ly increment during vblank
 #define T_LY_INC	((T_HBLANK)+(T_OAM)+(T_VRAM))
 #define T_HBLANK	204
-//T_VBLANK not used
 #define T_VBLANK	4560
 #define T_OAM		80
 #define T_VRAM		172
+
+#define TIMER_ON	(IO(_TAC) & 0x04)
 
 //timer period modes are completely unrelated to lcd modes
 #define T_TIMER_0	256	//4096 Hz

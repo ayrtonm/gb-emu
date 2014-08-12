@@ -97,8 +97,6 @@ void step_lcd(uint8 dt)
         }
         else //if (IO(_LY) == 145) on last line of screen
         {
-          //not needed?
-          //interrupt(INT_VBL);
           REQUEST_INT(INT_VBL);
           SET_MODE_VBLANK;
           gameboy->lcd.clk += T_LY_INC;
@@ -109,7 +107,7 @@ void step_lcd(uint8 dt)
       {
         SDL_Flip(gameboy->lcd.screen);
         compareLYtoLYC();
-        if (IO(_LY) < 155)
+        if (IO(_LY) < 154)
         {
           IO(_LY)++;
           gameboy->lcd.clk += T_LY_INC;
@@ -140,7 +138,7 @@ void step_lcd(uint8 dt)
           for (i = 0; i < 160; i++)
           {
             //color = pal_bgp[gameboy->lcd.linebuffer[i]];
-            if (!(IO(_LCDC) & 0x21)) {color = SDL_MapRGB(gameboy->lcd.screen->format,0xFF,0xFF,0xFF);}
+          if (!(IO(_LCDC) & 0x21)) {color = SDL_MapRGB(gameboy->lcd.screen->format,0xFF,0xFF,0xFF);}
             if (IO(_LCDC) & 0x01 && !(IO(_LCDC) & 0x20)) {color = pal_bgp[gameboy->lcd.linebuffer[i] & 0x03];}
             if (IO(_LCDC) & 0x20 && !(IO(_LCDC) & 0x01)) {color = pal_bgp[gameboy->lcd.linebuffer[i] >> 2];}
             if (IO(_LCDC) & 0x21) {if ((gameboy->lcd.linebuffer[i] >> 2) == 0) {color = pal_bgp[gameboy->lcd.linebuffer[i] & 0x03];} else {color = pal_bgp[gameboy->lcd.linebuffer[i] >> 2];}}
@@ -203,7 +201,7 @@ void draw_line(void)
     //offsets within tile
     int x = 0;
     uint8 y = (IO(_LY) - IO(_WY)) & 7;
-    uint16 w_data = ((IO(_LCDC) & 0x10) ? T_DATA_0(16*w_map_number + (y << 1)) : T_DATA_1(16*w_map_number + (y << 1)));
+    uint16 w_data = T_DATA_1(16*w_map_number + (y << 1));
     int i;
     for (i = MAX(IO(_WX)-7,0); i < 160; i++)
     {
@@ -217,12 +215,10 @@ void draw_line(void)
         x = 0;
         w_offset = (((IO(_LY)-IO(_WY)) >> 3) & 31) << 5;
         uint8 w_map_number = ((IO(_LCDC) & 0x40) ? T_MAP_1(w_offset) : T_MAP_0(w_offset));
-        uint16 w_data = ((IO(_LCDC) & 0x10) ? T_DATA_0(16*w_map_number + (y << 1)) : T_DATA_1(16*w_map_number + (y << 1)));
+        uint16 w_data = T_DATA_1(16*w_map_number + (y << 1));
       }
     }
   }
-  //next line is redundant
-  //else if (!(IO(_LCDC) & 0x20)) {int i; for(i = 0; i < 160; i++) {gameboy->lcd.linebuffer[i] += 0;}}
 }
 
 //reverses bits in each byte of 16 bit word doesn't change byte order, used for drawing sprites

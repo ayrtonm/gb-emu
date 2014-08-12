@@ -139,14 +139,14 @@ int emulate(void)
         {
           switch(event.key.keysym.sym)
           {
-            case SDLK_LEFT: gameboy->key_bitmap |= LEFT_K;break;
-            case SDLK_RIGHT: gameboy->key_bitmap |= RIGHT_K;break;
-            case SDLK_DOWN: gameboy->key_bitmap |= DOWN_K;break;
-            case SDLK_UP: gameboy->key_bitmap |= UP_K;break;
-            case SDLK_z: gameboy->key_bitmap |= A_K;break;
-            case SDLK_x: gameboy->key_bitmap |= B_K;break;
-            case SDLK_a: gameboy->key_bitmap |= STA_K;break;
-            case SDLK_s: gameboy->key_bitmap |= SEL_K;break;
+            case SDLK_LEFT: gameboy->key_bitmap |= LEFT_K;if (!(IO(_JOYP) & 0x10)) {IO(_JOYP) &= ~0x02;REQUEST_INT(INT_JOY);}break;
+            case SDLK_RIGHT: gameboy->key_bitmap |= RIGHT_K;if (!(IO(_JOYP) & 0x10)) {IO(_JOYP) &= ~0x01;REQUEST_INT(INT_JOY);}break;
+            case SDLK_DOWN: gameboy->key_bitmap |= DOWN_K;if (!(IO(_JOYP) & 0x10)) {IO(_JOYP) &= ~0x08;REQUEST_INT(INT_JOY);}break;
+            case SDLK_UP: gameboy->key_bitmap |= UP_K;if (!(IO(_JOYP) & 0x10)) {IO(_JOYP) &= ~0x04;REQUEST_INT(INT_JOY);}break;
+            case SDLK_z: gameboy->key_bitmap |= A_K;if (!(IO(_JOYP) & 0x20)) {IO(_JOYP) &= ~0x01;REQUEST_INT(INT_JOY);}break;
+            case SDLK_x: gameboy->key_bitmap |= B_K;if (!(IO(_JOYP) & 0x20)) {IO(_JOYP) &= ~0x02;REQUEST_INT(INT_JOY);}break;
+            case SDLK_a: gameboy->key_bitmap |= STA_K;if (!(IO(_JOYP) & 0x20)) {IO(_JOYP) &= ~0x08;REQUEST_INT(INT_JOY);}break;
+            case SDLK_s: gameboy->key_bitmap |= SEL_K;if (!(IO(_JOYP) & 0x20)) {IO(_JOYP) &= ~0x04;REQUEST_INT(INT_JOY);}break;
             case SDLK_q: return 0;
           }
           break;
@@ -155,14 +155,14 @@ int emulate(void)
         {
           switch(event.key.keysym.sym)
           {
-            case SDLK_LEFT: gameboy->key_bitmap &= ~LEFT_K;break;
-            case SDLK_RIGHT: gameboy->key_bitmap &= ~RIGHT_K;break;
-            case SDLK_DOWN: gameboy->key_bitmap &= ~DOWN_K;break;
-            case SDLK_UP: gameboy->key_bitmap &= ~UP_K;break;
-            case SDLK_z: gameboy->key_bitmap &= ~A_K;break;
-            case SDLK_x: gameboy->key_bitmap &= ~B_K;break;
-            case SDLK_a: gameboy->key_bitmap &= ~STA_K;break;
-            case SDLK_s: gameboy->key_bitmap &= ~SEL_K;break;
+            case SDLK_LEFT: gameboy->key_bitmap &= ~LEFT_K;if (!(IO(_JOYP) & 0x10)) {IO(_JOYP) |= 0x02;}break;
+            case SDLK_RIGHT: gameboy->key_bitmap &= ~RIGHT_K;if (!(IO(_JOYP) & 0x10)) {IO(_JOYP) |= 0x01;}break;
+            case SDLK_DOWN: gameboy->key_bitmap &= ~DOWN_K;if (!(IO(_JOYP) & 0x10)) {IO(_JOYP) |= 0x08;}break;
+            case SDLK_UP: gameboy->key_bitmap &= ~UP_K;if (!(IO(_JOYP) & 0x10)) {IO(_JOYP) |= 0x04;}break;
+            case SDLK_z: gameboy->key_bitmap &= ~A_K;if (!(IO(_JOYP) & 0x20)) {IO(_JOYP) |= 0x01;}break;
+            case SDLK_x: gameboy->key_bitmap &= ~B_K;if (!(IO(_JOYP) & 0x20)) {IO(_JOYP) |= 0x02;}break;
+            case SDLK_a: gameboy->key_bitmap &= ~STA_K;if (!(IO(_JOYP) & 0x20)) {IO(_JOYP) |= 0x08;}break;
+            case SDLK_s: gameboy->key_bitmap &= ~SEL_K;if (!(IO(_JOYP) & 0x20)) {IO(_JOYP) |= 0x04;}break;
           }
           break;
         }

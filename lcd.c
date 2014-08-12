@@ -255,15 +255,19 @@ void draw_sprites(void)
         }
         else//8x16 mode
         {
-          t_data = T_DATA_0(16 * (((IO(_LY) - OAM(i,OAM_Y) + 16) > 7) ? (t_number | 0x01) : (t_number & 0xFE)) + ((OAM(i,OAM_FLAGS) & 0x40) ? yflip : y) );
+          //yflip 0, low tile
+          //yflip 1, low tile
+          //yflip 0, high tile
+          //yflip 1, high tile
+          t_data = T_DATA_0(16 * (((IO(_LY) - OAM(i,OAM_Y) + 16) > 7) || !(yflip) ? (t_number | 0x01) : (t_number & 0xFE)) + ((OAM(i,OAM_FLAGS) & 0x40) ? yflip : y) );
         }
+        if (!(OAM(i,OAM_FLAGS) & 0x20)) {t_data = reverse_word(t_data);}
         int x = 0;
         count++;
         for (x = 0; x < 8; x++)
         {
           if (OAM(i,OAM_X) + x - 8 >= 0 && OAM(i,OAM_X) + x - 8  < 160 && (!(OAM(i,OAM_FLAGS) & 0x80) || (gameboy->lcd.linebuffer[OAM(i,OAM_X) + x - 8] & 0x03) == 0))
           {
-            if (OAM(i,OAM_FLAGS) & 0x20) t_data = reverse_word(t_data);
             uint8 a = (LOW(t_data) & BIT(x)) >> x;
             uint8 b = (HIGH(t_data) & BIT(x)) >> x;
             uint8 c =  a + (b << 1);

@@ -62,196 +62,196 @@ case 0x3c:  {SRL(_H);break;}
 case 0x3d:  {SRL(_L);break;}
 case 0x3e:  {uint8 temp = READ_BYTE(_HL);SRL(temp);write_byte(_HL,temp);break;}
 case 0x3f:  {SRL(_A);break;}
-case 0x40:  {(GET(0x1,_B) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x41:  {(GET(0x1,_C) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x42:  {(GET(0x1,_D) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x43:  {(GET(0x1,_E) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x44:  {(GET(0x1,_H) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x45:  {(GET(0x1,_L) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x46:  {(GET(0x1,READ_BYTE(_HL)) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x47:  {(GET(0x1,_A) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x48:  {(GET(0x2,_B) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x49:  {(GET(0x2,_C) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x4a:  {(GET(0x2,_D) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x4b:  {(GET(0x2,_E) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x4c:  {(GET(0x2,_H) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x4d:  {(GET(0x2,_L) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x4e:  {(GET(0x2,READ_BYTE(_HL)) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x4f:  {(GET(0x2,_A) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x50:  {(GET(0x4,_B) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x51:  {(GET(0x4,_C) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x52:  {(GET(0x4,_D) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x53:  {(GET(0x4,_E) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x54:  {(GET(0x4,_H) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x55:  {(GET(0x4,_L) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x56:  {(GET(0x4,READ_BYTE(_HL)) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x57:  {(GET(0x4,_A) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x58:  {(GET(0x8,_B) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x59:  {(GET(0x8,_C) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x5a:  {(GET(0x8,_D) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x5b:  {(GET(0x8,_E) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x5c:  {(GET(0x8,_H) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x5d:  {(GET(0x8,_L) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x5e:  {(GET(0x8,READ_BYTE(_HL)) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x5f:  {(GET(0x8,_A) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x60:  {(GET(0x10,_B) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x61:  {(GET(0x10,_C) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x62:  {(GET(0x10,_D) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x63:  {(GET(0x10,_E) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x64:  {(GET(0x10,_H) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x65:  {(GET(0x10,_L) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x66:  {(GET(0x10,READ_BYTE(_HL)) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x67:  {(GET(0x10,_A) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x68:  {(GET(0x20,_B) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x69:  {(GET(0x20,_C) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x6a:  {(GET(0x20,_D) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x6b:  {(GET(0x20,_E) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x6c:  {(GET(0x20,_H) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x6d:  {(GET(0x20,_L) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x6e:  {(GET(0x20,READ_BYTE(_HL)) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x6f:  {(GET(0x20,_A) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x70:  {(GET(0x40,_B) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x71:  {(GET(0x40,_C) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x72:  {(GET(0x40,_D) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x73:  {(GET(0x40,_E) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x74:  {(GET(0x40,_H) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x75:  {(GET(0x40,_L) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x76:  {(GET(0x40,READ_BYTE(_HL)) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x77:  {(GET(0x40,_A) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x78:  {(GET(0x80,_B) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x79:  {(GET(0x80,_C) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x7a:  {(GET(0x80,_D) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x7b:  {(GET(0x80,_E) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x7c:  {(GET(0x80,_H) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x7d:  {(GET(0x80,_L) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x7e:  {(GET(0x80,READ_BYTE(_HL)) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x7f:  {(GET(0x80,_A) == 0 ? SET(Z_FLAG,_F) : CLEAR(Z_FLAG,_F));SET(H_FLAG,_F);CLEAR(N_FLAG,_F);break;}
-case 0x80:  {CLEAR(0x1,_B);break;}
-case 0x81:  {CLEAR(0x1,_C);break;}
-case 0x82:  {CLEAR(0x1,_D);break;}
-case 0x83:  {CLEAR(0x1,_E);break;}
-case 0x84:  {CLEAR(0x1,_H);break;}
-case 0x85:  {CLEAR(0x1,_L);break;}
-case 0x86:  {uint8 temp = READ_BYTE(_HL);CLEAR(0x1,temp);write_byte(_HL,temp);break;}
-case 0x87:  {CLEAR(0x1,_A);break;}
-case 0x88:  {CLEAR(0x2,_B);break;}
-case 0x89:  {CLEAR(0x2,_C);break;}
-case 0x8a:  {CLEAR(0x2,_D);break;}
-case 0x8b:  {CLEAR(0x2,_E);break;}
-case 0x8c:  {CLEAR(0x2,_H);break;}
-case 0x8d:  {CLEAR(0x2,_L);break;}
-case 0x8e:  {uint8 temp = READ_BYTE(_HL);CLEAR(0x2,temp);write_byte(_HL,temp);break;}
-case 0x8f:  {CLEAR(0x2,_A);break;}
-case 0x90:  {CLEAR(0x4,_B);break;}
-case 0x91:  {CLEAR(0x4,_C);break;}
-case 0x92:  {CLEAR(0x4,_D);break;}
-case 0x93:  {CLEAR(0x4,_E);break;}
-case 0x94:  {CLEAR(0x4,_H);break;}
-case 0x95:  {CLEAR(0x4,_L);break;}
-case 0x96:  {uint8 temp = READ_BYTE(_HL);CLEAR(0x4,temp);write_byte(_HL,temp);break;}
-case 0x97:  {CLEAR(0x4,_A);break;}
-case 0x98:  {CLEAR(0x8,_B);break;}
-case 0x99:  {CLEAR(0x8,_C);break;}
-case 0x9a:  {CLEAR(0x8,_D);break;}
-case 0x9b:  {CLEAR(0x8,_E);break;}
-case 0x9c:  {CLEAR(0x8,_H);break;}
-case 0x9d:  {CLEAR(0x8,_L);break;}
-case 0x9e:  {uint8 temp = READ_BYTE(_HL);CLEAR(0x8,temp);write_byte(_HL,temp);break;}
-case 0x9f:  {CLEAR(0x8,_A);break;}
-case 0xa0:  {CLEAR(0x10,_B);break;}
-case 0xa1:  {CLEAR(0x10,_C);break;}
-case 0xa2:  {CLEAR(0x10,_D);break;}
-case 0xa3:  {CLEAR(0x10,_E);break;}
-case 0xa4:  {CLEAR(0x10,_H);break;}
-case 0xa5:  {CLEAR(0x10,_L);break;}
-case 0xa6:  {uint8 temp = READ_BYTE(_HL);CLEAR(0x10,temp);write_byte(_HL,temp);break;}
-case 0xa7:  {CLEAR(0x10,_A);break;}
-case 0xa8:  {CLEAR(0x20,_B);break;}
-case 0xa9:  {CLEAR(0x20,_C);break;}
-case 0xaa:  {CLEAR(0x20,_D);break;}
-case 0xab:  {CLEAR(0x20,_E);break;}
-case 0xac:  {CLEAR(0x20,_H);break;}
-case 0xad:  {CLEAR(0x20,_L);break;}
-case 0xae:  {uint8 temp = READ_BYTE(_HL);CLEAR(0x20,temp);write_byte(_HL,temp);break;}
-case 0xaf:  {CLEAR(0x20,_A);break;}
-case 0xb0:  {CLEAR(0x40,_B);break;}
-case 0xb1:  {CLEAR(0x40,_C);break;}
-case 0xb2:  {CLEAR(0x40,_D);break;}
-case 0xb3:  {CLEAR(0x40,_E);break;}
-case 0xb4:  {CLEAR(0x40,_H);break;}
-case 0xb5:  {CLEAR(0x40,_L);break;}
-case 0xb6:  {uint8 temp = READ_BYTE(_HL);CLEAR(0x40,temp);write_byte(_HL,temp);break;}
-case 0xb7:  {CLEAR(0x40,_A);break;}
-case 0xb8:  {CLEAR(0x80,_B);break;}
-case 0xb9:  {CLEAR(0x80,_C);break;}
-case 0xba:  {CLEAR(0x80,_D);break;}
-case 0xbb:  {CLEAR(0x80,_E);break;}
-case 0xbc:  {CLEAR(0x80,_H);break;}
-case 0xbd:  {CLEAR(0x80,_L);break;}
-case 0xbe:  {uint8 temp = READ_BYTE(_HL);CLEAR(0x80,temp);write_byte(_HL,temp);break;}
-case 0xbf:  {CLEAR(0x80,_A);break;}
-case 0xc0:  {SET(0x1,_B);break;}
-case 0xc1:  {SET(0x1,_C);break;}
-case 0xc2:  {SET(0x1,_D);break;}
-case 0xc3:  {SET(0x1,_E);break;}
-case 0xc4:  {SET(0x1,_H);break;}
-case 0xc5:  {SET(0x1,_L);break;}
-case 0xc6:  {uint8 temp = READ_BYTE(_HL);SET(0x1,temp);write_byte(_HL,temp);break;}
-case 0xc7:  {SET(0x1,_A);break;}
-case 0xc8:  {SET(0x2,_B);break;}
-case 0xc9:  {SET(0x2,_C);break;}
-case 0xca:  {SET(0x2,_D);break;}
-case 0xcb:  {SET(0x2,_E);break;}
-case 0xcc:  {SET(0x2,_H);break;}
-case 0xcd:  {SET(0x2,_L);break;}
-case 0xce:  {uint8 temp = READ_BYTE(_HL);SET(0x2,temp);write_byte(_HL,temp);break;}
-case 0xcf:  {SET(0x2,_A);break;}
-case 0xd0:  {SET(0x4,_B);break;}
-case 0xd1:  {SET(0x4,_C);break;}
-case 0xd2:  {SET(0x4,_D);break;}
-case 0xd3:  {SET(0x4,_E);break;}
-case 0xd4:  {SET(0x4,_H);break;}
-case 0xd5:  {SET(0x4,_L);break;}
-case 0xd6:  {uint8 temp = READ_BYTE(_HL);SET(0x4,temp);write_byte(_HL,temp);break;}
-case 0xd7:  {SET(0x4,_A);break;}
-case 0xd8:  {SET(0x8,_B);break;}
-case 0xd9:  {SET(0x8,_C);break;}
-case 0xda:  {SET(0x8,_D);break;}
-case 0xdb:  {SET(0x8,_E);break;}
-case 0xdc:  {SET(0x8,_H);break;}
-case 0xdd:  {SET(0x8,_L);break;}
-case 0xde:  {uint8 temp = READ_BYTE(_HL);SET(0x8,temp);write_byte(_HL,temp);break;}
-case 0xdf:  {SET(0x8,_A);break;}
-case 0xe0:  {SET(0x10,_B);break;}
-case 0xe1:  {SET(0x10,_C);break;}
-case 0xe2:  {SET(0x10,_D);break;}
-case 0xe3:  {SET(0x10,_E);break;}
-case 0xe4:  {SET(0x10,_H);break;}
-case 0xe5:  {SET(0x10,_L);break;}
-case 0xe6:  {uint8 temp = READ_BYTE(_HL);SET(0x10,temp);write_byte(_HL,temp);break;}
-case 0xe7:  {SET(0x10,_A);break;}
-case 0xe8:  {SET(0x20,_B);break;}
-case 0xe9:  {SET(0x20,_C);break;}
-case 0xea:  {SET(0x20,_D);break;}
-case 0xeb:  {SET(0x20,_E);break;}
-case 0xec:  {SET(0x20,_H);break;}
-case 0xed:  {SET(0x20,_L);break;}
-case 0xee:  {uint8 temp = READ_BYTE(_HL);SET(0x20,temp);write_byte(_HL,temp);break;}
-case 0xef:  {SET(0x20,_A);break;}
-case 0xf0:  {SET(0x40,_B);break;}
-case 0xf1:  {SET(0x40,_C);break;}
-case 0xf2:  {SET(0x40,_D);break;}
-case 0xf3:  {SET(0x40,_E);break;}
-case 0xf4:  {SET(0x40,_H);break;}
-case 0xf5:  {SET(0x40,_L);break;}
-case 0xf6:  {uint8 temp = READ_BYTE(_HL);SET(0x40,temp);write_byte(_HL,temp);break;}
-case 0xf7:  {SET(0x40,_A);break;}
-case 0xf8:  {SET(0x80,_B);break;}
-case 0xf9:  {SET(0x80,_C);break;}
-case 0xfa:  {SET(0x80,_D);break;}
-case 0xfb:  {SET(0x80,_E);break;}
-case 0xfc:  {SET(0x80,_H);break;}
-case 0xfd:  {SET(0x80,_L);break;}
-case 0xfe:  {uint8 temp = READ_BYTE(_HL);SET(0x80,temp);write_byte(_HL,temp);break;}
-case 0xff:  {SET(0x80,_A);break;}
+case 0x40:  {_F = ((_B & 0x01) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x41:  {_F = ((_C & 0x01) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x42:  {_F = ((_D & 0x01) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x43:  {_F = ((_E & 0x01) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x44:  {_F = ((_H & 0x01) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x45:  {_F = ((_L & 0x01) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x46:  {_F = ((READ_BYTE(_HL) & 0x01) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x47:  {_F = ((_A & 0x01) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x48:  {_F = ((_B & 0x02) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x49:  {_F = ((_C & 0x02) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x4A:  {_F = ((_D & 0x02) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x4B:  {_F = ((_E & 0x02) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x4C:  {_F = ((_H & 0x02) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x4D:  {_F = ((_L & 0x02) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x4E:  {_F = ((READ_BYTE(_HL) & 0x02) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x4F:  {_F = ((_A & 0x02) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x50:  {_F = ((_B & 0x04) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x51:  {_F = ((_C & 0x04) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x52:  {_F = ((_D & 0x04) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x53:  {_F = ((_E & 0x04) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x54:  {_F = ((_H & 0x04) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x55:  {_F = ((_L & 0x04) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x56:  {_F = ((READ_BYTE(_HL) & 0x04) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x57:  {_F = ((_A & 0x04) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x58:  {_F = ((_B & 0x08) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x59:  {_F = ((_C & 0x08) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x5A:  {_F = ((_D & 0x08) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x5B:  {_F = ((_E & 0x08) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x5C:  {_F = ((_H & 0x08) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x5D:  {_F = ((_L & 0x08) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x5E:  {_F = ((READ_BYTE(_HL) & 0x08) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x5F:  {_F = ((_A & 0x08) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x60:  {_F = ((_B & 0x10) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x61:  {_F = ((_C & 0x10) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x62:  {_F = ((_D & 0x10) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x63:  {_F = ((_E & 0x10) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x64:  {_F = ((_H & 0x10) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x65:  {_F = ((_L & 0x10) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x66:  {_F = ((READ_BYTE(_HL) & 0x10) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x67:  {_F = ((_A & 0x10) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x68:  {_F = ((_B & 0x20) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x69:  {_F = ((_C & 0x20) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x6A:  {_F = ((_D & 0x20) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x6B:  {_F = ((_E & 0x20) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x6C:  {_F = ((_H & 0x20) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x6D:  {_F = ((_L & 0x20) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x6E:  {_F = ((READ_BYTE(_HL) & 0x20) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x6F:  {_F = ((_A & 0x20) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x70:  {_F = ((_B & 0x40) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x71:  {_F = ((_C & 0x40) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x72:  {_F = ((_D & 0x40) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x73:  {_F = ((_E & 0x40) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x74:  {_F = ((_H & 0x40) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x75:  {_F = ((_L & 0x40) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x76:  {_F = ((READ_BYTE(_HL) & 0x40) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x77:  {_F = ((_A & 0x40) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x78:  {_F = ((_B & 0x80) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x79:  {_F = ((_C & 0x80) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x7A:  {_F = ((_D & 0x80) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x7B:  {_F = ((_E & 0x80) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x7C:  {_F = ((_H & 0x80) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x7D:  {_F = ((_L & 0x80) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x7E:  {_F = ((READ_BYTE(_HL) & 0x80) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x7F:  {_F = ((_A & 0x80) ? Z_FLAG : 0)|H_FLAG|(C_FLAG & _F);break;}
+case 0x80:  {_B = CLEAR(0x1,_B);break;}
+case 0x81:  {_C = CLEAR(0x1,_C);break;}
+case 0x82:  {_D = CLEAR(0x1,_D);break;}
+case 0x83:  {_E = CLEAR(0x1,_E);break;}
+case 0x84:  {_H = CLEAR(0x1,_H);break;}
+case 0x85:  {_L = CLEAR(0x1,_L);break;}
+case 0x86:  {uint8 temp = READ_BYTE(_HL);temp = CLEAR(0x1,temp);write_byte(_HL,temp);break;}
+case 0x87:  {_A = CLEAR(0x1,_A);break;}
+case 0x88:  {_B = CLEAR(0x2,_B);break;}
+case 0x89:  {_C = CLEAR(0x2,_C);break;}
+case 0x8A:  {_D = CLEAR(0x2,_D);break;}
+case 0x8B:  {_E = CLEAR(0x2,_E);break;}
+case 0x8C:  {_H = CLEAR(0x2,_H);break;}
+case 0x8D:  {_L = CLEAR(0x2,_L);break;}
+case 0x8E:  {uint8 temp = READ_BYTE(_HL);temp = CLEAR(0x2,temp);write_byte(_HL,temp);break;}
+case 0x8F:  {_A = CLEAR(0x2,_A);break;}
+case 0x90:  {_B = CLEAR(0x4,_B);break;}
+case 0x91:  {_C = CLEAR(0x4,_C);break;}
+case 0x92:  {_D = CLEAR(0x4,_D);break;}
+case 0x93:  {_E = CLEAR(0x4,_E);break;}
+case 0x94:  {_H = CLEAR(0x4,_H);break;}
+case 0x95:  {_L = CLEAR(0x4,_L);break;}
+case 0x96:  {uint8 temp = READ_BYTE(_HL);temp = CLEAR(0x4,temp);write_byte(_HL,temp);break;}
+case 0x97:  {_A = CLEAR(0x4,_A);break;}
+case 0x98:  {_B = CLEAR(0x8,_B);break;}
+case 0x99:  {_C = CLEAR(0x8,_C);break;}
+case 0x9A:  {_D = CLEAR(0x8,_D);break;}
+case 0x9B:  {_E = CLEAR(0x8,_E);break;}
+case 0x9C:  {_H = CLEAR(0x8,_H);break;}
+case 0x9D:  {_L = CLEAR(0x8,_L);break;}
+case 0x9E:  {uint8 temp = READ_BYTE(_HL);temp = CLEAR(0x8,temp);write_byte(_HL,temp);break;}
+case 0x9F:  {_A = CLEAR(0x8,_A);break;}
+case 0xa0:  {_B = CLEAR(0x10,_B);break;}
+case 0xa1:  {_C = CLEAR(0x10,_C);break;}
+case 0xa2:  {_D = CLEAR(0x10,_D);break;}
+case 0xa3:  {_E = CLEAR(0x10,_E);break;}
+case 0xa4:  {_H = CLEAR(0x10,_H);break;}
+case 0xa5:  {_L = CLEAR(0x10,_L);break;}
+case 0xa6:  {uint8 temp = READ_BYTE(_HL);temp = CLEAR(0x10,temp);write_byte(_HL,temp);break;}
+case 0xa7:  {_A = CLEAR(0x10,_A);break;}
+case 0xa8:  {_B = CLEAR(0x20,_B);break;}
+case 0xa9:  {_C = CLEAR(0x20,_C);break;}
+case 0xaA:  {_D = CLEAR(0x20,_D);break;}
+case 0xaB:  {_E = CLEAR(0x20,_E);break;}
+case 0xaC:  {_H = CLEAR(0x20,_H);break;}
+case 0xaD:  {_L = CLEAR(0x20,_L);break;}
+case 0xaE:  {uint8 temp = READ_BYTE(_HL);temp = CLEAR(0x20,temp);write_byte(_HL,temp);break;}
+case 0xaF:  {_A = CLEAR(0x20,_A);break;}
+case 0xb0:  {_B = CLEAR(0x40,_B);break;}
+case 0xb1:  {_C = CLEAR(0x40,_C);break;}
+case 0xb2:  {_D = CLEAR(0x40,_D);break;}
+case 0xb3:  {_E = CLEAR(0x40,_E);break;}
+case 0xb4:  {_H = CLEAR(0x40,_H);break;}
+case 0xb5:  {_L = CLEAR(0x40,_L);break;}
+case 0xb6:  {uint8 temp = READ_BYTE(_HL);temp = CLEAR(0x40,temp);write_byte(_HL,temp);break;}
+case 0xb7:  {_A = CLEAR(0x40,_A);break;}
+case 0xb8:  {_B = CLEAR(0x80,_B);break;}
+case 0xb9:  {_C = CLEAR(0x80,_C);break;}
+case 0xbA:  {_D = CLEAR(0x80,_D);break;}
+case 0xbB:  {_E = CLEAR(0x80,_E);break;}
+case 0xbC:  {_H = CLEAR(0x80,_H);break;}
+case 0xbD:  {_L = CLEAR(0x80,_L);break;}
+case 0xbE:  {uint8 temp = READ_BYTE(_HL);temp = CLEAR(0x80,temp);write_byte(_HL,temp);break;}
+case 0xbF:  {_A = CLEAR(0x80,_A);break;}
+case 0xc0:  {_B = SET(0x1,_B);break;}
+case 0xc1:  {_C = SET(0x1,_C);break;}
+case 0xc2:  {_D = SET(0x1,_D);break;}
+case 0xc3:  {_E = SET(0x1,_E);break;}
+case 0xc4:  {_H = SET(0x1,_H);break;}
+case 0xc5:  {_L = SET(0x1,_L);break;}
+case 0xc6:  {uint8 temp = READ_BYTE(_HL);temp = SET(0x1,temp);write_byte(_HL,temp);break;}
+case 0xc7:  {_A = SET(0x1,_A);break;}
+case 0xc8:  {_B = SET(0x2,_B);break;}
+case 0xc9:  {_C = SET(0x2,_C);break;}
+case 0xcA:  {_D = SET(0x2,_D);break;}
+case 0xcB:  {_E = SET(0x2,_E);break;}
+case 0xcC:  {_H = SET(0x2,_H);break;}
+case 0xcD:  {_L = SET(0x2,_L);break;}
+case 0xcE:  {uint8 temp = READ_BYTE(_HL);temp = SET(0x2,temp);write_byte(_HL,temp);break;}
+case 0xcF:  {_A = SET(0x2,_A);break;}
+case 0xd0:  {_B = SET(0x4,_B);break;}
+case 0xd1:  {_C = SET(0x4,_C);break;}
+case 0xd2:  {_D = SET(0x4,_D);break;}
+case 0xd3:  {_E = SET(0x4,_E);break;}
+case 0xd4:  {_H = SET(0x4,_H);break;}
+case 0xd5:  {_L = SET(0x4,_L);break;}
+case 0xd6:  {uint8 temp = READ_BYTE(_HL);temp = SET(0x4,temp);write_byte(_HL,temp);break;}
+case 0xd7:  {_A = SET(0x4,_A);break;}
+case 0xd8:  {_B = SET(0x8,_B);break;}
+case 0xd9:  {_C = SET(0x8,_C);break;}
+case 0xdA:  {_D = SET(0x8,_D);break;}
+case 0xdB:  {_E = SET(0x8,_E);break;}
+case 0xdC:  {_H = SET(0x8,_H);break;}
+case 0xdD:  {_L = SET(0x8,_L);break;}
+case 0xdE:  {uint8 temp = READ_BYTE(_HL);temp = SET(0x8,temp);write_byte(_HL,temp);break;}
+case 0xdF:  {_A = SET(0x8,_A);break;}
+case 0xe0:  {_B = SET(0x10,_B);break;}
+case 0xe1:  {_C = SET(0x10,_C);break;}
+case 0xe2:  {_D = SET(0x10,_D);break;}
+case 0xe3:  {_E = SET(0x10,_E);break;}
+case 0xe4:  {_H = SET(0x10,_H);break;}
+case 0xe5:  {_L = SET(0x10,_L);break;}
+case 0xe6:  {uint8 temp = READ_BYTE(_HL);temp = SET(0x10,temp);write_byte(_HL,temp);break;}
+case 0xe7:  {_A = SET(0x10,_A);break;}
+case 0xe8:  {_B = SET(0x20,_B);break;}
+case 0xe9:  {_C = SET(0x20,_C);break;}
+case 0xeA:  {_D = SET(0x20,_D);break;}
+case 0xeB:  {_E = SET(0x20,_E);break;}
+case 0xeC:  {_H = SET(0x20,_H);break;}
+case 0xeD:  {_L = SET(0x20,_L);break;}
+case 0xeE:  {uint8 temp = READ_BYTE(_HL);temp = SET(0x20,temp);write_byte(_HL,temp);break;}
+case 0xeF:  {_A = SET(0x20,_A);break;}
+case 0xf0:  {_B = SET(0x40,_B);break;}
+case 0xf1:  {_C = SET(0x40,_C);break;}
+case 0xf2:  {_D = SET(0x40,_D);break;}
+case 0xf3:  {_E = SET(0x40,_E);break;}
+case 0xf4:  {_H = SET(0x40,_H);break;}
+case 0xf5:  {_L = SET(0x40,_L);break;}
+case 0xf6:  {uint8 temp = READ_BYTE(_HL);temp = SET(0x40,temp);write_byte(_HL,temp);break;}
+case 0xf7:  {_A = SET(0x40,_A);break;}
+case 0xf8:  {_B = SET(0x80,_B);break;}
+case 0xf9:  {_C = SET(0x80,_C);break;}
+case 0xfA:  {_D = SET(0x80,_D);break;}
+case 0xfB:  {_E = SET(0x80,_E);break;}
+case 0xfC:  {_H = SET(0x80,_H);break;}
+case 0xfD:  {_L = SET(0x80,_L);break;}
+case 0xfE:  {uint8 temp = READ_BYTE(_HL);temp = SET(0x80,temp);write_byte(_HL,temp);break;}
+case 0xfF:  {_A = SET(0x80,_A);break;}
 default:  {printf("cb opcode 0x%x not found\n",op);getchar();}

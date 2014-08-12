@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>//for log2 function
-//#define BREAK 100000
-#undef BREAK
+#define BREAK 6150
+//#undef BREAK
 
 cpu init_cpu(void)
 {
@@ -23,11 +23,13 @@ cpu init_cpu(void)
 
 int emulate(void)
 {
-  //j is used for counting executed opcodes for debugging
-  int j = 1;
   uint8 op;
   int clk = 0;
   int dt = 0;
+  //debug variables
+  int j = 1;
+  uint8 x = IO(_JOYP);
+  //
   SDL_Event event;
   for (;;)
   {
@@ -60,7 +62,7 @@ int emulate(void)
       {
         _PC++;
         op = READ_BYTE(_PC);
-        _PC += 2;
+        _PC ++;
         dt = cb_cycles[op & 0x07];
         switch(op)
         {
@@ -70,8 +72,12 @@ int emulate(void)
       }
       else
       {
-        _PC += length[op];
-        if (printing == opcodes) printf("0x%x\n",op,_PC-length[op]);
+      _PC += length[op];
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//everything inside these comments is only for debug mode and will be removed eventually
+//        if (printing == opcodes) printf("0x%x\n",op);
+//print joypad register only when it changes
+        if (printing == opcodes && x != IO(_JOYP)) {x = IO(_JOYP);printf("0x%x\n",x);}
         else if (printing == debug)
         {
 #ifdef BREAK
@@ -104,6 +110,7 @@ int emulate(void)
 }
 #endif
         }
+////////////////////////////////////////////////////////////////////////////////////////////////////////
         dt = cycles[op];
         switch(op)
         {

@@ -5,9 +5,9 @@
 extern lcd init_lcd(void);
 extern void step_lcd(uint8);
 extern void update_palette(uint8,uint8);
-void draw_line(void);
-void draw_sprites(void);
-void draw_sprite_tile(int,int,int,int,int,int,int);
+extern void draw_line(void);
+extern void draw_sprites(void);
+extern void draw_sprite_tile(int,int,int,int,int,int,int);
 
 //useful abstractions for handling palettes
 Uint32 pal_obp0[4];

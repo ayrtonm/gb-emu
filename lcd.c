@@ -255,10 +255,6 @@ void draw_sprites(void)
         }
         else//8x16 mode
         {
-          //yflip 0, low tile
-          //yflip 1, low tile
-          //yflip 0, high tile
-          //yflip 1, high tile
           t_data = T_DATA_0(16 * (((IO(_LY) - OAM(i,OAM_Y) + 16) > 7) || !(yflip) ? (t_number | 0x01) : (t_number & 0xFE)) + ((OAM(i,OAM_FLAGS) & 0x40) ? yflip : y) );
         }
         if (!(OAM(i,OAM_FLAGS) & 0x20)) {t_data = reverse_word(t_data);}

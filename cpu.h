@@ -327,10 +327,8 @@ static uint8 cycles[0x0100] =
   _F = (_F & Z_FLAG)|(mtemp & 0x010000 ? C_FLAG : 0)|(_HL^(r)^(mtemp & 0xFFFF) & 0x1000 ? H_FLAG : 0);\
   _HL = mtemp & 0xFFFF
 
-//07/22/2014 JR and all branch instructions are correct
 #define JR(n) \
   _PC += ((signed char)n)
-//  _PC += ((n > 0x7F) ? -(((~n)+1) & 0xFF) : n)
 
 #define COND_JR(cond,n) \
   if (cond) {JR(n);dt += 1;}

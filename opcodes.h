@@ -227,7 +227,7 @@ case 0xc8:  {COND_RET((ZERO==1));break;}
 
 case 0xc9:  {RET;break;}
 case 0xca:  {COND_JP((ZERO==1),IMM16);break;}
-case 0xcb:  {break;}//cb opcodes (not used)
+case 0xcb:  {break;}//cb opcodes
 case 0xcc:  {COND_CALL((ZERO==1),IMM16);break;}
 case 0xcd:  {CALL(IMM16);break;}
 case 0xce:  {ADC(IMM8);break;}

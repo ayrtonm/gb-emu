@@ -1,7 +1,11 @@
 #include "lcd.h"
 #include "globals.h"
+//the following macro definition is only for debugging drawing sprites and will eventually be removed
 #define GRID
 
+/**
+  makes struct lcd and initializes SDL Surface used for screen and lcd clock
+**/
 lcd init_lcd(void)
 {
   lcd g;
@@ -11,24 +15,28 @@ lcd init_lcd(void)
   g.clk = 0;
   return g;
 }
+
+/**
+  compares current line(LY) to io register at 0xFF45(LYC)
+  if they're the same it sets the coincidence bit in lcdstat and request an interrupt if it's enabled by lcdstat
+**/
 void compareLYtoLYC(void)
 {
-  //if equal
   if (IO(_LY) == IO(_LYC))
   {
-    //set coincidence bit
     IO(_LCDSTAT) |= 0x04;
-    //if interrupt enabled
     if (IO(_LCDSTAT) & 0x40) REQUEST_INT(INT_LCD);
   }
-  //if not equal
   else
   {
-    //clear coincidence bit
     IO(_LCDSTAT) &= 0xFB;
   }
 }
 
+/**
+  updates palettes for background(bgp) and for sprites obp0/1
+  palettes are only updated when writing to the address of the palettes
+**/
 void update_palette(uint8 palette, uint8 value)
 {
   int i,j;
@@ -80,6 +88,12 @@ void update_palette(uint8 palette, uint8 value)
   }
 }
 
+/**
+  steps through the different lcd modes based on elapsed time between opcodes(4 * dt)
+  the grid stuff will eventually be removed
+  screen is flipped during vblank
+  vram and oam mode don't emulate the hw exactly since everything on each line is drawn right at the beginning of vram mode since that's the simplest way to do it, maybe that's what's causing the glitches in the spaceship game
+**/
 void step_lcd(uint8 dt)
 {
   gameboy->lcd.clk -= 4*dt;
@@ -91,12 +105,12 @@ void step_lcd(uint8 dt)
       {
         IO(_LY)++;
         compareLYtoLYC();
-        if (IO(_LY) < 144)
+        if (IO(_LY) < 143)
         {
           SET_MODE_OAM;
           gameboy->lcd.clk += T_OAM;
         }
-        else //if (IO(_LY) == 145) on last line of screen
+        else
         {
           REQUEST_INT(INT_VBL);
           SET_MODE_VBLANK;
@@ -122,14 +136,14 @@ void step_lcd(uint8 dt)
 #endif
         SDL_Flip(gameboy->lcd.screen);
         compareLYtoLYC();
-        if (IO(_LY) < 154)
+        if (IO(_LY) < 153)
         {
           IO(_LY)++;
           gameboy->lcd.clk += T_LY_INC;
         }
-        else //if (IO(_LY) == 155) on last line of vblank
+        else
         {
-          IO(_LY) = 1;
+          IO(_LY) = 0;
           SET_MODE_OAM;
           gameboy->lcd.clk += T_OAM;
         }
@@ -152,8 +166,7 @@ void step_lcd(uint8 dt)
           Uint32 *pixels = (Uint32 *)gameboy->lcd.screen->pixels;
           for (i = 0; i < 160; i++)
           {
-            //color = pal_bgp[gameboy->lcd.linebuffer[i]];
-          if (!(IO(_LCDC) & 0x21)) {color = SDL_MapRGB(gameboy->lcd.screen->format,0xFF,0xFF,0xFF);}
+            if (!(IO(_LCDC) & 0x21)) {color = SDL_MapRGB(gameboy->lcd.screen->format,0xFF,0xFF,0xFF);}
             if (IO(_LCDC) & 0x01 && !(IO(_LCDC) & 0x20)) {color = pal_bgp[gameboy->lcd.linebuffer[i] & 0x03];}
             if (IO(_LCDC) & 0x20 && !(IO(_LCDC) & 0x01)) {color = pal_bgp[gameboy->lcd.linebuffer[i] >> 2];}
             if (IO(_LCDC) & 0x21) {if ((gameboy->lcd.linebuffer[i] >> 2) == 0) {color = pal_bgp[gameboy->lcd.linebuffer[i] & 0x03];} else {color = pal_bgp[gameboy->lcd.linebuffer[i] >> 2];}}
@@ -169,6 +182,10 @@ void step_lcd(uint8 dt)
   }
 }
 
+/**
+  draws background and window for each line
+  I should probably add more macros to make the code more readable and self-documenting
+**/
 void draw_line(void)
 {
   if (IO(_LCDC) & 0x01) {
@@ -236,7 +253,9 @@ void draw_line(void)
   }
 }
 
-//reverses bits in each byte of 16 bit word doesn't change byte order, used for drawing sprites
+/**
+  reverses each byte in a 16-bit word, used for drawing horizontally flipped sprites
+**/
 uint16 reverse_word(uint16 input)
 {
   uint8 a = LOW(input);
@@ -250,6 +269,10 @@ uint16 reverse_word(uint16 input)
   return a + (b << 8);
 }
 
+/**
+  draws sprites like the name implies
+  I should probably add more macros to make the code more readable and self-documenting
+**/
 void draw_sprites(void)
 {
   if (IO(_LCDC) & 0x02)

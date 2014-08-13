@@ -7,16 +7,20 @@
 **/
 #include <SDL/SDL.h>
 
-/*general bit manipulation*/
+/**
+  general bit manipulation
+  SWAP(x) should only be used for uint8
+  CHECKNEG(x) returns value of last bit(is this even used anymore?)
+**/
 #define BIT(x)		(1 << (x))
 #define GET(a,b)	((a) & (b))
 #define SET(a,b)	((b) |= (a))
 #define CLEAR(a,b)	((b) &= ~(a))
 #define TOGGLE(a,b)	((b) ^= (a))
-#define SWAP(x)		(((x) & 0xF0) >> 4 | ((x) & 0x0F) << 4) //only for uint8
-#define SIZE(x)		((sizeof(x)<<3)) //size in bits
-#define LASTBIT(x)	((SIZE(x))-1) //'address' of last bit
-#define CHECKNEG(x)	(GET(LASTBIT(x),x) == 0 ? 0 : 1) //returns value of last bit of x
+#define SWAP(x)		(((x) & 0xF0) >> 4 | ((x) & 0x0F) << 4)
+#define SIZE(x)		((sizeof(x)<<3))
+#define LASTBIT(x)	((SIZE(x))-1)
+#define CHECKNEG(x)	(GET(LASTBIT(x),x) == 0 ? 0 : 1)
 #define LOW(x)		((x) & 0xFF)
 #define HIGH(x)		((x) >> 8)
 
@@ -51,16 +55,18 @@ typedef struct cpu
   uint8 IME;
   bool halt,ei_delay;
 } cpu;
-
+/**
+  mode not used for every mbc version
+  enable used to enable external ram access
+  external ram size should eventually be determined and set in parse_header()
+  using eram size for mbc5 for now
+**/
 typedef struct mbc
 {
   int version;
-  //mode not used for every mbc version, enable used to enable external ram use
   uint8 rambank,mode,enable;
   word16 rombank;
   uint8 *cart;
-  //ram area, size should eventually be determined and set in parse_header()
-  //using ram size for mbc5 for now
   uint8 eram[0x020000];
 } mbc;
 

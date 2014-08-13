@@ -150,7 +150,7 @@ gb *gameboy;
 #define SEL_K	0x80
 
 /**
-  vram stuff
+  step lcd stuff
     -lcd modes
     -get lcd mode
     -set lcd mode
@@ -182,6 +182,30 @@ gb *gameboy;
 #define T_DIV		64	//16384 Hz
 
 /**
+  vram drawing stuff
+**/
+#define OAM_Y		0
+#define OAM_X		1
+#define OAM_TILE	2
+#define OAM_FLAGS	3
+#define OAM_F_BG	0x80
+#define OAM_F_YFLIP	0x40
+#define OAM_F_XFLIP	0x20
+#define OAM_F_PAL	0x10
+#define OAM_HI_TILE(x)	(x & 0xFE)
+#define OAM_LO_TILE(x)	(x | 0x01)
+#define OAM_MAX_LINE	10
+#define OAM_MAX		40
+#define LCDC_BG_ENABLE	0x01
+#define LCDC_OBJ_ENABLE	0x02
+#define LCDC_OBJ_SIZE	0x04
+#define LCDC_BG_MAP	0x08
+#define LCDC_BG_DATA	0x10
+#define LCDC_WIN_ENABLE	0x20
+#define LCDC_WIN_MAP	0x40
+#define LCDC_ENABLE	0x80
+
+/**
   immediate 8-bit and 16-bit data, doesn't work correctly if opcode shouldn't use imm8 or imm16 since pc would be at the wrong place
 **/
 #define IMM8	(READ_BYTE(_PC-1))
@@ -195,7 +219,7 @@ gb *gameboy;
   oam should be used the same way except with sprite data instead of tile data and second argument is offset within sprite data
   T_DATA_n(x) returns uint16 because it's more convenient when working with tile data in lcd.c
   LOW(x) in OAM(x,y) doesn't prevent access to unused section of memory but it does prevent access to IO registers
-  OAM(x,y): x is sprite number and should be between 0 and 40 and y is property and should be one of the next 4 macros
+  OAM(x,y): x is sprite number and should be between 0 and 40 and y is property and should be a number between 0 and 3
 **/
 #define MEM(x)		(gameboy->mem.map[x])
 #define VRAM(x)		(MEM(x))
@@ -205,10 +229,6 @@ gb *gameboy;
 #define T_MAP_1(x)	(gameboy->mem.map[x+0x9C00])
 #define IO(x)		(MEM(x))
 #define OAM(sprite,property)		(gameboy->mem.map[LOW((sprite << 2) + property)+ _OAM])
-#define OAM_Y		0
-#define OAM_X		1
-#define OAM_TILE	2
-#define OAM_FLAGS	3
 #define INTE		(gameboy->mem.map[_IE])
 
 /**

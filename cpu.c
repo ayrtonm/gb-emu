@@ -2,13 +2,16 @@
 #include "globals.h"
 #include <stdio.h>
 #include <stdlib.h>
+//it would probably be faster to use a lookup table for the possible input values instead log2
 #include <math.h>//for log2 function
+//the following macro definition is only for debugging opcodes and will eventually be removed
 #define BREAK 6150
-//#undef BREAK
+
 
 /**
-This function initializes and returns a cpu struct
-*/
+  makes struct cpu and initializes its registers to values when gameboy is reset
+  ei_delay and halt aren't actual hw registers, halt is used to see if halt or stop was the last opcode executed and ei_delay is used to delay interrupts one opcode
+**/
 cpu init_cpu(void)
 {
   cpu c;
@@ -24,17 +27,21 @@ cpu init_cpu(void)
   return c;
 }
 /**
-This function emulates the gameboy's functions using an instance of gb struct
-*/
+  this function reads the opcode at the address specified by program counter(_PC), runs opcode, increments clock, updates lcd depending on how much time passed(dt)
+  still need to test timers and div register
+  joypad seems to be working normally assuming glitches in racing game and spaceship game are due to small problems with opcodes and setting flags which is very likely
+  everything inside long comment lines will eventually be deleted after all opcodes are debugged and working properly
+**/
 int emulate(void)
 {
   uint8 op;
   int clk = 0;
   int dt = 0;
-  //debug variables
+  /**debug variables*******/
+  /*these variables will eventually be removed*/
   int j = 1;
   uint8 x = IO(_JOYP);
-  //
+  /************************/
   SDL_Event event;
   for (;;)
   {

@@ -9,7 +9,7 @@
 
 
 /**
-  makes struct cpu and initializes its registers to values when gameboy is reset
+  makes cpu struct and initializes its registers to values when gameboy is reset
   ei_delay and halt aren't actual hw registers, halt is used to see if halt or stop was the last opcode executed and ei_delay is used to delay interrupts one opcode
 **/
 cpu init_cpu(void)

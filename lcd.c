@@ -4,7 +4,7 @@
 #define GRID
 
 /**
-  makes struct lcd and initializes SDL Surface used for screen and lcd clock
+  makes lcd struct and initializes SDL Surface used for screen and lcd clock
 **/
 lcd init_lcd(void)
 {

@@ -1,9 +1,16 @@
 #include "mem.h"
 #include "globals.h"
-#include <stdio.h>//open and load file
-#include <stdlib.h>//allocate memory
-#include <sys/stat.h>//get file size
+//open and load file
+#include <stdio.h>
+//allocate memory for cartridge and eventually for external ram
+#include <stdlib.h>
+//get file size
+#include <sys/stat.h>
 
+
+/**
+  open rom file and return data as an array of uint8
+**/
 uint8 *load_cart(char *filename)
 {
   struct stat st;
@@ -17,6 +24,9 @@ uint8 *load_cart(char *filename)
   return cart;
 }
 
+/**
+  read cartridge header, print relevant information and return mbc struct. eventually memory for external ram will be allocated here
+**/
 mbc parse_header(uint8 *cart)
 {
   int i;
@@ -67,6 +77,10 @@ mbc parse_header(uint8 *cart)
   return m;
 }
 
+/**
+  load cartridge rom bank 0/1 and reset io registers to default values and clear the rest
+  memory in the actual hw is random when it's reset, but this function sets everything that's not initialized to 0 like most other emulators
+**/
 mem init_mem(void)
 {
   int i;
@@ -93,26 +107,22 @@ mem init_mem(void)
   return m;
 }
 
+/**
+  should be self-explanatory
+**/
 void write_byte(uint16 address, uint8 value)
 {
+  //used for debugging//////////////////
   if (printing == memory) printf("[%x] = 0x%x\n",address,value);
-  //write to rom
+  //////////////////////////////////////
   if (address < _BANK) {write_cart(address,value);}
-  //write to external rombank
   else if (address < _VRAM) {write_cart(address,value);}
-  //write to vram(unfinished)
   else if (address < _ERAM) {MEM(address) = value;}
-  //write to external rambank
   else if (address < _WRAM) {write_cart(address,value);}
-  //write to wram
   else if (address < _ECHO) {MEM(address) = value;}
-  //write to echo space then copy to wram
   else if (address < _OAM) {MEM(address) = value;address -= 0x2000;write_byte(address,value);}
-  //write to oam
   else if (address < _UNUSED) {MEM(address) = value;}
-  //shouldn't actually be used
   else if (address < _IO) {MEM(address) = value;}
-  //write to io hw registers
   else if (address < _HRAM)
   {
     if (address == _JOYP)//filter out writing to bits 0-3,6,7
@@ -162,10 +172,13 @@ void write_byte(uint16 address, uint8 value)
     else if (address == _WY) {IO(_WY) = value;}//window y position
     else if (address == _WX) {IO(_WX) = value;}//window x position
   }
-  //write to hram(stack)
   else if (address < _IE) {MEM(address) = value;}
   else if (address == _IE) {MEM(address) = value & 0x1F;}
 }
+
+/**
+  this function will eventually be moved to another file(mbc.c) or split into separate functions for each type of mbc
+**/
 void write_cart(uint16 address, uint8 value)
 {
   if (VERSION == 0) {return;} //ROM ONLY
@@ -207,6 +220,10 @@ void write_cart(uint16 address, uint8 value)
     else if (_ERAM <= address < _WRAM) {MEM(address) = (ENABLE == 1) ? value : MEM(address);}
   }
 }
+
+/**
+  should be self-explanatory
+**/
 void write_word(uint16 address, uint16 value)
 {
   write_byte(address,LOW(value));

@@ -1,12 +1,6 @@
 #include "cpu.h"
-#include "globals.h"
-#include <stdio.h>
-#include <stdlib.h>
-//it would probably be faster to use a lookup table for the possible input values instead log2
-#include <math.h>//for log2 function
 //the following macro definition is only for debugging opcodes and will eventually be removed
 #define BREAK 6150
-
 
 /**
   makes cpu struct and initializes its registers to values when gameboy is reset
@@ -61,7 +55,7 @@ int emulate(void)
           write_byte(_IR,CLEAR(i,IO(_IR)));
           EI_DELAY = false;
           PUSH(_PCBh,_PCBl);
-          _PC = 0x40 + ((int)(log2(i)) << 3);
+          _PC = 0x40 + interrupt_table[i-1];
         }
       }
     }

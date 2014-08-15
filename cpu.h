@@ -309,6 +309,8 @@ static uint8 cycles[0x0100] =
   3,3,2,1,0,4,2,4,3,2,4,1,0,0,2,4  /*Fx*/
 };
 
+static int interrupt_table[16] = {0,0x08,0,0x10,0,0,0,0x18,0,0,0,0,0,0,0,0x20};
+
 //opcodes
 #define INC(r) \
   r++;\

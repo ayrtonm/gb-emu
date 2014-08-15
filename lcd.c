@@ -1,5 +1,4 @@
 #include "lcd.h"
-#include "globals.h"
 //the following macro definition is only for debugging drawing sprites and will eventually be removed
 #define GRID
 

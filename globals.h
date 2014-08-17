@@ -82,6 +82,7 @@ typedef struct mem
 typedef struct lcd
 {
   SDL_Surface *screen,*visible;
+  SDL_Rect offset;
   float scale;
   uint8 linebuffer[160];
   int clk;

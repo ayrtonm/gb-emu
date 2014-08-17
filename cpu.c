@@ -151,10 +151,11 @@ int emulate(void)
       {
         case SDL_VIDEORESIZE:
         {
-          if (event.resize.w != 0 && event.resize.h != 0)
+          if (event.resize.w >= 160 && event.resize.h >= 144)
           {
             gameboy->lcd.visible = SDL_SetVideoMode(event.resize.w,event.resize.h,32,SDL_HWSURFACE|SDL_RESIZABLE);
-            SDL_BlitSurface(zoomSurface(gameboy->lcd.screen,(float)gameboy->lcd.visible->w/160.0,(float)gameboy->lcd.visible->h/144.0,0),NULL,gameboy->lcd.visible,NULL);
+            gameboy->lcd.scale = MIN((float)gameboy->lcd.visible->w/160.0,(float)gameboy->lcd.visible->h/144.0);
+            SDL_BlitSurface(zoomSurface(gameboy->lcd.screen,gameboy->lcd.scale,gameboy->lcd.scale,0),NULL,gameboy->lcd.visible,NULL);
           }
           break;
         }

@@ -1,8 +1,8 @@
 CC = gcc
 CFLAGS = -g #-O3
-SRCS = main.c mem.c cpu.c lcd.c mbc.c
+SRCS = main.c mem.c cpu.c lcd.c mbc.c SDL_rotozoom.c
 OBJS = $(SRCS:.c=.o)
-LIBS = -lSDL #-lm -lncurses
+LIBS = -lSDL -lm #-lncurses
 MAIN = main
 
 all: $(MAIN)

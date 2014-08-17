@@ -1,6 +1,6 @@
 #include "cpu.h"
 //the following macro definition is only for debugging opcodes and will eventually be removed
-#define BREAK 6150
+#define BREAK 8430
 
 /**
   makes cpu struct and initializes its registers to values when gameboy is reset
@@ -81,15 +81,16 @@ int emulate(void)
       _PC += length[op];
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //everything inside these comments is only for debug mode and will be removed eventually
-//        if (printing == opcodes) printf("0x%x\n",op);
+//print opcodes normally
+        if (printing == opcodes) printf("0x%x\n",op);
 //print joypad register only when it changes
-        if (printing == opcodes && x != IO(_JOYP)) {x = IO(_JOYP);printf("0x%x\n",x);}
+//        if (printing == opcodes && x != IO(_JOYP)) {x = IO(_JOYP);printf("0x%x\n",x);}
         else if (printing == debug)
         {
 #ifdef BREAK
           if (j >= BREAK) {
 #endif
-          system("clear");
+//          system("clear");
           printf("AF: 0x%x      \nHL: 0x%x\n",_AF,_HL);
           printf("BC: 0x%x      \nDE: 0x%x\n",_BC,_DE);
           printf("SP: 0x%x      \nPC: 0x%x\n",_SP,_PC-length[op]);
@@ -148,6 +149,15 @@ int emulate(void)
     {
       switch(event.type)
       {
+        case SDL_VIDEORESIZE:
+        {
+          if (event.resize.w != 0 && event.resize.h != 0)
+          {
+            gameboy->lcd.visible = SDL_SetVideoMode(event.resize.w,event.resize.h,32,SDL_HWSURFACE|SDL_RESIZABLE);
+            SDL_BlitSurface(zoomSurface(gameboy->lcd.screen,(float)gameboy->lcd.visible->w/160.0,(float)gameboy->lcd.visible->h/144.0,0),NULL,gameboy->lcd.visible,NULL);
+          }
+          break;
+        }
         case SDL_KEYDOWN:
         {
           switch(event.key.keysym.sym)

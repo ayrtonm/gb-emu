@@ -1,6 +1,8 @@
 #include "lcd.h"
 //the following macro definition is only for debugging drawing sprites and will eventually be removed
-#define GRID
+//#define GRID
+//the following macro is a placeholder for a configuration file or run-time arguments
+#define DEFAULT_SCALE 3
 
 /**
   makes lcd struct and initializes SDL Surface used for screen and lcd clock
@@ -9,8 +11,10 @@ lcd init_lcd(void)
 {
   lcd g;
   SDL_Init(SDL_INIT_EVERYTHING);
-  g.screen = NULL;
-  g.screen = SDL_SetVideoMode(160,144,32,SDL_HWSURFACE);
+//  g.screen = NULL;
+  g.screen = SDL_CreateRGBSurface(SDL_HWSURFACE,160,144,32,0,0,0,0);
+  g.visible = SDL_SetVideoMode(160*DEFAULT_SCALE,144*DEFAULT_SCALE,32,SDL_HWSURFACE|SDL_RESIZABLE);
+  SDL_WM_SetCaption("Game Boy Emulator",NULL);
   g.clk = 0;
   return g;
 }
@@ -134,7 +138,8 @@ void step_lcd(uint8 dt)
           SDL_FillRect(gameboy->lcd.screen,&dst,SDL_MapRGB(gameboy->lcd.screen->format,0x00,0xFF,0x00));
         }
 #endif
-        SDL_Flip(gameboy->lcd.screen);
+        SDL_BlitSurface(zoomSurface(gameboy->lcd.screen,(float)gameboy->lcd.visible->w/160.0,(float)gameboy->lcd.visible->h/144.0,0),NULL,gameboy->lcd.visible,NULL);
+        SDL_Flip(gameboy->lcd.visible);
         compareLYtoLYC();
         if (IO(_LY) < 153)
         {
@@ -170,15 +175,15 @@ void step_lcd(uint8 dt)
             {
               color = SDL_MapRGB(gameboy->lcd.screen->format,0xFF,0xFF,0xFF);
             }
-            if (IO(_LCDC) & LCDC_BG_ENABLE && !(IO(_LCDC) & LCDC_WIN_ENABLE))
+            else if (IO(_LCDC) & LCDC_BG_ENABLE && !(IO(_LCDC) & LCDC_WIN_ENABLE))
             {
               color = pal_bgp[gameboy->lcd.linebuffer[i] & 0x03];
             }
-            if (IO(_LCDC) & LCDC_WIN_ENABLE && !(IO(_LCDC) & LCDC_BG_ENABLE))
+            else if (IO(_LCDC) & LCDC_WIN_ENABLE && !(IO(_LCDC) & LCDC_BG_ENABLE))
             {
               color = pal_bgp[gameboy->lcd.linebuffer[i] >> 2];
             }
-            if (IO(_LCDC) & (LCDC_WIN_ENABLE|LCDC_BG_ENABLE))
+            else if (IO(_LCDC) & (LCDC_WIN_ENABLE|LCDC_BG_ENABLE))
             {
               if ((gameboy->lcd.linebuffer[i] >> 2) == 0)
               {

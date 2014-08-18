@@ -153,13 +153,12 @@ int emulate(void)
         {
           if (event.resize.w != 0 && event.resize.h != 0)
           {
-            gameboy->lcd.visible = SDL_SetVideoMode(event.resize.w,event.resize.h,32,SDL_HWSURFACE|SDL_RESIZABLE);
+            gameboy->lcd.visible = SDL_SetVideoMode(MAX(160,event.resize.w),MAX(144,event.resize.h),32,SDL_HWSURFACE|SDL_RESIZABLE);
             gameboy->lcd.scale = MIN((float)gameboy->lcd.visible->w/160.0,(float)gameboy->lcd.visible->h/144.0);
             gameboy->lcd.offset.x = (gameboy->lcd.visible->w - (160*gameboy->lcd.scale))/2;
             gameboy->lcd.offset.y = (gameboy->lcd.visible->h - (144*gameboy->lcd.scale))/2;
             SDL_BlitSurface(zoomSurface(gameboy->lcd.screen,gameboy->lcd.scale,gameboy->lcd.scale,0),NULL,gameboy->lcd.visible,&gameboy->lcd.offset);
           }
-          break;
         }
         case SDL_KEYDOWN:
         {

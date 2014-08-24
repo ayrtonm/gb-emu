@@ -1,20 +1,20 @@
 #include "lcd.h"
 //the following macro definition is only for debugging drawing sprites and will eventually be removed
 //#define GRID
-//the following macro is a placeholder for a configuration file or run-time arguments
-#define DEFAULT_SCALE 3
 
 /**
-  makes lcd struct and initializes SDL Surface used for screen and lcd clock
+  makes 160x144 SDL Surface called screen
+  a variable size SDL Surface called visible
+  and initializes x and y offsets display within visible surface
+  returns this as part of lcd struct
 **/
 lcd init_lcd(void)
 {
   lcd g;
   SDL_Init(SDL_INIT_EVERYTHING);
-//  g.screen = NULL;
   g.screen = SDL_CreateRGBSurface(SDL_HWSURFACE,160,144,32,0,0,0,0);
-  g.visible = SDL_SetVideoMode(160*DEFAULT_SCALE,144*DEFAULT_SCALE,32,SDL_HWSURFACE|SDL_RESIZABLE);
-  g.scale = DEFAULT_SCALE;
+  g.visible = SDL_SetVideoMode(160*3,144*3,32,SDL_HWSURFACE|SDL_RESIZABLE);
+  g.scale = 3;
   g.offset.x = 0;
   g.offset.y = 0;
   SDL_WM_SetCaption("Game Boy Emulator",NULL);

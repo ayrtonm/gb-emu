@@ -1,5 +1,6 @@
 #include "cpu.h"
 //the following macro definition is only for debugging opcodes and will eventually be removed
+//stops emulation after the n opcodes
 #define BREAK 8430
 
 /**
@@ -34,6 +35,7 @@ int emulate(void)
   /**debug variables*******/
   /*these variables will eventually be removed*/
   int j = 1;
+  //used for printing joypad register values everytime it changes
   uint8 x = IO(_JOYP);
   /************************/
   SDL_Event event;

@@ -1,3 +1,4 @@
+#!/bin/bash
 FILE=~/gb/roms/opus5.gb
 ./main -p $FILE > text1
 ./../mednafen/src/mednafen $FILE > text2

@@ -24,8 +24,8 @@
 #define LOW(x)		((x) & 0xFF)
 #define HIGH(x)		((x) >> 8)
 
-#define MAX(a,b)		(a > b ? a : b)
-#define MIN(a,b)		(a > b ? b : a)
+#define MAX(a,b)	(a > b ? a : b)
+#define MIN(a,b)	(a > b ? b : a)
 
 //variable used for printing opcodes, or other information for debugging(will be removed eventually)
 int printing;

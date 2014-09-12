@@ -1,4 +1,5 @@
 #!/bin/bash
+#this is a script that runs this emulator with the -p flag and a modified version of mednafen, both programs print out the executed opcodes for the specified ROM, the script then removes the header in the text files and cuts the files to the size of the smallest one and runs diff on the text files
 FILE=~/gb/roms/opus5.gb
 ./main -p $FILE > text1
 ./../mednafen/src/mednafen $FILE > text2

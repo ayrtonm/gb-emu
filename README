@@ -1,13 +1,9 @@
-Gb-emu is a Game Boy/Game Boy Color Emulator for Linux. This project was started in June 2013 but is still a work in progress.
-
-Why
----
-Gb-emu was started as an educational project so I could learn more about general computer architecture and the underlying operations of the old game console.
+Gb-emu is a Game Boy/Game Boy Color Emulator for Linux. This project was started in June 2013 but is still a work in progress. Gb-emu was started as an educational project so I could learn more about general computer architecture and the underlying operations of the old game console.
 
 
 Command-Line Arguments
 ----------------------
-Since gb-emu is currently a work in progress, a lot (most) of the command line arguments are used for debugging and aren't really useful for running games.  I am considering adding a completely revamped debug UI after everything is working. Run with the -h flag to see all options.
+Since gb-emu is currently a work in progress, a lot (most) of the command line arguments are used for debugging the emulator and aren't really useful for running games.  I am considering adding a completely revamped debug UI (similar to RealBoy's UI) after everything is working. Run with the -h flag to see all options.
 
 
 Special Thanks

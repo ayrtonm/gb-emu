@@ -1,7 +1,7 @@
 #include "cpu.h"
 //the following macro definition is only for debugging opcodes and will eventually be removed
 //stops emulation after the n opcodes
-#define BREAK 8430
+#define BREAK 0
 
 /**
   makes cpu struct and initializes its registers to values when gameboy is reset

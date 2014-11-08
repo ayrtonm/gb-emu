@@ -13,4 +13,4 @@ if [ "$(($N1-5))" -gt "$(($N2-47))" ]
 	then head -n $(($N2-48)) text1 > new;mv new text1
 	else head -n $(($N1-5)) text2 > new;mv new text2
 fi
-diff text1 text2 > difftext
+diff text1 text2 > dtext

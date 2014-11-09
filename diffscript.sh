@@ -1,6 +1,6 @@
 #!/bin/bash
 #this is a script that runs this emulator with the -p flag and a modified version of mednafen, both programs print out the executed opcodes for the specified ROM, the script then removes the header in the text files and cuts the files to the size of the smallest one and runs diff on the text files
-FILE=~/gb-emu/roms/opus5.gb
+FILE=~/gb-emu/roms/racing.gb
 ./main -p $FILE > text1
 ./../mednafen/src/mednafen $FILE > text2
 N1=$(wc -l text1 | awk '{print $1;}')

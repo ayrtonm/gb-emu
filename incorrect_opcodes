@@ -2,6 +2,7 @@ These are the opcodes executed when running opus5 rom
 it diverges from the opcodes that mednafen executes after the jr nz at the bottom
 with racing rom, mednafen and my emulator diverge after ~6150 opcodes after a jr c instruction
 it's probably easier to start debugging with opus5
+problem is probably (definitely?) in step_lcd() timing is correct enough to display something, but not precise enough for the game to actually use it
 
 OPCODE	NAME		MODIFIES Z	LENGTH	ADDRESS	IMM	MEM		REG A
 0x00	NOP		NO		1	100	N/A	N/A		0x01

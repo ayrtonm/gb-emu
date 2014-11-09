@@ -115,13 +115,13 @@ void step_lcd(uint8 dt)
         if (IO(_LY) < 143)
         {
           SET_MODE_OAM;
-          gameboy->lcd.clk += T_OAM;
+          gameboy->lcd.clk = T_OAM;
         }
         else
         {
           REQUEST_INT(INT_VBL);
           SET_MODE_VBLANK;
-          gameboy->lcd.clk += T_LY_INC;
+          gameboy->lcd.clk = T_LY_INC;
         }
         break;
       }
@@ -147,20 +147,20 @@ void step_lcd(uint8 dt)
         if (IO(_LY) < 153)
         {
           IO(_LY)++;
-          gameboy->lcd.clk += T_LY_INC;
+          gameboy->lcd.clk = T_LY_INC;
         }
         else
         {
           IO(_LY) = 0;
           SET_MODE_OAM;
-          gameboy->lcd.clk += T_OAM;
+          gameboy->lcd.clk = T_OAM;
         }
         break;
       }
       case MODE_OAM:
       {
         SET_MODE_VRAM;
-        gameboy->lcd.clk += T_VRAM;
+        gameboy->lcd.clk = T_VRAM;
         break;
       }
       case MODE_VRAM:

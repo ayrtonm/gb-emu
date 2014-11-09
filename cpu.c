@@ -1,5 +1,6 @@
 #include "cpu.h"
-//the following macro definition is only for debugging opcodes and will eventually be removed
+//the following macro definitions is only for debugging opcodes and will eventually be removed
+#define DEBUG
 //stops emulation after the n opcodes
 #define BREAK 0
 
@@ -32,12 +33,11 @@ int emulate(void)
   uint8 op;
   int clk = 0;
   int dt = 0;
-  /**debug variables*******/
-  /*these variables will eventually be removed*/
+  #ifdef DEBUG
   int j = 1;
   //used for printing joypad register values everytime it changes
   uint8 x = IO(_JOYP);
-  /************************/
+  #endif
   SDL_Event event;
   for (;;)
   {
@@ -81,8 +81,7 @@ int emulate(void)
       else
       {
       _PC += length[op];
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-//everything inside these comments is only for debug mode and will be removed eventually
+#ifdef DEBUG
 //print opcodes normally
         if (printing == opcodes) printf("0x%x\n",op);
 //print joypad register only when it changes
@@ -112,6 +111,7 @@ int emulate(void)
           printf("[ SP-6 ] =  0x%x\n",MEM(_SP-6));
           printf("[ SP-7 ] =  0x%x\n",MEM(_SP-7));
           printf("[ SP-8 ] =  0x%x\n",MEM(_SP-8));
+          printf("[ FF41 ] =  0x%x\n",MEM(0xFF41));
           printf("[%x][%x][%x][%x][%x][%x][%x]\n",MEM(_PC-length[op]-3),MEM(_PC-length[op]-2),MEM(_PC-length[op]-1),MEM(_PC-length[op]),MEM(_PC-length[op]+1),MEM(_PC-length[op]+2),MEM(_PC-length[op]+3));
           char a  = getchar();
           if (a == 'q') {return 0;}
@@ -119,7 +119,7 @@ int emulate(void)
 }
 #endif
         }
-////////////////////////////////////////////////////////////////////////////////////////////////////////
+#endif
         dt = cycles[op];
         switch(op)
         {

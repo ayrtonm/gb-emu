@@ -185,11 +185,11 @@ gb *gameboy;
   Timer and div register stuff
 **/
 #define TIMER_ON	(IO(_TAC) & 0x04)
-#define T_TIMER_0	256	//4096 Hz
-#define T_TIMER_1	4	//262144 Hz
-#define T_TIMER_2	16	//65536 Hz
-#define T_TIMER_3	64	//16384 Hz
-#define T_DIV		64	//16384 Hz
+#define T_TIMER_0	1026  //was previously 256	//4096 Hz
+#define T_TIMER_1	16    //was previously 4	  //262144 Hz
+#define T_TIMER_2	64    //was previously 16	  //65536 Hz
+#define T_TIMER_3	256   //was previously 64	  //16384 Hz
+#define T_DIV		256     //was previously 64	  //16384 Hz
 
 /**
   vram drawing stuff

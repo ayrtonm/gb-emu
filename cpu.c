@@ -2,7 +2,7 @@
 //the following macro definitions is only for debugging opcodes and will eventually be removed
 #define DEBUG
 //stops emulation after the n opcodes
-#define BREAK 0
+#define BREAK 670
 
 /**
   makes cpu struct and initializes its registers to values when gameboy is reset
@@ -92,15 +92,15 @@ int emulate(void)
           if (j >= BREAK) {
 #endif
 //          system("clear");
-          printf("AF: 0x%x      \nHL: 0x%x\n",_AF,_HL);
-          printf("BC: 0x%x      \nDE: 0x%x\n",_BC,_DE);
-          printf("SP: 0x%x      \nPC: 0x%x\n",_SP,_PC-length[op]);
-          printf("ZF: 0x%x      \nNF: 0x%x\n",GET(Z_FLAG,_F),GET(N_FLAG,_F));
-          printf("HF: 0x%x      \nCF: 0x%x\n",GET(H_FLAG,_F),GET(C_FLAG,_F));
+          printf("AF: 0x%x      HL: 0x%x\n",_AF,_HL);
+          printf("BC: 0x%x      DE: 0x%x\n",_BC,_DE);
+          printf("SP: 0x%x      PC: 0x%x\n",_SP,_PC-length[op]);
+          printf("ZF: 0x%x      NF: 0x%x\n",GET(Z_FLAG,_F),GET(N_FLAG,_F));
+          printf("HF: 0x%x      CF: 0x%x\n",GET(H_FLAG,_F),GET(C_FLAG,_F));
           printf("opcode: 0x%x  \n",op);
-          printf("IMM8: 0x%x    \nIMM16: 0x%x\n",IMM8,IMM16);
-          printf("IME: %d       \nn: %d\n",_IME,j);
-          printf("IR: %x\nIE: %x\n",IO(_IR),IO(_IE));
+          printf("IMM8: 0x%x    IMM16: 0x%x\n",IMM8,IMM16);
+          printf("IME: %d       n: %d\n",_IME,j);
+          printf("IR: %x        IE: %x\n",IO(_IR),IO(_IE));
           printf("JOYP: %x\n",IO(_JOYP));
           printf("[  SP  ] =  0x%x\n",MEM(_SP));
           printf("[ SP-1 ] =  0x%x\n",MEM(_SP-1));
@@ -128,7 +128,7 @@ int emulate(void)
         j++;
       }
     }
-    gameboy->lcd.clk += dt;
+    //gameboy->lcd.clk += dt;
     step_lcd(dt);
     gameboy->div_clk -= dt*4;
     if (TIMER_ON) gameboy->time_clk -= dt*4;

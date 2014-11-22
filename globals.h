@@ -133,7 +133,7 @@ gb *gameboy;
 #define _PCBl	(gameboy->cpu.PC.B.l)
 #define _PCBh	(gameboy->cpu.PC.B.h)
 #define _IME	(gameboy->cpu.IME)
-#define REQUEST_INT(x)	write_byte(_IR,SET(x,IO(_IR)))
+#define REQUEST_INT(x)	IO(_IR) = SET(x,IO(_IR))
 #define INT_VBL	0x01
 #define INT_LCD	0x02
 #define INT_TIM	0x04
@@ -160,22 +160,26 @@ gb *gameboy;
     -lcd modes
     -get lcd mode
     -set lcd mode
-    -lcd mode periods (T_VBLANK refers to time until vblank, T_LY_INC refers to time for line increment during vblank)
+    -lcd mode periods (T_VBLANK refers to time until vblank, T_LY_INC refers to time for 1 line increment during vblank)
 */
 #define MODE_HBLANK	0x00
 #define MODE_VBLANK	0x01
 #define MODE_OAM	0x02
 #define MODE_VRAM	0x03
 #define LCD_MODE	(IO(_LCDSTAT) & 0x03)
-#define SET_MODE_HBLANK	CLEAR(0x03,IO(_LCDSTAT))
-#define SET_MODE_VBLANK	SET(0x01,IO(_LCDSTAT));CLEAR(0x02,IO(_LCDSTAT))
-#define SET_MODE_OAM	SET(0x02,IO(_LCDSTAT));CLEAR(0x01,IO(_LCDSTAT))
-#define SET_MODE_VRAM	SET(0x03,IO(_LCDSTAT))
+#define SET_MODE_HBLANK	IO(_LCDSTAT) = CLEAR(0x03,IO(_LCDSTAT))
+#define SET_MODE_VBLANK	IO(_LCDSTAT) = SET(0x01,IO(_LCDSTAT));IO(_LCDSTAT) = CLEAR(0x02,IO(_LCDSTAT))
+#define SET_MODE_OAM	IO(_LCDSTAT) = SET(0x02,IO(_LCDSTAT));IO(_LCDSTAT) = CLEAR(0x01,IO(_LCDSTAT))
+#define SET_MODE_VRAM	IO(_LCDSTAT) = SET(0x03,IO(_LCDSTAT))
 #define T_LY_INC	((T_HBLANK)+(T_OAM)+(T_VRAM))
-#define T_HBLANK	204
+//f = 4.194304 MHz -> T = 238ns
+//hblank for 48.6 microseconds
+//oam for 19 microseconds
+//vram for 41 microseconds
+#define T_HBLANK	204 //48.6us/238ns
 #define T_VBLANK	4560
-#define T_OAM		80
-#define T_VRAM		172
+#define T_OAM		80 //19us/238ns
+#define T_VRAM		172 //41us/238ns
 
 /**
   Timer and div register stuff

@@ -31,6 +31,7 @@ cpu init_cpu(void)
 int emulate(void)
 {
   uint8 op;
+  //lcdstat is initialized to 0x91 so lcd mode is initially VBLANK(0x01)
   gameboy->lcd.clk = T_VBLANK;
   int dt = 0;
   #ifdef DEBUG
@@ -130,8 +131,8 @@ int emulate(void)
     }
     //gameboy->lcd.clk += dt;
     step_lcd(dt);
-    gameboy->div_clk -= dt*4;
-    if (TIMER_ON) gameboy->time_clk -= dt*4;
+    gameboy->div_clk -= dt;
+    if (TIMER_ON) gameboy->time_clk -= dt;
     if (gameboy->div_clk <= 0)
     {
       IO(_DIV)++;

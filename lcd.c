@@ -103,7 +103,7 @@ void update_palette(uint8 palette, uint8 value)
 **/
 void step_lcd(uint8 dt)
 {
-  gameboy->lcd.clk -= 4*dt;
+  gameboy->lcd.clk -= dt;
   if (gameboy->lcd.clk <= 0)
   {
     switch(LCD_MODE)

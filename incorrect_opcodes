@@ -31,5 +31,5 @@ OPCODE	NAME		MODIFIES Z	LENGTH	ADDRESS	IMM	MEM		REG A
 0x16	LD D D8		NO		2	1E7	0x10	N/A		0x00
 0x1e	LD E D8		NO		2	1E9	0x40	N/A		0x00
 0xf0	LDH A [A8]	NO		2	1EB	0x41	N/A		[ff41]
-0xe6	AND D8		YES		2	1ED	0x02	N/A		should be 0x00 which would mean [ff41] (lcdstat register) is not in 0x02 or 0x03
+0xe6	AND D8		YES		2	1ED	0x02	N/A		should be 0x00(or 0x01) which would mean [ff41] (lcdstat register) is not  0x02 or 0x03
 0x20	JR NZ R8				0xfa		

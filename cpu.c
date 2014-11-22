@@ -31,7 +31,7 @@ cpu init_cpu(void)
 int emulate(void)
 {
   uint8 op;
-  int clk = 0;
+  gameboy->lcd.clk = T_VBLANK;
   int dt = 0;
   #ifdef DEBUG
   int j = 1;
@@ -128,7 +128,7 @@ int emulate(void)
         j++;
       }
     }
-    clk += dt;
+    gameboy->lcd.clk += dt;
     step_lcd(dt);
     gameboy->div_clk -= dt*4;
     if (TIMER_ON) gameboy->time_clk -= dt*4;

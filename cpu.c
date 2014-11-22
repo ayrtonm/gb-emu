@@ -2,7 +2,7 @@
 //the following macro definitions is only for debugging opcodes and will eventually be removed
 #define DEBUG
 //stops emulation after the n opcodes
-#define BREAK 670
+#define BREAK 523
 
 /**
   makes cpu struct and initializes its registers to values when gameboy is reset
@@ -62,7 +62,7 @@ int emulate(void)
         }
       }
     }
-    if (_HALT) dt = 1;
+    if (_HALT) {dt = 1*4;}
     if (EI_DELAY) {_IME = 1;EI_DELAY = false;}
     if (!_HALT)
     {

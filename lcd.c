@@ -1,6 +1,7 @@
 #include "lcd.h"
 //the following macro definition is only for debugging drawing sprites and will eventually be removed
 //#define GRID
+#define DEFAULT_SCALE 3
 
 /**
   makes 160x144 SDL Surface called screen
@@ -13,8 +14,8 @@ lcd init_lcd(void)
   lcd g;
   SDL_Init(SDL_INIT_EVERYTHING);
   g.screen = SDL_CreateRGBSurface(SDL_HWSURFACE,160,144,32,0,0,0,0);
-  g.visible = SDL_SetVideoMode(160*3,144*3,32,SDL_HWSURFACE|SDL_RESIZABLE);
-  g.scale = 3;
+  g.visible = SDL_SetVideoMode(160*DEFAULT_SCALE,144*DEFAULT_SCALE,32,SDL_HWSURFACE|SDL_RESIZABLE);
+  g.scale = DEFAULT_SCALE;
   g.offset.x = 0;
   g.offset.y = 0;
   SDL_WM_SetCaption("Game Boy Emulator",NULL);

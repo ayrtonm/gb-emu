@@ -45,5 +45,6 @@ int main(int argc, char *argv[])
     gameboy->key_bitmap = 0;
     emulate();
   }
+  //should never get to this point
   return 0;
 }

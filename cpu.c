@@ -115,7 +115,7 @@ int emulate(void)
           printf("[ FF41 ] =  0x%x\n",MEM(0xFF41));
           printf("[%x][%x][%x][%x][%x][%x][%x]\n",MEM(_PC-length[op]-3),MEM(_PC-length[op]-2),MEM(_PC-length[op]-1),MEM(_PC-length[op]),MEM(_PC-length[op]+1),MEM(_PC-length[op]+2),MEM(_PC-length[op]+3));
           char a  = getchar();
-          if (a == 'q') {return 0;}
+          if (a == 'q') {free(gameboy);return 0;}
 #ifdef BREAK
 }
 #endif
@@ -175,7 +175,7 @@ int emulate(void)
             case SDLK_x: gameboy->key_bitmap |= B_K;if (!(IO(_JOYP) & 0x20)) {IO(_JOYP) &= ~0x02;REQUEST_INT(INT_JOY);}break;
             case SDLK_a: gameboy->key_bitmap |= STA_K;if (!(IO(_JOYP) & 0x20)) {IO(_JOYP) &= ~0x08;REQUEST_INT(INT_JOY);}break;
             case SDLK_s: gameboy->key_bitmap |= SEL_K;if (!(IO(_JOYP) & 0x20)) {IO(_JOYP) &= ~0x04;REQUEST_INT(INT_JOY);}break;
-            case SDLK_q: return 0;
+            case SDLK_q: free(gameboy);return 0;
           }
           break;
         }

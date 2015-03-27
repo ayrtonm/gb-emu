@@ -92,7 +92,7 @@ int emulate(void)
 #ifdef BREAK
           if (j >= BREAK) {
 #endif
-//          system("clear");
+          system("clear");
           printf("AF: 0x%x      HL: 0x%x\n",_AF,_HL);
           printf("BC: 0x%x      DE: 0x%x\n",_BC,_DE);
           printf("SP: 0x%x      PC: 0x%x\n",_SP,_PC-length[op]);

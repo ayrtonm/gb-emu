@@ -1,4 +1,6 @@
 #include "mem.h"
+#include "mbc.h"
+#include "lcd.h"
 //get file size(s)
 #include <sys/stat.h>
 
@@ -106,9 +108,9 @@ mem init_mem(void)
 **/
 void write_byte(uint16 address, uint8 value)
 {
-  //used for debugging//////////////////
+#ifdef DEBUG
   if (printing == memory) printf("[%x] = 0x%x\n",address,value);
-  //////////////////////////////////////
+#endif
   if (address < _BANK) {write_cart(address,value);}
   else if (address < _VRAM) {write_cart(address,value);}
   else if (address < _ERAM) {MEM(address) = value;}

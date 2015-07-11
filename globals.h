@@ -18,20 +18,15 @@
 #define CLEAR(a,b)	((b) &= ~(a))
 #define TOGGLE(a,b)	((b) ^= (a))
 #define SWAP(x)		(((x) & 0xF0) >> 4 | ((x) & 0x0F) << 4)
-#define SIZE(x)		((sizeof(x)<<3))
-#define LASTBIT(x)	((SIZE(x))-1)
-#define CHECKNEG(x)	(GET(LASTBIT(x),x) == 0 ? 0 : 1)
+//if statement seems unnecessary, but GET(a,b) returns a & b not 0 or 1 for any bit except the LSBx 
+#define CHECKNEG(x)	(GET(sizeof(x)-1,x) == 0 ? 0 : 1)
 #define LOW(x)		((x) & 0xFF)
 #define HIGH(x)		((x) >> 8)
 
 #define MAX(a,b)	(a > b ? a : b)
 #define MIN(a,b)	(a > b ? b : a)
 
-//variable used for printing opcodes, or other information for debugging(will be removed eventually)
-int printing;
-
 //typedefs and structs
-typedef enum {false, true} bool;
 enum {run,opcodes,debug,memory};
 typedef unsigned char uint8;
 typedef unsigned short int uint16;
@@ -53,11 +48,13 @@ typedef union
   } B;
 } word16;
 
+
 typedef struct cpu
 {
   word16 AF,BC,DE,HL,PC,SP;
-  uint8 IME;
-  bool halt,ei_delay;
+  uint8 IME : 1;
+  uint8 halt : 1;
+  uint8 ei_delay : 1;
 } cpu;
 /**
   mode not used for every mbc version
@@ -76,7 +73,7 @@ typedef struct mbc
 
 typedef struct mem
 {
-  uint8 map[0x010000];
+  uint8 map[0x10000];
 } mem;
 
 typedef struct lcd
@@ -102,6 +99,27 @@ typedef struct gb
 
 gb *gameboy;
 
+//function declarations
+extern cpu init_cpu(void);
+extern int emulate(void);
+
+extern uint8 *load_cart(char *filename);
+extern mbc parse_header(uint8 *cart);
+extern mem init_mem(void);
+extern void write_byte(uint16,uint8);
+extern void write_word(uint16,uint16);
+extern void write_cart(uint16,uint8);
+
+extern void write_ram(uint16,uint8);
+extern void write_mbc1(uint16,uint8);
+extern void write_mbc3(uint16,uint8);
+extern void write_mbc5(uint16,uint8);
+
+extern lcd init_lcd(void);
+extern void step_lcd(uint8);
+extern void update_palette(uint8,uint8);
+extern void draw_line(void);
+extern void draw_sprites(void);
 /**
   cpu specific macros
     -flags

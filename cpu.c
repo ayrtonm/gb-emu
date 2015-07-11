@@ -1,9 +1,4 @@
 #include "cpu.h"
-//the following macro definitions is only for debugging opcodes and will eventually be removed
-#define DEBUG
-//stops emulation after the n opcodes
-#define BREAK 523
-
 /**
   makes cpu struct and initializes its registers to values when gameboy is reset
   ei_delay and halt aren't actual hw registers, halt is used to see if halt or stop was the last opcode executed and ei_delay is used to delay interrupts one opcode
@@ -18,8 +13,8 @@ cpu init_cpu(void)
   c.SP.W = 0xFFFE;
   c.PC.W = 0x0100;
   c.IME = 0;
-  c.ei_delay = false;
-  c.halt = false;
+  c.ei_delay = 0;
+  c.halt = 0;
   return c;
 }
 /**
@@ -34,11 +29,6 @@ int emulate(void)
   //lcdstat is initialized to 0x91 so lcd mode is initially VBLANK(0x01)
   gameboy->lcd.clk = T_VBLANK;
   int dt = 0;
-  #ifdef DEBUG
-  int j = 1;
-  //used for printing joypad register values everytime it changes
-  uint8 x = IO(_JOYP);
-  #endif
   SDL_Event event;
   for (;;)
   {
@@ -56,14 +46,14 @@ int emulate(void)
         {
           _IME = 0;
           write_byte(_IR,CLEAR(i,IO(_IR)));
-          EI_DELAY = false;
+          EI_DELAY = 0;
           PUSH(_PCBh,_PCBl);
           _PC = 0x40 + interrupt_table[i-1];
         }
       }
     }
     if (_HALT) {dt = 1*4;}
-    if (EI_DELAY) {_IME = 1;EI_DELAY = false;}
+    if (EI_DELAY) {_IME = 1;EI_DELAY = 0;}
     if (!_HALT)
     {
       op = READ_BYTE(_PC);
@@ -77,56 +67,15 @@ int emulate(void)
         {
           #include "cb_opcodes.h"
         }
-        j++;
       }
       else
       {
       _PC += length[op];
-#ifdef DEBUG
-//print opcodes normally
-        if (printing == opcodes) printf("0x%x\n",op);
-//print joypad register only when it changes
-//        if (printing == opcodes && x != IO(_JOYP)) {x = IO(_JOYP);printf("0x%x\n",x);}
-        else if (printing == debug)
-        {
-#ifdef BREAK
-          if (j >= BREAK) {
-#endif
-          system("clear");
-          printf("AF: 0x%x      HL: 0x%x\n",_AF,_HL);
-          printf("BC: 0x%x      DE: 0x%x\n",_BC,_DE);
-          printf("SP: 0x%x      PC: 0x%x\n",_SP,_PC-length[op]);
-          printf("ZF: 0x%x      NF: 0x%x\n",GET(Z_FLAG,_F),GET(N_FLAG,_F));
-          printf("HF: 0x%x      CF: 0x%x\n",GET(H_FLAG,_F),GET(C_FLAG,_F));
-          printf("opcode: 0x%x  \n",op);
-          printf("IMM8: 0x%x    IMM16: 0x%x\n",IMM8,IMM16);
-          printf("IME: %d       n: %d\n",_IME,j);
-          printf("IR: %x        IE: %x\n",IO(_IR),IO(_IE));
-          printf("JOYP: %x\n",IO(_JOYP));
-          printf("[  SP  ] =  0x%x\n",MEM(_SP));
-          printf("[ SP-1 ] =  0x%x\n",MEM(_SP-1));
-          printf("[ SP-2 ] =  0x%x\n",MEM(_SP-2));
-          printf("[ SP-3 ] =  0x%x\n",MEM(_SP-3));
-          printf("[ SP-4 ] =  0x%x\n",MEM(_SP-4));
-          printf("[ SP-5 ] =  0x%x\n",MEM(_SP-5));
-          printf("[ SP-6 ] =  0x%x\n",MEM(_SP-6));
-          printf("[ SP-7 ] =  0x%x\n",MEM(_SP-7));
-          printf("[ SP-8 ] =  0x%x\n",MEM(_SP-8));
-          printf("[ FF41 ] =  0x%x\n",MEM(0xFF41));
-          printf("[%x][%x][%x][%x][%x][%x][%x]\n",MEM(_PC-length[op]-3),MEM(_PC-length[op]-2),MEM(_PC-length[op]-1),MEM(_PC-length[op]),MEM(_PC-length[op]+1),MEM(_PC-length[op]+2),MEM(_PC-length[op]+3));
-          char a  = getchar();
-          if (a == 'q') {free(gameboy);return 0;}
-#ifdef BREAK
-}
-#endif
-        }
-#endif
         dt = cycles[op];
         switch(op)
         {
           #include "opcodes.h"
         }
-        j++;
       }
     }
     //gameboy->lcd.clk += dt;

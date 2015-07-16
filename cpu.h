@@ -94,14 +94,10 @@ const static uint8 cycles[0x0100] =
 #define POP(a,b) \
   b = m.read_byte(sp.w++);\
   a = m.read_byte(sp.w++)
-//  b = m.hram.at(MIN(sp.w++,_HRAM_END) - _HRAM);\
-//  a = m.hram.at(MIN(sp.w++,_HRAM_END) - _HRAM)
 
 #define PUSH(a,b) \
   m.write_byte(--sp.w,a);\
   m.write_byte(--sp.w,b)
-//  m.hram.at(MAX(--sp.w,_HRAM) - _HRAM) = a;\
-//  m.hram.at(MAX(--sp.w,_HRAM) - _HRAM) = b
 
 #define RST(n) \
   PUSH(pc.b.h,pc.b.l);\
@@ -225,7 +221,6 @@ const static uint8 cycles[0x0100] =
   af.b.l = (r & 0x01) ? F_C : 0;\
   r >>= 1;\
   af.b.l |= (r ? 0 : F_Z)
->>>>>>> C++
 
 static const uint16 DAATable[] = {
   0x0080,0x0100,0x0200,0x0300,0x0400,0x0500,0x0600,0x0700,

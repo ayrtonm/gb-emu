@@ -2,8 +2,230 @@
 #define CPU_H
 #include "globals.h"
 
-extern cpu init_cpu(void);
-extern int emulate(void);
+const static int interrupt_table[16] = {0,0x08,0,0x10,0,0,0,0x18,0,0,0,0,0,0,0,0x20};
+
+const static uint8 length[0x0100] = 
+{
+/*0 1 2 3 4 5 6 7 8 9 A B C D E F*/
+  1,3,1,1,1,1,2,1,3,1,1,1,1,1,2,1, /*0x*/
+  2,3,1,1,1,1,2,1,2,1,1,1,1,1,2,1, /*1x*/
+  2,3,1,1,1,1,2,1,2,1,1,1,1,1,2,1, /*2x*/
+  2,3,1,1,1,1,2,1,2,1,1,1,1,1,2,1, /*3x*/
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, /*4x*/
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, /*5x*/
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, /*6x*/
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, /*7x*/
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, /*8x*/
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, /*9x*/
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, /*Ax*/
+  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, /*Bx*/
+  1,1,3,3,3,1,2,1,1,1,3,1,3,3,2,1, /*Cx*/
+  1,1,3,0,3,1,2,1,1,1,3,0,3,0,2,1, /*Dx*/
+  2,1,1,0,0,1,2,1,2,1,3,0,0,0,2,1, /*Ex*/
+  2,1,1,1,0,1,2,1,2,1,3,1,0,0,2,1  /*Fx*/
+};
+
+const static uint8 cb_cycles[0x08] = {2,2,2,2,2,2,4,2};
+
+const static uint8 cycles[0x0100] =
+{
+/*0 1 2 3 4 5 6 7 8 9 A B C D E F*/
+  1,3,2,2,1,1,2,1,5,2,2,2,1,1,2,1, /*0x*/
+  1,3,2,2,1,1,2,1,3,2,2,2,1,1,2,1, /*1x*/
+  2,3,2,2,1,1,2,1,2,2,2,2,1,1,2,1, /*2x*/
+  2,3,2,2,1,1,2,1,2,2,2,2,1,1,2,1, /*3x*/
+  1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1, /*4x*/
+  1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1, /*5x*/
+  1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1, /*6x*/
+  2,2,2,2,2,2,1,2,1,1,1,1,1,1,2,1, /*7x*/
+  1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1, /*8x*/
+  1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1, /*9x*/
+  1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1, /*Ax*/
+  1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1, /*Bx*/
+  2,3,3,4,3,4,2,4,2,4,3,1,3,6,2,4, /*Cx*/
+  2,3,3,0,3,4,2,4,2,4,3,0,3,0,2,4, /*Dx*/
+  3,3,2,0,0,4,2,4,4,1,4,0,0,0,2,4, /*Ex*/
+  3,3,2,1,0,4,2,4,3,2,4,1,0,0,2,4  /*Fx*/
+};
+
+//opcodes
+#define INC(r) \
+  r++;\
+  af.b.l = (af.b.l & F_C)|((r) ? 0 : F_Z)|((r) & 0x0F ? 0 : F_H)
+
+#define DEC(r) \
+  r--;\
+  af.b.l = F_N|(af.b.l & F_C)|((r) ? 0 : F_Z)|(((r) & 0x0F)==0x0F ? F_H : 0)
+
+#define ADDHL(r) \
+  int mtemp = hl.w+(r);\
+  af.b.l = (af.b.l & F_Z)|(mtemp & 0x010000 ? F_C : 0)|(hl.w^(r)^(mtemp & 0xFFFF) & 0x1000 ? F_H : 0);\
+  hl.w = mtemp & 0xFFFF
+
+#define JR(n) \
+  pc.w += ((signed char)n)
+
+#define COND_JR(cond,n) \
+  if (cond) {JR(n);dt += 1;}
+
+#define RET \
+  POP(pc.b.h,pc.b.l)
+
+#define COND_RET(cond) \
+  if (cond) {RET;dt += 3;}
+
+#define RETI \
+  POP(pc.b.h,pc.b.l);\
+  ime=1
+
+#define JP(n) \
+  pc.w = n
+
+#define COND_JP(cond,n) \
+  if (cond) {JP(n); dt += 1;}
+
+#define CALL(n) \
+  PUSH(pc.b.h,pc.b.l);\
+  pc.w = n
+
+#define COND_CALL(cond,n) \
+  if (cond) {CALL(n);dt += 3;}
+
+#define POP(a,b) \
+  b = m.read_byte(sp.w++);\
+  a = m.read_byte(sp.w++)
+//  b = m.hram.at(MIN(sp.w++,_HRAM_END) - _HRAM);\
+//  a = m.hram.at(MIN(sp.w++,_HRAM_END) - _HRAM)
+
+#define PUSH(a,b) \
+  m.write_byte(--sp.w,a);\
+  m.write_byte(--sp.w,b)
+//  m.hram.at(MAX(--sp.w,_HRAM) - _HRAM) = a;\
+//  m.hram.at(MAX(--sp.w,_HRAM) - _HRAM) = b
+
+#define RST(n) \
+  PUSH(pc.b.h,pc.b.l);\
+  pc.w = n
+
+#define DAA \
+  uint16 mtemp = af.b.h;\
+  mtemp |= (af.b.l & (F_C|F_H|F_N)) << 4;\
+  af.w = DAATable[mtemp]
+
+#define CPL \
+  af.b.h ^= 0xFF;\
+  af.b.l |= (F_N|F_H)
+
+#define SCL \
+  af.b.l = (af.b.l & F_Z) | F_C
+
+#define CCF \
+  af.b.l ^= F_C;\
+  af.b.l &= ~(F_N|F_H)
+
+#define LD(x,y) \
+  x=y
+
+#define LD_MR(x,y) \
+  x=m.read_byte(y)
+
+#define LD_RM(x,y) \
+  m.write_byte(x,y)
+
+#define ADD(r) \
+  uint16 mtemp = af.b.h + (r);\
+  af.b.l = ((mtemp & 0xFF00) ? F_C : 0)|((mtemp & 0x00FF) ? 0 : F_Z)|((af.b.h^(r)^(mtemp & 0x00FF)) & 0x10 ? F_H : 0);\
+  af.b.h = mtemp & 0x00FF
+
+#define ADC(r) \
+  uint16 mtemp = af.b.h + (r) + ((af.b.l & F_C) ? 1 : 0);\
+  af.b.l = ((mtemp & 0xFF00) ? F_C : 0)|((mtemp & 0x00FF) ? 0 : F_Z)|((af.b.h^(r)^(mtemp & 0x00FF)) & 0x10 ? F_H : 0);\
+  af.b.h = mtemp & 0x00FF
+
+#define SUB(r) \
+  uint16 mtemp = af.b.h - (r);\
+  af.b.l = F_N|((mtemp & 0xFF00) ? F_C : 0)|((mtemp & 0x00FF) ? 0 : F_Z)|((af.b.h^(r)^(mtemp & 0x00FF)) & 0x10 ? F_H : 0);\
+  af.b.h = mtemp & 0x00FF
+
+#define SBC(r) \
+  uint16 mtemp = af.b.h - (r) - ((af.b.l & F_C) ? 1 : 0);\
+  af.b.l = F_N|((mtemp & 0xFF00) ? F_C : 0)|((mtemp & 0x00FF) ? 0 : F_Z)|((af.b.h^(r)^(mtemp & 0x00FF)) & 0x10 ? F_H : 0);\
+  af.b.h = mtemp & 0x00FF
+
+#define AND(r) \
+  af.b.h &= (r);\
+  af.b.l = F_H|(af.b.h > 0 ? 0 : F_Z)
+
+#define EOR(r) \
+  af.b.h ^= (r);\
+  af.b.l = (af.b.h ? 0 : F_Z)
+
+#define OR(r) \
+  af.b.h |= (r);\
+  af.b.l = (af.b.h ? 0 : F_Z)
+
+#define CP(r) \
+  uint16 mtemp = af.b.h - (r);\
+  af.b.l = F_N|((mtemp & 0xFF00) ? F_C : 0)|((mtemp & 0x00FF) ? 0 : F_Z)|((af.b.h^(r)^(mtemp & 0x00FF)) & 0x10 ? F_H : 0)
+
+//cb opcodes
+#define RLCA \
+  uint8 mtemp = (af.b.h & 0x80 ? F_C : 0);\
+  af.b.h = (af.b.h << 1)|(af.b.h >> 7);\
+  af.b.l = mtemp
+
+#define RRCA \
+  uint8 mtemp = af.b.h & 0x01;\
+  af.b.h = (af.b.h >> 1)|(mtemp ? 0x80 : 0);\
+  af.b.l = (mtemp << 4)
+
+#define RLA \
+  uint8 mtemp = (af.b.h & 0x80 ? F_C : 0);\
+  af.b.h = (af.b.h << 1)|((af.b.l & F_C) >> 4);\
+  af.b.l = mtemp
+
+#define RRA \
+  uint8 mtemp = af.b.h & 0x01;\
+  af.b.h = (af.b.h >> 1)|(af.b.l & F_C ? 0x80 : 0);\
+  af.b.l = (mtemp << 4)
+
+#define RLC(r) \
+  af.b.l = ((r) & 0x80) ? F_C : 0;\
+  r = (r << 1) | (r >> 7);\
+  af.b.l |= (r ? 0 : F_Z)
+
+#define RRC(r) \
+  af.b.l = ((r) & 0x01) ? F_C : 0;\
+  r = (r >> 1) | (r << 7);\
+  af.b.l |= (r ? 0 : F_Z)
+
+#define RL(r) \
+  if (r & 0x80) {r = (r << 1) | (af.b.l & F_C ? 1 : 0); af.b.l = (r ? 0 : F_Z)|F_C;}\
+  else {r = (r << 1) | (af.b.l & F_C ? 1 : 0); af.b.l = (r ? 0 : F_Z);}
+
+#define RR(r) \
+  if (r & 0x01) {r = (r >> 1) | (af.b.l & F_C ? 0x80 : 0); af.b.l = (r ? 0 : F_Z)|F_C;}\
+  else {r = (r >> 1) | (af.b.l & F_C ? 0x80 : 0); af.b.l = (r ? 0 : F_Z);}
+
+#define SLA(r) \
+  af.b.l = (r & 0x80) ? F_C : 0;\
+  r <<= 1;\
+  af.b.l |= (r ? 0 : F_Z)
+
+#define SRA(r) \
+  af.b.l = (r & 0x01) ? F_C : 0;\
+  r = (r >> 1) | (r & 0x80);\
+  af.b.l |= (r ? 0 : F_Z)
+
+#define CB_SWAP(r) \
+  r = SWAP(r);\
+  af.b.l = (r ? 0 : F_Z)
+
+#define SRL(r) \
+  af.b.l = (r & 0x01) ? F_C : 0;\
+  r >>= 1;\
+  af.b.l |= (r ? 0 : F_Z)
+>>>>>>> C++
 
 static const uint16 DAATable[] = {
   0x0080,0x0100,0x0200,0x0300,0x0400,0x0500,0x0600,0x0700,
@@ -263,226 +485,4 @@ static const uint16 DAATable[] = {
   0x8A50,0x8B50,0x8C50,0x8D50,0x8E50,0x8F50,0x9050,0x9150,
   0x9250,0x9350,0x9450,0x9550,0x9650,0x9750,0x9850,0x9950
 };
-
-
-static uint8 length[0x0100] = 
-{
-/*0 1 2 3 4 5 6 7 8 9 A B C D E F*/
-  1,3,1,1,1,1,2,1,3,1,1,1,1,1,2,1, /*0x*/
-  2,3,1,1,1,1,2,1,2,1,1,1,1,1,2,1, /*1x*/
-  2,3,1,1,1,1,2,1,2,1,1,1,1,1,2,1, /*2x*/
-  2,3,1,1,1,1,2,1,2,1,1,1,1,1,2,1, /*3x*/
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, /*4x*/
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, /*5x*/
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, /*6x*/
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, /*7x*/
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, /*8x*/
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, /*9x*/
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, /*Ax*/
-  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, /*Bx*/
-  1,1,3,3,3,1,2,1,1,1,3,1,3,3,2,1, /*Cx*/
-  1,1,3,0,3,1,2,1,1,1,3,0,3,0,2,1, /*Dx*/
-  2,1,1,0,0,1,2,1,2,1,3,0,0,0,2,1, /*Ex*/
-  2,1,1,1,0,1,2,1,2,1,3,1,0,0,2,1  /*Fx*/
-};
-
-static uint8 cb_cycles[0x08] = {2,2,2,2,2,2,4,2};
-
-static uint8 cycles[0x0100] =
-{
-/*0 1 2 3 4 5 6 7 8 9 A B C D E F*/
-  1,3,2,2,1,1,2,1,5,2,2,2,1,1,2,1, /*0x*/
-  1,3,2,2,1,1,2,1,3,2,2,2,1,1,2,1, /*1x*/
-  2,3,2,2,1,1,2,1,2,2,2,2,1,1,2,1, /*2x*/
-  2,3,2,2,1,1,2,1,2,2,2,2,1,1,2,1, /*3x*/
-  1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1, /*4x*/
-  1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1, /*5x*/
-  1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1, /*6x*/
-  2,2,2,2,2,2,1,2,1,1,1,1,1,1,2,1, /*7x*/
-  1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1, /*8x*/
-  1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1, /*9x*/
-  1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1, /*Ax*/
-  1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,1, /*Bx*/
-  2,3,3,4,3,4,2,4,2,4,3,1,3,6,2,4, /*Cx*/
-  2,3,3,0,3,4,2,4,2,4,3,0,3,0,2,4, /*Dx*/
-  3,3,2,0,0,4,2,4,4,1,4,0,0,0,2,4, /*Ex*/
-  3,3,2,1,0,4,2,4,3,2,4,1,0,0,2,4  /*Fx*/
-};
-
-static int interrupt_table[16] = {0,0x08,0,0x10,0,0,0,0x18,0,0,0,0,0,0,0,0x20};
-
-//opcodes
-#define INC(r) \
-  r++;\
-  _F = (_F & C_FLAG)|((r) ? 0 : Z_FLAG)|((r) & 0x0F ? 0 : H_FLAG)
-
-#define DEC(r) \
-  r--;\
-  _F = N_FLAG|(_F & C_FLAG)|((r) ? 0 : Z_FLAG)|(((r) & 0x0F)==0x0F ? H_FLAG : 0)
-
-#define ADDHL(r) \
-  int mtemp = _HL+(r);\
-  _F = (_F & Z_FLAG)|(mtemp & 0x010000 ? C_FLAG : 0)|(_HL^(r)^(mtemp & 0xFFFF) & 0x1000 ? H_FLAG : 0);\
-  _HL = mtemp & 0xFFFF
-
-#define JR(n) \
-  _PC += ((signed char)n)
-
-#define COND_JR(cond,n) \
-  if (cond) {JR(n);dt += 1;}
-
-#define RET \
-  POP(_PCBh,_PCBl)
-
-#define COND_RET(cond) \
-  if (cond) {RET;dt += 3;}
-
-#define RETI \
-  POP(_PCBh,_PCBl);\
-  _IME=1
-
-#define JP(n) \
-  _PC = n
-
-#define COND_JP(cond,n) \
-  if (cond) {JP(n); dt += 1;}
-
-#define CALL(n) \
-  PUSH(_PCBh,_PCBl);\
-  _PC = n
-
-#define COND_CALL(cond,n) \
-  if (cond) {CALL(n);dt += 3;}
-
-#define POP(a,b) \
-  b = READ_BYTE(_SP++);\
-  a = READ_BYTE(_SP++)
-
-#define PUSH(a,b) \
-  write_byte(--_SP,a);\
-  write_byte(--_SP,b)
-
-#define RST(n) \
-  PUSH(_PCBh,_PCBl);\
-  _PC = n
-
-#define DAA \
-  uint16 mtemp = _A;\
-  mtemp |= (_F & (C_FLAG|H_FLAG|N_FLAG)) << 4;\
-  _AF = DAATable[mtemp]
-
-#define CPL \
-  _A ^= 0xFF;\
-  _F |= (N_FLAG|H_FLAG)
-
-#define SCL \
-  _F = (_F & Z_FLAG) | C_FLAG
-
-#define CCF \
-  _F ^= C_FLAG;\
-  _F &= ~(N_FLAG|H_FLAG)
-
-#define LD(x,y) \
-  x=y
-
-#define LD_MR(x,y) \
-  x=READ_BYTE(y)
-
-#define LD_RM(x,y) \
-  write_byte(x,y)
-
-#define ADD(r) \
-  uint16 mtemp = _A + (r);\
-  _F = ((mtemp & 0xFF00) ? C_FLAG : 0)|((mtemp & 0x00FF) ? 0 : Z_FLAG)|((_A^(r)^(mtemp & 0x00FF)) & 0x10 ? H_FLAG : 0);\
-  _A = mtemp & 0x00FF
-
-#define ADC(r) \
-  uint16 mtemp = _A + (r) + ((_F & C_FLAG) ? 1 : 0);\
-  _F = ((mtemp & 0xFF00) ? C_FLAG : 0)|((mtemp & 0x00FF) ? 0 : Z_FLAG)|((_A^(r)^(mtemp & 0x00FF)) & 0x10 ? H_FLAG : 0);\
-  _A = mtemp & 0x00FF
-
-#define SUB(r) \
-  uint16 mtemp = _A - (r);\
-  _F = N_FLAG|((mtemp & 0xFF00) ? C_FLAG : 0)|((mtemp & 0x00FF) ? 0 : Z_FLAG)|((_A^(r)^(mtemp & 0x00FF)) & 0x10 ? H_FLAG : 0);\
-  _A = mtemp & 0x00FF
-
-#define SBC(r) \
-  uint16 mtemp = _A - (r) - ((_F & C_FLAG) ? 1 : 0);\
-  _F = N_FLAG|((mtemp & 0xFF00) ? C_FLAG : 0)|((mtemp & 0x00FF) ? 0 : Z_FLAG)|((_A^(r)^(mtemp & 0x00FF)) & 0x10 ? H_FLAG : 0);\
-  _A = mtemp & 0x00FF
-
-#define AND(r) \
-  _A &= (r);\
-  _F = H_FLAG|(_A > 0 ? 0 : Z_FLAG)
-
-#define EOR(r) \
-  _A ^= (r);\
-  _F = (_A ? 0 : Z_FLAG)
-
-#define OR(r) \
-  _A |= (r);\
-  _F = (_A ? 0 : Z_FLAG)
-
-#define CP(r) \
-  uint16 mtemp = _A - (r);\
-  _F = N_FLAG|((mtemp & 0xFF00) ? C_FLAG : 0)|((mtemp & 0x00FF) ? 0 : Z_FLAG)|((_A^(r)^(mtemp & 0x00FF)) & 0x10 ? H_FLAG : 0)
-
-//cb opcodes
-#define RLCA \
-  uint8 mtemp = (_A & 0x80 ? C_FLAG : 0);\
-  _A = (_A << 1)|(_A >> 7);\
-  _F = mtemp
-
-#define RRCA \
-  uint8 mtemp = _A & 0x01;\
-  _A = (_A >> 1)|(mtemp ? 0x80 : 0);\
-  _F = (mtemp << 4)
-
-#define RLA \
-  uint8 mtemp = (_A & 0x80 ? C_FLAG : 0);\
-  _A = (_A << 1)|((_F & C_FLAG) >> 4);\
-  _F = mtemp
-
-#define RRA \
-  uint8 mtemp = _A & 0x01;\
-  _A = (_A >> 1)|(_F & C_FLAG ? 0x80 : 0);\
-  _F = (mtemp << 4)
-
-#define RLC(r) \
-  _F = ((r) & 0x80) ? C_FLAG : 0;\
-  r = (r << 1) | (r >> 7);\
-  _F |= (r ? 0 : Z_FLAG)
-
-#define RRC(r) \
-  _F = ((r) & 0x01) ? C_FLAG : 0;\
-  r = (r >> 1) | (r << 7);\
-  _F |= (r ? 0 : Z_FLAG)
-
-#define RL(r) \
-  if (r & 0x80) {r = (r << 1) | (_F & C_FLAG ? 1 : 0); _F = (r ? 0 : Z_FLAG)|C_FLAG;}\
-  else {r = (r << 1) | (_F & C_FLAG ? 1 : 0); _F = (r ? 0 : Z_FLAG);}
-
-#define RR(r) \
-  if (r & 0x01) {r = (r >> 1) | (_F & C_FLAG ? 0x80 : 0); _F = (r ? 0 : Z_FLAG)|C_FLAG;}\
-  else {r = (r >> 1) | (_F & C_FLAG ? 0x80 : 0); _F = (r ? 0 : Z_FLAG);}
-
-#define SLA(r) \
-  _F = (r & 0x80) ? C_FLAG : 0;\
-  r <<= 1;\
-  _F |= (r ? 0 : Z_FLAG)
-
-#define SRA(r) \
-  _F = (r & 0x01) ? C_FLAG : 0;\
-  r = (r >> 1) | (r & 0x80);\
-  _F |= (r ? 0 : Z_FLAG)
-
-#define CB_SWAP(r) \
-  r = SWAP(r);\
-  _F = (r ? 0 : Z_FLAG)
-
-#define SRL(r) \
-  _F = (r & 0x01) ? C_FLAG : 0;\
-  r >>= 1;\
-  _F |= (r ? 0 : Z_FLAG)
-
 #endif

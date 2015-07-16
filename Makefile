@@ -1,15 +1,13 @@
-CC = gcc
-CFLAGS = -g #-O3
-SRCS = main.c mem.c cpu.c lcd.c mbc.c SDL_rotozoom.c
-OBJS = $(SRCS:.c=.o)
+CXX = g++
+CXXFLAGS = -g -std=c++11 #-Wall
 LIBS = -lSDL
-MAIN = main
+BIN = main
+SRC = $(wildcard *.cpp)
+OBJ = $(SRC:%.cpp=%.o) 
 
-all: $(MAIN)
-	@echo emulator has been compiled
-$(MAIN): $(OBJS)
-	$(CC) $(CFLAGS) $(LIBS) $(OBJS) -o $(MAIN)
-.c.o:
-	$(CC) $(CFLAGS) -c $< -o $@
+all: $(OBJ)
+	$(CXX) $(LIBS) -o $(BIN) $^
+%.o: %.c
+	$(CXX) $@ -c $<
 clean:
-	rm -rf *.o #$(MAIN)
+	rm -rf *.o $(BIN)

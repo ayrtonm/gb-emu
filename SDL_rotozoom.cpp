@@ -1,10 +1,5 @@
 #include <stdlib.h>
-#include <string.h>
-
 #include "SDL_rotozoom.h"
-
-#define MAX(a,b)    (((a) > (b)) ? (a) : (b))
-
 /* 
  
  32bit Zoomer with optional anti-aliasing by bilinear interpolation.
@@ -177,8 +172,7 @@ zoomSurfaceRGBA (SDL_Surface * src, SDL_Surface * dst, int smooth)
 
 #define VALUE_LIMIT	0.001
 
-SDL_Surface *
-zoomSurface (SDL_Surface * src, double zoomx, double zoomy, int smooth)
+SDL_Surface *lcd::zoomSurface (SDL_Surface * src, double zoomx, double zoomy, int smooth)
 {
   SDL_Surface *rz_src;
   SDL_Surface *rz_dst;

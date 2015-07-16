@@ -1,6 +1,7 @@
 #ifndef _SDL_rotozoom_h
 #define _SDL_rotozoom_h
 #include <SDL/SDL.h>
+#include "globals.h"
 
 
 /* ---- Defines */
@@ -39,8 +40,7 @@
 
 */
 
-  SDL_Surface *zoomSurface (SDL_Surface * src, double zoomx, double zoomy,
-			    int smooth);
+  
 
 
 #endif /* _SDL_rotozoom_h */

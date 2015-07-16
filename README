@@ -4,21 +4,17 @@ File List
 ---------
 Makefile
 README
-SDL_rotozoom.c - used for scaling display
+SDL_rotozoom.cpp - used for scaling display
 SDL_rotozoom.h
 assembler.py - part of a different project that was used for debugging. doesn't have all opcodes implemented yet, but produces functional code. example source code in file as comments.
 cb_opcodes.h - cb opcodes switch case statement
-cpu.c - initialize cpu and emulate functions
+cpu.cpp - initialize cpu and emulate functions
 cpu.h - opcode macros and constant tables
 config - doxygen config file for documentation
 diffscript.sh - script to run specified ROM with gb-emu and modified mednafen. prints out opcodes, removes header text and prints out difference between opcodes.
 globals.h - bit manipulation, structs, typedefs, macros for addresses, constants, and certain variables
 incorrect_opcodes - text from debugging. note: gb-emu only prints out opcodes or memory accesses by default. most of the text file was written by me
-lcd.c - initialize lcd, update palettes, step lcd and drawing functions
-lcd.h
-main.c - handles arguments and runs initialize functions
-mbc.c - writing to ram, mbc1, mbc3, mbc5. no mbc (and mbc1?) mode is fully implemented
-mbc.h
-mem.c - load cart, parse cart header, initialize memory, and write to memory
-mem.h
+lcd.cpp - initialize lcd, update palettes, step lcd and drawing functions
+main.cpp - handles arguments and runs initialize functions
+mem.cpp - load cart, parse cart header, initialize memory, and write to memory
 opcodes.h - regular opcode switch case statement. only 0xf8 ld hl, sp+r8 isn't implemented, but it's not used by any roms I've tried and should be easy to write

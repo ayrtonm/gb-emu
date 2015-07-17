@@ -37,7 +37,7 @@ int cpu::emulate(mem &m, lcd &l)
     if (halt || ime)
     {
       int i = 1;
-      while ((!(m.io.at(_IR) & i) || !(m.io.at(_IR) & i)) && (i <= 0x10))
+      while ((!(m.io.at(IO_IR) & i) || !(m.io.at(IO_IR) & i)) && (i <= 0x10))
       {
         i <<= 1;
       }
@@ -47,7 +47,7 @@ int cpu::emulate(mem &m, lcd &l)
         if (ime)
         {
           ime = 0;
-          CLEAR(i,m.io.at(_IR));
+          CLEAR(i,m.io.at(IO_IR));
           ei_delay = 0;
           PUSH(pc.b.h,pc.b.l);
           pc.w = 0x40 + interrupt_table[i-1];
@@ -88,7 +88,7 @@ int cpu::emulate(mem &m, lcd &l)
       }
     }
     l.step_lcd(dt,m);
-    assert(l.parse_events());
+    if(l.parse_events()) return 0;
   }
   return 1;
 }

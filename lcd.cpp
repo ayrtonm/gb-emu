@@ -18,33 +18,33 @@ lcd::lcd()
 
 void lcd::step_lcd(uint8 dt, mem &m)
 {
-//  cout << hex << (int) (m.io.at(_LCDSTAT) & 0x03) << "\n";
-//  cout << "on line " << (int) m.io.at(_LY) << "\n";
+//  cout << hex << (int) (m.io.at(IO_LCDSTAT) & 0x03) << "\n";
+//  cout << "on line " << (int) m.io.at(IO_LY) << "\n";
   clk -= dt;
   if (clk <= 0)
   {
-    switch(m.io.at(_LCDSTAT) & 0x03)
+    switch(m.io.at(IO_LCDSTAT) & 0x03)
     {
       //Horizontal Blank
       case 0x00:
       {
-        m.io.at(_LY)++;
+        m.io.at(IO_LY)++;
         compareLYtoLYC(m);
-        if (m.io.at(_LY) < 143)
+        if (m.io.at(IO_LY) < 143)
         {
           //set lcd mode to OAM
-          SET(0x02,m.io.at(_LCDSTAT));
-          CLEAR(0x01,m.io.at(_LCDSTAT));
+          SET(0x02,m.io.at(IO_LCDSTAT));
+          CLEAR(0x01,m.io.at(IO_LCDSTAT));
           clk = T_OAM;
         }
         else
         {
           //request vblank interrupt
-          SET(INT_VBL,m.io.at(_IR));
+          SET(INT_VBL,m.io.at(IO_IR));
           //set lcd mode to VBLANK 
-          SET(0x01,m.io.at(_LCDSTAT));
-          CLEAR(0x02,m.io.at(_LCDSTAT));
-          clk = T_LY_INC;
+          SET(0x01,m.io.at(IO_LCDSTAT));
+          CLEAR(0x02,m.io.at(IO_LCDSTAT));
+          clk = TIO_LY_INC;
         }
         break;
       }
@@ -54,17 +54,17 @@ void lcd::step_lcd(uint8 dt, mem &m)
         SDL_BlitSurface(zoomSurface(screen,scale,scale,0),NULL,visible,&offset);
         SDL_Flip(visible);
         compareLYtoLYC(m);
-        if (m.io.at(_LY) < 153)
+        if (m.io.at(IO_LY) < 153)
         {
-          m.io.at(_LY)++;
-          clk = T_LY_INC;
+          m.io.at(IO_LY)++;
+          clk = TIO_LY_INC;
         }
         else
         {
-          m.io.at(_LY) = 0;
+          m.io.at(IO_LY) = 0;
           //set lcd mode to OAM
-          SET(0x02,m.io.at(_LCDSTAT));
-          CLEAR(0x01,m.io.at(_LCDSTAT));
+          SET(0x02,m.io.at(IO_LCDSTAT));
+          CLEAR(0x01,m.io.at(IO_LCDSTAT));
           clk = T_OAM;
         }
         break;
@@ -73,7 +73,7 @@ void lcd::step_lcd(uint8 dt, mem &m)
       case 0x02:
       {
         //set lcd mode to VRAM 
-        SET(0x03,m.io.at(_LCDSTAT));
+        SET(0x03,m.io.at(IO_LCDSTAT));
         clk = T_VRAM;
         break;
       }
@@ -81,21 +81,21 @@ void lcd::step_lcd(uint8 dt, mem &m)
       {
         compareLYtoLYC(m);
         draw_line(m);
-        if (m.io.at(_LCDC) & LCDC_ENABLE)
+        if (m.io.at(IO_LCDC) & LCDC_ENABLE)
         {
           Uint32 color;
           Uint32 *pixels = (Uint32 *)screen->pixels;
           for (int i = 0; i < 160; i++)
           {
-            if (!(m.io.at(_LCDC) & (LCDC_WIN_ENABLE|LCDC_BG_ENABLE)))
+            if (!(m.io.at(IO_LCDC) & (LCDC_WIN_ENABLE|LCDC_BG_ENABLE)))
             {
               color = SDL_MapRGB(screen->format,0xff,0xff,0xff);
             }
-            else if ((m.io.at(_LCDC) & LCDC_BG_ENABLE) && !(LCDC_WIN_ENABLE & m.io.at(_LCDC)))
+            else if ((m.io.at(IO_LCDC) & LCDC_BG_ENABLE) && !(LCDC_WIN_ENABLE & m.io.at(IO_LCDC)))
             {
               color = m.pal_bgp[linebuffer[i] & 0x03]; 
             }
-            else if (!(m.io.at(_LCDC) & LCDC_BG_ENABLE) && (LCDC_WIN_ENABLE & m.io.at(_LCDC)))
+            else if (!(m.io.at(IO_LCDC) & LCDC_BG_ENABLE) && (LCDC_WIN_ENABLE & m.io.at(IO_LCDC)))
             {
               color = m.pal_bgp[linebuffer[i] >> 2];
             }
@@ -110,12 +110,12 @@ void lcd::step_lcd(uint8 dt, mem &m)
                 color = m.pal_bgp[linebuffer[i] >> 2];
               }
             }
-            pixels[(m.io.at(_LY)*screen->w) + i] = color;
+            pixels[(m.io.at(IO_LY)*screen->w) + i] = color;
           }
         }
         draw_sprites();
         //set lcd mode to HBLANK
-        CLEAR(0x03,m.io.at(_LCDSTAT));
+        CLEAR(0x03,m.io.at(IO_LCDSTAT));
         clk = T_HBLANK;
         break;
       }
@@ -153,17 +153,17 @@ int lcd::parse_events(void)
 }
 void lcd::compareLYtoLYC(mem &m)
 {
-  if (m.io.at(_LY) == m.io.at(_LYC))
+  if (m.io.at(IO_LY) == m.io.at(IO_LYC))
   {
-    SET(0x04,m.io.at(_LCDSTAT));
-    if (m.io.at(_LCDSTAT) & 0x40) 
+    SET(0x04,m.io.at(IO_LCDSTAT));
+    if (m.io.at(IO_LCDSTAT) & 0x40) 
     {
-      SET(INT_LCD,m.io.at(_IR));
+      SET(INT_LCD,m.io.at(IO_IR));
     }
   }
   else
   {
-    CLEAR(0x04,m.io.at(_LCDSTAT));
+    CLEAR(0x04,m.io.at(IO_LCDSTAT));
   }
 }
 /**
@@ -184,18 +184,18 @@ void lcd::compareLYtoLYC(mem &m)
 **/
 void lcd::draw_line(mem &m)
 {
-  if (m.io.at(_LCDC) & LCDC_BG_ENABLE)
+  if (m.io.at(IO_LCDC) & LCDC_BG_ENABLE)
   {
-    uint16 mapoffset = ((((m.io.at(_LY) + m.io.at(_SCY)) >> 3) & 31) << 5) + ((m.io.at(_SCX) >> 3) & 31);
-    uint8 t_map_number = ((m.io.at(_LCDC) & LCDC_BG_MAP) ? m.vram.at(mapoffset + V_MD_1) : m.vram.at(mapoffset + V_MD_0));
-    if (!(m.io.at(_LCDC) & LCDC_BG_DATA))
+    uint16 mapoffset = ((((m.io.at(IO_LY) + m.io.at(IO_SCY)) >> 3) & 31) << 5) + ((m.io.at(IO_SCX) >> 3) & 31);
+    uint8 t_map_number = ((m.io.at(IO_LCDC) & LCDC_BG_MAP) ? m.vram.at(mapoffset + V_MD_1) : m.vram.at(mapoffset + V_MD_0));
+    if (!(m.io.at(IO_LCDC) & LCDC_BG_DATA))
     {
       if (t_map_number > 127) {t_map_number -= 128;}
       else {t_map_number += 128;}
     }
-    uint8 x = m.io.at(_SCX) & 7;
-    uint8 y = (m.io.at(_LY) + m.io.at(_SCY)) & 7;
-    uint16 t_data = ((m.io.at(_LCDC) & LCDC_BG_DATA) ? m.vram.at(16*t_map_number + (y << 1)) : m.vram.at(16*t_map_number + (y << 1) + V_TD_1));
+    uint8 x = m.io.at(IO_SCX) & 7;
+    uint8 y = (m.io.at(IO_LY) + m.io.at(IO_SCY)) & 7;
+    uint16 t_data = ((m.io.at(IO_LCDC) & LCDC_BG_DATA) ? m.vram.at(16*t_map_number + (y << 1)) : m.vram.at(16*t_map_number + (y << 1) + V_TD_1));
     for (int i = 0; i < 160; i++)
     {
       uint8 a = (LOW(t_data) & BIT(x)) >> x;
@@ -206,28 +206,28 @@ void lcd::draw_line(mem &m)
       if (x == 8)
       {
         x = 0;
-        mapoffset = ((((m.io.at(_LY) + m.io.at(_SCY)) >> 3) & 31) << 5) + (((m.io.at(_SCX) + i) >> 3) & 31);
-        uint8 t_map_number = ((m.io.at(_LCDC) & LCDC_BG_MAP) ? m.vram.at(mapoffset + V_MD_1) : m.vram.at(mapoffset + V_MD_0));
-        if (!(m.io.at(_LCDC) & LCDC_BG_DATA))
+        mapoffset = ((((m.io.at(IO_LY) + m.io.at(IO_SCY)) >> 3) & 31) << 5) + (((m.io.at(IO_SCX) + i) >> 3) & 31);
+        uint8 t_map_number = ((m.io.at(IO_LCDC) & LCDC_BG_MAP) ? m.vram.at(mapoffset + V_MD_1) : m.vram.at(mapoffset + V_MD_0));
+        if (!(m.io.at(IO_LCDC) & LCDC_BG_DATA))
         {
           if (t_map_number > 127) {t_map_number -= 128;}
           else {t_map_number += 128;}
         }
-        uint16 t_data = ((m.io.at(_LCDC) & LCDC_BG_DATA) ? m.vram.at(16*t_map_number + (y << 1)) : m.vram.at(16*t_map_number + (y << 1) + V_TD_1));
+        uint16 t_data = ((m.io.at(IO_LCDC) & LCDC_BG_DATA) ? m.vram.at(16*t_map_number + (y << 1)) : m.vram.at(16*t_map_number + (y << 1) + V_TD_1));
       }
     }
   }
-  else if (!(m.io.at(_LCDC) & LCDC_BG_ENABLE)) {for(int i = 0; i < 160; i++) {linebuffer.at(i) = 0;}}
-  if (m.io.at(_LCDC) & LCDC_WIN_ENABLE && m.io.at(_WY) <= m.io.at(_LY))
+  else if (!(m.io.at(IO_LCDC) & LCDC_BG_ENABLE)) {for(int i = 0; i < 160; i++) {linebuffer.at(i) = 0;}}
+  if (m.io.at(IO_LCDC) & LCDC_WIN_ENABLE && m.io.at(IO_WY) <= m.io.at(IO_LY))
   {
-    uint8 w_offset = (((m.io.at(_LY) - m.io.at(_WY)) >> 3) & 31) << 5;
-    uint8 w_map_number = ((m.io.at(_LCDC) & LCDC_WIN_MAP) ? m.vram.at(w_offset + V_MD_1) : m.vram.at(w_offset + V_MD_0));
+    uint8 w_offset = (((m.io.at(IO_LY) - m.io.at(IO_WY)) >> 3) & 31) << 5;
+    uint8 w_map_number = ((m.io.at(IO_LCDC) & LCDC_WIN_MAP) ? m.vram.at(w_offset + V_MD_1) : m.vram.at(w_offset + V_MD_0));
     //offsets within tile
     int x = 0;
-    uint8 y = (m.io.at(_LY) - m.io.at(_WY)) & 7;
+    uint8 y = (m.io.at(IO_LY) - m.io.at(IO_WY)) & 7;
     uint16 w_data = m.vram.at(16*w_map_number + (y << 1) + V_TD_1);
     int i;
-    for (i = MAX(m.io.at(_WX)-7,0); i < 160; i++)
+    for (i = MAX(m.io.at(IO_WX)-7,0); i < 160; i++)
     {
       uint8 a = (LOW(w_data) & BIT(x)) >> x;
       uint8 b = (HIGH(w_data) & BIT(x)) >> x;
@@ -237,8 +237,8 @@ void lcd::draw_line(mem &m)
       if (x == 8)
       {
         x = 0;
-        w_offset = (((m.io.at(_LY)-m.io.at(_WY)) >> 3) & 31) << 5;
-        uint8 w_map_number = ((m.io.at(_LCDC) & LCDC_WIN_MAP) ? m.vram.at(w_offset + V_MD_1) : m.vram.at(w_offset + V_MD_0));
+        w_offset = (((m.io.at(IO_LY)-m.io.at(IO_WY)) >> 3) & 31) << 5;
+        uint8 w_map_number = ((m.io.at(IO_LCDC) & LCDC_WIN_MAP) ? m.vram.at(w_offset + V_MD_1) : m.vram.at(w_offset + V_MD_0));
         uint16 w_data = m.vram.at(16*w_map_number + (y << 1) + V_TD_1);
       }
     }

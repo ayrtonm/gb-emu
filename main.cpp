@@ -26,5 +26,8 @@ int main(int argc, char *argv[])
   m = new mem(filename);
   l = new lcd;
   c->emulate(*m, *l);
+  delete l;
+  delete m;
+  delete c;
   return 0;
 }

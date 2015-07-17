@@ -9,18 +9,18 @@ using namespace std;
 mem::mem(string filename)
 {
   load_cart(filename);
-  io.at(_TIMA) = 0x00;
-  io.at(_TMA) = 0x00;
-  io.at(_TAC) = 0x00;
-  io.at(_LCDC) = 0x91;
-  io.at(_SCY) = 0x00;
-  io.at(_SCX) = 0x00;
-  io.at(_LYC) = 0x00;
-  io.at(_BGP) = 0xfc;
-  io.at(_OBP0) = 0xff;
-  io.at(_OBP1) = 0xff;
-  io.at(_WY) = 0x00;
-  io.at(_WX) = 0x00;
+  io.at(IO_TIMA) = 0x00;
+  io.at(IO_TMA) = 0x00;
+  io.at(IO_TAC) = 0x00;
+  io.at(IO_LCDC) = 0x91;
+  io.at(IO_SCY) = 0x00;
+  io.at(IO_SCX) = 0x00;
+  io.at(IO_LYC) = 0x00;
+  io.at(IO_BGP) = 0xfc;
+  io.at(IO_OBP0) = 0xff;
+  io.at(IO_OBP1) = 0xff;
+  io.at(IO_WY) = 0x00;
+  io.at(IO_WX) = 0x00;
   cout << "memory initialized\n";
 }
 uint8 mem::read_byte(uint16 address) const
@@ -37,22 +37,22 @@ uint8 mem::read_byte(uint16 address) const
     case 0x4000:
     case 0x5000:
     case 0x6000:
-    case 0x7000: {return rombn.at(address - _ROMBN);}//this is temporary, eventually will add offset for mbc
+    case 0x7000: {return rombn.at(address - O_ROMBN);}//this is temporary, eventually will add offset for mbc
     case 0x8000:
-    case 0x9000: {return vram.at(address - _M_VRAM);}
+    case 0x9000: {return vram.at(address - O_VRAM);}
     case 0xa000:
-    case 0xb000: {return eram.at(address - _ERAM);}//this is temporary, eventually will add offset for mbc
-    case 0xc000: {return wramb0.at(address - _WRAM0);}
-    case 0xd000: {return wramb1.at(address - _WRAM1);}
-    case 0xe000: {return wramb0.at(address - _ECHO0);}
+    case 0xb000: {return eram.at(address - O_ERAM);}//this is temporary, eventually will add offset for mbc
+    case 0xc000: {return wramb0.at(address - O_WRAM0);}
+    case 0xd000: {return wramb1.at(address - O_WRAM1);}
+    case 0xe000: {return wramb0.at(address - O_ECHO0);}
     case 0xf000:
     {
-//      assert(!(_UNUSED <= address <= 0xfeff));
-      if (address < _M_OAM) {return wramb1.at(address - _ECHO1);}
-      else if (address < _UNUSED) {return oam.at(address - _M_OAM);}
-      else if (address < _IO) {return 0;}//unused section of memory returns 0
-      else if (address < _HRAM) {return io.at(address - _IO);}
-      else if (address <= _HRAM_END) {return hram.at(address - _HRAM);}
+//      assert(!(O_UNUSED <= address <= 0xfeff));
+      if (address < O_OAM) {return wramb1.at(address - O_ECHO1);}
+      else if (address < O_UNUSED) {return oam.at(address - O_OAM);}
+      else if (address < O_IO) {return 0;}//unused section of memory returns 0
+      else if (address < O_HRAM) {return io.at(address - O_IO);}
+      else if (address <= O_HRAM_END) {return hram.at(address - O_HRAM);}
       else {return interrupt_enable;}
     }
   }
@@ -77,20 +77,20 @@ void mem::write_byte(uint16 address, uint8 data)
     case 0x6000:
     case 0x7000: {break;}
     case 0x8000:
-    case 0x9000: {vram.at(address - _M_VRAM) = data;break;}
+    case 0x9000: {vram.at(address - O_VRAM) = data;break;}
     case 0xa000:
-    case 0xb000: {eram.at(address - _ERAM) = data;break;}//this is temporary, eventually will add offset for mbc
-    case 0xc000: {wramb0.at(address - _WRAM0) = data;break;}
-    case 0xd000: {wramb1.at(address - _WRAM1) = data;break;}
-    case 0xe000: {wramb0.at(address - _ECHO0) = data;break;}
+    case 0xb000: {eram.at(address - O_ERAM) = data;break;}//this is temporary, eventually will add offset for mbc
+    case 0xc000: {wramb0.at(address - O_WRAM0) = data;break;}
+    case 0xd000: {wramb1.at(address - O_WRAM1) = data;break;}
+    case 0xe000: {wramb0.at(address - O_ECHO0) = data;break;}
     case 0xf000:
     {
-//      assert(!(_UNUSED <= address <= 0xfeff));
-      if (address < _M_OAM) {wramb1.at(address - _ECHO1) = data;break;}
-      else if (address < _UNUSED) {oam.at(address - _M_OAM) = data;break;}
-      else if (address < _IO) {break;}
-      else if (address < _HRAM) {io.at(address - _IO) = data;update_io();break;}
-      else if (address <= _HRAM_END) {hram.at(address - _HRAM) = data;break;}
+//      assert(!(O_UNUSED <= address <= 0xfeff));
+      if (address < O_OAM) {wramb1.at(address - O_ECHO1) = data;break;}
+      else if (address < O_UNUSED) {oam.at(address - O_OAM) = data;break;}
+      else if (address < O_IO) {break;}
+      else if (address < O_HRAM) {io.at(address - O_IO) = data;update_io();break;}
+      else if (address <= O_HRAM_END) {hram.at(address - O_HRAM) = data;break;}
       else {interrupt_enable = data & 0x1f;break;}
     }
   }
@@ -108,10 +108,10 @@ void mem::load_cart(string filename)
   cart.open(filename, ios::binary|ios::ate);
   assert(cart.is_open());
   size = cart.tellg();
-  rombn.resize(size - _ROMBN);
+  rombn.resize(size - O_ROMBN);
   cart.seekg(0,ios::beg);
-  cart.read((char *) &romb0[0],_ROMBN);
-  cart.read((char *) &rombn[0],size-_ROMBN);
+  cart.read((char *) &romb0[0],O_ROMBN);
+  cart.read((char *) &rombn[0],size-O_ROMBN);
   cart.close();
   for (int i =0x0134; i < 0x0144; i++) cout << romb0.at(i);//print title
   cout << (romb0.at(0x014A) ? "\nNon-Japanese" : "\nJapanese");
@@ -119,11 +119,11 @@ void mem::load_cart(string filename)
 }
 void mem::update_io(void)
 {
-  io.at(_IR) &= 0x1f;
-  io.at(_LCDSTAT) &= 0x78;
-  update_palette(2,io.at(_BGP));
-  update_palette(0,io.at(_OBP0));
-  update_palette(1,io.at(_OBP1));
+  io.at(IO_IR) &= 0x1f;
+  io.at(IO_LCDSTAT) &= 0x78;
+  update_palette(2,io.at(IO_BGP));
+  update_palette(0,io.at(IO_OBP0));
+  update_palette(1,io.at(IO_OBP1));
 }
 //I should split this function up
 void mem::update_palette(uint8 palette, uint8 value)

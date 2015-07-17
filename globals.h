@@ -77,6 +77,7 @@ class lcd
 {
   public:
     lcd();
+    ~lcd();
     SDL_Surface *screen, *visible;
     SDL_Rect offset;
     SDL_Event event;

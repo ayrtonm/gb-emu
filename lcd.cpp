@@ -15,6 +15,12 @@ lcd::lcd()
   SDL_WM_SetCaption("Game Boy Emulator",NULL);
   cout << "lcd initialized\n";
 }
+lcd::~lcd()
+{
+  SDL_FreeSurface(screen);
+  SDL_FreeSurface(visible);
+  SDL_Quit();
+}
 
 void lcd::step_lcd(uint8 dt, mem &m)
 {

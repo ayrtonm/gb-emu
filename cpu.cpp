@@ -88,7 +88,7 @@ int cpu::emulate(mem &m, lcd &l)
       }
     }
     l.step_lcd(dt,m);
-    if(l.parse_events()) return 0;
+    if(!l.parse_events()) return 0;
   }
   return 1;
 }

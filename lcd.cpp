@@ -119,7 +119,7 @@ void lcd::step_lcd(uint8 dt, mem &m)
             pixels[(m.io.at(IO_LY)*screen->w) + i] = color;
           }
         }
-        draw_sprites();
+        draw_sprites(m);
         //set lcd mode to HBLANK
         CLEAR(0x03,m.io.at(IO_LCDSTAT));
         clk = T_HBLANK;
@@ -251,6 +251,48 @@ void lcd::draw_line(mem &m)
   }
 }
 
-void lcd::draw_sprites(void)
+void lcd::draw_sprites(mem &m)
 {
+  //OAM(s,p) = m.oam.at(LOW((s << 2) + p))
+  if (m.io.at(IO_LCDC) & LCDC_OBJ_ENABLE)
+  {
+    int count = 0;
+    for (int i = 0; i < 40; i++)
+    {
+      if (m.oam.at(LOW(i << 2)) - 16 <= m.io.at(IO_LY) && (m.oam.at(LOW(i << 2)) - 16 + ((m.io.at(IO_LCDC) & LCDC_OBJ_SIZE) ? 16 : 8)) > m.io.at(IO_LY))
+      {
+        uint8 y = ((m.io.at(IO_LY) - m.oam.at(LOW(i << 2)) + 16) & 7) << 1;
+        uint8 yflip = (7 - ((m.io.at(IO_LY) - m.oam.at(LOW(i << 2)) + 16) & 7)) << 1;
+        uint8 t_number = m.oam.at(LOW((i << 2) + 2));
+        uint16 t_data;
+        if (!(m.io.at(IO_LCDC) & LCDC_OBJ_SIZE))//8x8 mode
+        {
+          t_data = m.vram.at(16*t_number + ((m.oam.at(LOW((i << 2) + 3)) & OAM_F_YFLIP) ? yflip : y));
+        }
+        else //8x16 mode
+        {
+          t_data = m.vram.at(16*(((m.io.at(IO_LY) - m.oam.at(LOW(i << 2)) + 16) > 7) || !(yflip) ? (t_number | 0x01) : (t_number & 0xFE)) + ((m.oam.at(LOW((i << 2) + 3) & OAM_F_YFLIP) ? yflip : y)));
+        }
+        if (!(m.oam.at(LOW((i << 2) + 3)) & OAM_F_XFLIP)) {REVERSE_WORD(t_data);}
+        count++;
+        for (int x = 0; x < 8; x++)
+        {
+          if (m.oam.at(LOW((i << 2) + 1)) + x - 8 >= 0 && m.oam.at(LOW((i << 2) + 1)) + x - 8 < 160 && (!(m.oam.at(LOW((i << 2) + 3)) & OAM_F_BG) || (linebuffer.at(m.oam.at(LOW((i << 2) + 1)) + x - 8) & 0x03) == 0))
+          {
+            uint8 a = (LOW(t_data) & BIT(x)) >> x;
+            uint8 b = (HIGH(t_data) & BIT(x)) >> x;
+            uint8 c = a + (b << 1);
+            if (c != 0)
+            {
+              Uint32 color;
+              Uint32 *pixels = (Uint32 *)screen->pixels;
+              color = (m.oam.at(LOW((i << 2) + 3)) & OAM_F_PAL ? m.pal_obp1[c] : m.pal_obp0[c]);
+              pixels[m.io.at(IO_LY) * screen->w + m.oam.at(LOW((i << 2) + 1)) + x - 8] = color;
+            }
+          }
+        }
+      }
+      if (count >= 10) break;//can't draw more than 10 sprites
+    }
+  }
 }

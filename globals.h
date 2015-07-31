@@ -17,6 +17,13 @@
 #define HIGH(x)    ((x) >> 8)
 #define MAX(a,b)    ((a) > (b) ? (a) : (b))
 #define MIN(a,b)    ((a) > (b) ? (b) : (a))
+#define REVERSE_WORD(x) do { \
+  x = (x & 0xFF00) >> 8 | (x & 0x00FF) << 8; \
+  x = (x & 0xF0F0) >> 4 | (x & 0x0F0F) << 4; \
+  x = (x & 0xCCCC) >> 2 | (x & 0x3333) << 2; \
+  x = (x & 0xAAAA) >> 1 | (x & 0x5555) << 1; \
+}  while (0)
+
 
 using namespace std;
 
@@ -89,7 +96,7 @@ class lcd
     void draw_line(mem &m);
 
     uint16 reverse_word(uint16 input);
-    void draw_sprites(void);
+    void draw_sprites(mem &m);
     int parse_events(void);
     SDL_Surface *zoomSurface (SDL_Surface * src, double zoomx, double zoomy, int smooth);
 };
@@ -118,7 +125,14 @@ class cpu
 #define LCDC_WIN_ENABLE 0x20
 #define LCDC_BG_DATA    0x10
 #define LCDC_BG_MAP     0x08
+#define LCDC_OBJ_SIZE   0x04
+#define LCDC_OBJ_ENABLE 0x02
 #define LCDC_BG_ENABLE  0x01
+//!oam bit flags
+#define OAM_F_BG    0x80
+#define OAM_F_YFLIP 0x40
+#define OAM_F_XFLIP 0x20
+#define OAM_F_PAL   0x10
 //!time in each lcd mode in lcd clks
 #define T_HBLANK  204
 #define T_VBLANK  4560

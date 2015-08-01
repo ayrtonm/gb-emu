@@ -128,49 +128,16 @@ void mem::update_io(void)
 //I should split this function up
 void mem::update_palette(uint8 palette, uint8 value)
 {
-  if (palette == 0)
+  int j = 0;
+  for (int i = 0x03; i < 0xff; i = i << 2)
   {
-    int j = 0;
-    for (int i = 0x03; i < 0xff; i = i << 2)
+    switch (GET(i,value) >> (j << 1))
     {
-      switch (GET(i,value) >> (j << 1))
-      {
-        case 0: {pal_obp0.at(j) = SDL_MapRGB(format,0xff,0xff,0xff);break;}
-        case 1: {pal_obp0.at(j) = SDL_MapRGB(format,0xc0,0xc0,0xc0);break;}
-        case 2: {pal_obp0.at(j) = SDL_MapRGB(format,0x60,0x60,0x60);break;}
-        case 3: {pal_obp0.at(j) = SDL_MapRGB(format,0x00,0x00,0x00);break;}
-      }
-      j++;
+      case 0: {palettes[palette].at(j) = SDL_MapRGB(format,0xff,0xff,0xff);break;}
+      case 1: {palettes[palette].at(j) = SDL_MapRGB(format,0xc0,0xc0,0xc0);break;}
+      case 2: {palettes[palette].at(j) = SDL_MapRGB(format,0x60,0x60,0x60);break;}
+      case 3: {palettes[palette].at(j) = SDL_MapRGB(format,0x00,0x00,0x00);break;}
     }
-  }
-  if (palette == 1)
-  {
-    int j = 0;
-    for (int i = 0x03; i < 0xff; i = i << 2)
-    {
-      switch (GET(i,value) >> (j << 1))
-      {
-        case 0: {pal_obp1.at(j) = SDL_MapRGB(format,0xff,0xff,0xff);break;}
-        case 1: {pal_obp1.at(j) = SDL_MapRGB(format,0xc0,0xc0,0xc0);break;}
-        case 2: {pal_obp1.at(j) = SDL_MapRGB(format,0x60,0x60,0x60);break;}
-        case 3: {pal_obp1.at(j) = SDL_MapRGB(format,0x00,0x00,0x00);break;}
-      }
-      j++;
-    }
-  }
-  if (palette == 2)
-  {
-    int j = 0;
-    for (int i = 0x03; i < 0xff; i = i << 2)
-    {
-      switch (GET(i,value) >> (j << 1))
-      {
-        case 0: {pal_bgp.at(j) = SDL_MapRGB(format,0xff,0xff,0xff);break;}
-        case 1: {pal_bgp.at(j) = SDL_MapRGB(format,0xc0,0xc0,0xc0);break;}
-        case 2: {pal_bgp.at(j) = SDL_MapRGB(format,0x60,0x60,0x60);break;}
-        case 3: {pal_bgp.at(j) = SDL_MapRGB(format,0x00,0x00,0x00);break;}
-      }
-      j++;
-    }
+    j++;
   }
 }

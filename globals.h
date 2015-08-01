@@ -64,9 +64,8 @@ class mem
 //    vector<uint8> hram;
     uint8 interrupt_enable;
     const SDL_PixelFormat *format;
-    array<Uint32,4> pal_bgp;
-    array<Uint32,4> pal_obp0;
-    array<Uint32,4> pal_obp1;
+    //!First palette is obp0, then obp1, then bgp
+    array<Uint32,4> palettes[3];
     //!Sets @c rombn and @c eram sizes
     void load_cart(string filename);
     //!Adds offset to address if trying to access ROM Bank N or External RAM
@@ -145,7 +144,7 @@ class cpu
 #define F_H       0x20
 #define F_C       0x10
 //!offsets for memory sections
-#define O_ROMBN    0x4000 
+#define O_ROMBN  0x4000 
 #define O_VRAM   0x8000
 #define O_ERAM     0xa000
 #define O_WRAM0    0xc000

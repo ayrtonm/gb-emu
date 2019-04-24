@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cassert>
 #include "cpu.h"
+//#define DEBUG
 
 using namespace std;
 

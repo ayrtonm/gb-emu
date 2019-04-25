@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -g -std=c++11 #-Wall
+CXXFLAGS = -g -std=c++11 -Wall
 LIBS = -lSDL
 BIN = main
 SRC = $(wildcard *.cpp)
@@ -10,4 +10,6 @@ all: $(OBJ)
 %.o: %.c
 	$(CXX) $@ -c $<
 clean:
-	rm -rf *.o $(BIN)
+	rm -rf *.o *.s $(BIN)
+asm: $(SRC)
+	$(CXX) $(LIBS) -S -g $^

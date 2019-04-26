@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cassert>
 #include "cpu.h"
-//#define DEBUG
+#define DEBUG
 
 using namespace std;
 
@@ -29,7 +29,7 @@ void cpu::print_registers(void)
 
 int cpu::emulate(mem &m, lcd &l)
 {
-  m.format = l.screen->format;
+  m.set_format(l.screen->format);
   char next;
   uint8 op;
   uint8 dt = 0;
@@ -38,7 +38,7 @@ int cpu::emulate(mem &m, lcd &l)
     if (halt || ime)
     {
       int i = 1;
-      while ((!(m.io.at(IO_IR) & i) || !(m.io.at(IO_IR) & i)) && (i <= 0x10))
+      while ((!(m.read_byte(O_IO + IO_IR) & i) || !(m.read_byte(O_IO + IO_IR) & i)) && (i <= 0x10))
       {
         i <<= 1;
       }
@@ -48,7 +48,7 @@ int cpu::emulate(mem &m, lcd &l)
         if (ime)
         {
           ime = 0;
-          CLEAR(i,m.io.at(IO_IR));
+          m.write_byte(O_IO + IO_IR, m.read_byte(O_IO + IO_IR) & ~i);
           ei_delay = 0;
           PUSH(pc.b.h,pc.b.l);
           pc.w = 0x40 + interrupt_table[i-1];

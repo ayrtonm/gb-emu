@@ -56,6 +56,7 @@ uint8 mem::read_byte(uint16 address) const
       else {return interrupt_enable;}
     }
   }
+  return interrupt_enable;
 }
 uint16 mem::read_word(uint16 address) const
 {
@@ -140,4 +141,13 @@ void mem::update_palette(uint8 palette, uint8 value)
     }
     j++;
   }
+}
+
+array<Uint32,4> mem::get_palette(uint8 palette_num)
+{
+  return palettes[palette_num];
+}
+void mem::set_format(const SDL_PixelFormat *fmt)
+{
+  format = fmt;
 }

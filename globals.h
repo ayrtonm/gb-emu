@@ -46,6 +46,20 @@ class mem
 {
   public:
     mem(string filename);
+    //!Sets @c rombn and @c eram sizes
+    void load_cart(string filename);
+    //!Adds offset to address if trying to access ROM Bank N or External RAM
+    uint8 read_byte(uint16 address) const;
+    uint16 read_word(uint16 address) const;
+    //!Adds offset to address if trying to modify ROM Bank N or External RAM
+    void write_byte(uint16 address, uint8 data);
+    void write_word(uint16 address, uint16 data);
+    //!called every time @c write_byte is called with an address between 0xff00 and 0xff80
+    void update_io(void);
+    void update_palette(uint8 palette, uint8 value);
+    array<Uint32,4> get_palette(uint8 palette_num);
+    void set_format(const SDL_PixelFormat *fmt);
+  private:
     //!ROM Bank 0 stores the first 16 kB of the cartridge
     array<uint8,0x4000> romb0;
     /*!ROM Bank N stores the rest of the cartridge. The cpu is only allowed to access one 16 kB bank at a time. The accessible sections are based on MBC settings.
@@ -66,17 +80,6 @@ class mem
     const SDL_PixelFormat *format;
     //!First palette is obp0, then obp1, then bgp
     array<Uint32,4> palettes[3];
-    //!Sets @c rombn and @c eram sizes
-    void load_cart(string filename);
-    //!Adds offset to address if trying to access ROM Bank N or External RAM
-    uint8 read_byte(uint16 address) const;
-    uint16 read_word(uint16 address) const;
-    //!Adds offset to address if trying to modify ROM Bank N or External RAM
-    void write_byte(uint16 address, uint8 data);
-    void write_word(uint16 address, uint16 data);
-    //!called every time @c write_byte is called with an address between 0xff00 and 0xff80
-    void update_io(void);
-    void update_palette(uint8 palette, uint8 value);
 };
 
 class lcd

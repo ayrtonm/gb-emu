@@ -21,11 +21,12 @@ mem::mem(string filename)
   io.at(IO_OBP1) = 0xff;
   io.at(IO_WY) = 0x00;
   io.at(IO_WX) = 0x00;
+  //initialized to 0x91 so lcd mode is initially VBLANK(0x01)
+  io.at(IO_LCDSTAT) = 0x91;
   //initializing the following to 0x00 to prevent warnings
   io.at(IO_JOYP) = 0x00;
   io.at(IO_DIV) = 0x00;
   io.at(IO_IR) = 0x00;
-  io.at(IO_LCDSTAT) = 0x00;
   io.at(IO_LY) = 0x00;
   io.at(IO_DMA) = 0x00;
   cout << "memory initialized\n";

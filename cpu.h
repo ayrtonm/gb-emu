@@ -53,7 +53,7 @@ const static uint8 cycles[0x0100] =
 
 #define DEC(r) do {r--; af.b.l = F_N|(af.b.l & F_C)|((r) ? 0 : F_Z)|(((r) & 0x0F)==0x0F ? F_H : 0);} while(0)
 
-#define ADDHL(r) do {int mtemp = hl.w+(r); af.b.l = (af.b.l & F_Z)|(mtemp & 0x010000 ? F_C : 0)|(hl.w^(r)^(mtemp & 0xFFFF) & 0x1000 ? F_H : 0); hl.w = mtemp & 0xFFFF;} while(0)
+#define ADDHL(r) do {int mtemp = hl.w+(r); af.b.l = (af.b.l & F_Z)|(mtemp & 0x010000 ? F_C : 0)|((hl.w^(r)^(mtemp & 0xFFFF)) & 0x1000 ? F_H : 0); hl.w = mtemp & 0xFFFF;} while(0)
 
 #define JR(n) do {pc.w += ((signed char)n);} while(0)
 

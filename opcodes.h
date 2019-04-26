@@ -263,7 +263,7 @@ case 0xe5:  {PUSH(hl.b.h,hl.b.l);break;}
 case 0xe6:  {AND(m.read_byte(pc.w-1));break;}
 case 0xe7:  {RST(0x20);break;}
 
-case 0xe8:  {int mtemp = sp.w + ((signed char)m.read_byte(pc.w-1));af.b.l = (mtemp & 0x0100 ? F_C : 0)|(hl.w^(m.read_byte(pc.w-1))^(mtemp & 0xFFFF) & 0x10 ? F_H : 0);sp.w = mtemp & 0xFFFF;break;}//add sp, r8
+case 0xe8:  {int mtemp = sp.w + ((signed char)m.read_byte(pc.w-1));af.b.l = (mtemp & 0x0100 ? F_C : 0)|((hl.w^(m.read_byte(pc.w-1))^(mtemp & 0xFFFF)) & 0x10 ? F_H : 0);sp.w = mtemp & 0xFFFF;break;}//add sp, r8
 case 0xe9:  {JP(hl.w);break;}
 case 0xea:  {LD_RM(m.read_word(pc.w-2),af.b.h);break;}
 case 0xeb:  {break;}//no opcode

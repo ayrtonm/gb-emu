@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cassert>
 #include "cpu.h"
-#define DEBUG
+#undef DEBUG
 
 using namespace std;
 
@@ -13,6 +13,10 @@ cpu::cpu()
   hl.w = 0x014d;
   sp.w = 0xfffe;
   pc.w = 0x0100;
+  //what do I initialize the following variables to?
+  halt = 0;
+  ime = 0;
+  ei_delay = 0;
   cout << "cpu initialized\n";
 }
 

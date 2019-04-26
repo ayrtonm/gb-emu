@@ -96,21 +96,21 @@ void lcd::step_lcd(uint8 dt, mem &m)
             }
             else if ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE) && !(LCDC_WIN_ENABLE & m.read_byte(O_IO+IO_LCDC)))
             {
-              color = m.get_palette(2)[linebuffer[i] & 0x03]; 
+              color = m.get_palette(2).at(linebuffer[i] & 0x03); 
             }
             else if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE) && (LCDC_WIN_ENABLE & m.read_byte(O_IO+IO_LCDC)))
             {
-              color = m.get_palette(2)[linebuffer[i] >> 2];
+              color = m.get_palette(2).at(linebuffer[i] >> 2);
             }
             else 
             {
               if (!(linebuffer[i] >> 2))
               {
-                color = m.get_palette(2)[linebuffer[i] & 0x03];
+                color = m.get_palette(2).at(linebuffer[i] & 0x03);
               }
               else
               {
-                color = m.get_palette(2)[linebuffer[i] >> 2];
+                color = m.get_palette(2).at(linebuffer[i] >> 2);
               }
             }
             pixels[(m.read_byte(O_IO+IO_LY)*screen->w) + i] = color;
@@ -286,7 +286,7 @@ void lcd::draw_sprites(mem &m)
             {
               Uint32 color;
               Uint32 *pixels = (Uint32 *)screen->pixels;
-              color = (m.read_byte(O_OAM+LOW((i << 2) + 3)) & OAM_F_PAL ? m.get_palette(1)[c] : m.get_palette(0)[c]);
+              color = (m.read_byte(O_OAM+LOW((i << 2) + 3)) & OAM_F_PAL ? m.get_palette(1).at(c) : m.get_palette(0).at(c));
               pixels[m.read_byte(O_IO+IO_LY) * screen->w + m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8] = color;
             }
           }

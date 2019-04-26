@@ -21,6 +21,13 @@ mem::mem(string filename)
   io.at(IO_OBP1) = 0xff;
   io.at(IO_WY) = 0x00;
   io.at(IO_WX) = 0x00;
+  //initializing the following to 0x00 to prevent warnings
+  io.at(IO_JOYP) = 0x00;
+  io.at(IO_DIV) = 0x00;
+  io.at(IO_IR) = 0x00;
+  io.at(IO_LCDSTAT) = 0x00;
+  io.at(IO_LY) = 0x00;
+  io.at(IO_DMA) = 0x00;
   cout << "memory initialized\n";
 }
 uint8 mem::read_byte(uint16 address) const
@@ -109,10 +116,10 @@ void mem::load_cart(string filename)
   cart.open(filename, ios::binary|ios::ate);
   assert(cart.is_open());
   size = cart.tellg();
-  rombn.resize(size - O_ROMBN);
+  rombn.resize((int)size - (int)O_ROMBN);
   cart.seekg(0,ios::beg);
   cart.read((char *) &romb0[0],O_ROMBN);
-  cart.read((char *) &rombn[0],size-O_ROMBN);
+  cart.read((char *) &rombn[0],(int)size-(int)O_ROMBN);
   cart.close();
   for (int i =0x0134; i < 0x0144; i++) cout << romb0.at(i);//print title
   cout << (romb0.at(0x014A) ? "\nNon-Japanese" : "\nJapanese");

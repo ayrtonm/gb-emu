@@ -73,7 +73,7 @@ uint16 mem::read_word(uint16 address) const
 void mem::write_byte(uint16 address, uint8 data)
 {
 #ifdef DEBUG
-  cout << "writing to [0x" << hex << (int) address << "]\n";
+  cout << "writing 0x" << hex << (int) data << " to [0x" << hex << (int) address << "]\n";
 #endif
   switch(address & 0xf000)
   {
@@ -98,7 +98,7 @@ void mem::write_byte(uint16 address, uint8 data)
       if (address < O_OAM) {wramb1.at(address - O_ECHO1) = data;break;}
       else if (address < O_UNUSED) {oam.at(address - O_OAM) = data;break;}
       else if (address < O_IO) {break;}
-      else if (address < O_HRAM) {io.at(address - O_IO) = data;update_io();break;}
+      else if (address < O_HRAM) {update_io();io.at(address - O_IO) = data;break;}
       else if (address <= O_HRAM_END) {hram.at(address - O_HRAM) = data;break;}
       else {interrupt_enable = data & 0x1f;break;}
     }
@@ -164,7 +164,7 @@ void mem::dump_memory(string filename)
   ofstream dump;
   dump.open(filename);
   assert(dump.is_open());
-  for (uint16 i = 0; i < 0x8000; i++) {
+  for (uint16 i = 0; i < 0xffff; i++) {
     if (read_byte(i) != 0) {
       dump << "[0x" << hex << i << "]  0x" << hex << (int)read_byte(i) << endl;
     }

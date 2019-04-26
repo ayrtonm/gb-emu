@@ -24,8 +24,10 @@ lcd::~lcd()
 
 void lcd::step_lcd(uint8 dt, mem &m)
 {
-//  cout << hex << (int) (m.read_byte(O_IO+IO_LCDSTAT) & 0x03) << "\n";
-//  cout << "on line " << (int) m.read_byte(O_IO+IO_LY) << "\n";
+#ifdef DEBUG
+  cout << hex << (int) (m.read_byte(O_IO+IO_LCDSTAT) & 0x03) << "\n";
+  cout << "on line " << (int) m.read_byte(O_IO+IO_LY) << "\n";
+#endif
   clk -= dt;
   if (clk <= 0)
   {
@@ -90,6 +92,7 @@ void lcd::step_lcd(uint8 dt, mem &m)
           Uint32 *pixels = (Uint32 *)screen->pixels;
           for (int i = 0; i < 160; i++)
           {
+            cout << "line color: " << linebuffer[i] << endl;
             if (!(m.read_byte(O_IO+IO_LCDC) & (LCDC_WIN_ENABLE|LCDC_BG_ENABLE)))
             {
               color = SDL_MapRGB(screen->format,0xff,0xff,0xff);

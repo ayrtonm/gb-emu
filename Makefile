@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -g -std=c++11 -Wall
+CXXFLAGS = -g -std=c++11 #-Wall
 LIBS = -lSDL
 BIN = main
 SRC = $(wildcard *.cpp)

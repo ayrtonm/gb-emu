@@ -59,6 +59,7 @@ class mem
     void update_palette(uint8 palette, uint8 value);
     array<Uint32,4> get_palette(uint8 palette_num);
     void set_format(const SDL_PixelFormat *fmt);
+    void dump_memory(string filename);
   private:
     //!ROM Bank 0 stores the first 16 kB of the cartridge
     array<uint8,0x4000> romb0;
@@ -99,7 +100,7 @@ class lcd
 
     uint16 reverse_word(uint16 input);
     void draw_sprites(mem &m);
-    int parse_events(void);
+    int parse_events(mem &m);
     SDL_Surface *zoomSurface (SDL_Surface * src, double zoomx, double zoomy, int smooth);
 };
 

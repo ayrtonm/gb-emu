@@ -61,7 +61,7 @@ int cpu::emulate(mem &m, lcd &l)
     {
       op = m.read_byte(pc.w);
 #ifdef DEBUG
-      cout << "[0x" << hex << (int) pc.w << "]" << "0x" << hex << (int) op; 
+      cout << "[0x" << hex << (int) pc.w << "]  " << "0x" << hex << (int) op; 
       for (int i = length[op]; i > 1; i--)
       {
         cout << " 0x" << hex << (int) m.read_byte(pc.w+length[op]-i+1);
@@ -89,7 +89,7 @@ int cpu::emulate(mem &m, lcd &l)
       }
     }
     l.step_lcd(dt,m);
-    if(!l.parse_events()) return 0;
+    if(!l.parse_events(m)) return 0;
   }
   return 1;
 }

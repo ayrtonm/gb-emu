@@ -126,7 +126,7 @@ void lcd::step_lcd(uint8 dt, mem &m)
   }
 }
 
-int lcd::parse_events(void)
+int lcd::parse_events(mem &m)
 {
   while(SDL_PollEvent (&event))
   {
@@ -147,7 +147,10 @@ int lcd::parse_events(void)
       {
         switch(event.key.keysym.sym)
         {
-          case SDLK_q: return 0;
+          case SDLK_q: {
+            m.dump_memory("memory_dump");
+            return 0;
+          }
         }
       }
     }
@@ -198,7 +201,7 @@ void lcd::draw_line(mem &m)
     }
     uint8 x = m.read_byte(O_IO+IO_SCX) & 7;
     uint8 y = (m.read_byte(O_IO+IO_LY) + m.read_byte(O_IO+IO_SCY)) & 7;
-    uint16 t_data = ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_DATA) ? m.read_byte(O_VRAM + 16*t_map_number + (y << 1)) : m.read_byte(O_VRAM + 16*t_map_number + (y << 1) + V_TD_1));
+    uint16 t_data = ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_DATA) ? m.read_word(O_VRAM + 16*t_map_number + (y << 1)) : m.read_word(O_VRAM + 16*t_map_number + (y << 1) + V_TD_1));
     for (int i = 0; i < 160; i++)
     {
       uint8 a = (LOW(t_data) & BIT(x)) >> x;
@@ -216,7 +219,7 @@ void lcd::draw_line(mem &m)
           if (t_map_number > 127) {t_map_number -= 128;}
           else {t_map_number += 128;}
         }
-        uint16 t_data = ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_DATA) ? m.read_byte(O_VRAM + 16*t_map_number + (y << 1)) : m.read_byte(O_VRAM + 16*t_map_number + (y << 1) + V_TD_1));
+        uint16 t_data = ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_DATA) ? m.read_word(O_VRAM + 16*t_map_number + (y << 1)) : m.read_word(O_VRAM + 16*t_map_number + (y << 1) + V_TD_1));
       }
     }
   }
@@ -228,7 +231,7 @@ void lcd::draw_line(mem &m)
     //offsets within tile
     int x = 0;
     uint8 y = (m.read_byte(O_IO+IO_LY) - m.read_byte(O_IO+IO_WY)) & 7;
-    uint16 w_data = m.read_byte(O_VRAM + 16*w_map_number + (y << 1) + V_TD_1);
+    uint16 w_data = m.read_word(O_VRAM + 16*w_map_number + (y << 1) + V_TD_1);
     int i;
     for (i = MAX(m.read_byte(O_IO+IO_WX)-7,0); i < 160; i++)
     {

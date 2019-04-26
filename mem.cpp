@@ -151,3 +151,15 @@ void mem::set_format(const SDL_PixelFormat *fmt)
 {
   format = fmt;
 }
+void mem::dump_memory(string filename)
+{
+  ofstream dump;
+  dump.open(filename);
+  assert(dump.is_open());
+  for (uint16 i = 0; i < 0x8000; i++) {
+    if (read_byte(i) != 0) {
+      dump << "[0x" << hex << i << "]  0x" << hex << (int)read_byte(i) << endl;
+    }
+  }
+  dump.close();
+}

@@ -5,7 +5,8 @@
 .non-default destination
 
 .title
-0x435553544f4d20524f4d
+custom title
+//0x435553544f4d20524f4d
 
 .start
 jp 0x0150

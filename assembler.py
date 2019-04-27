@@ -80,13 +80,19 @@ def parse_sections(filename):
 	program[0x14d] = x
 			
 def write_title(info):
-	pc = 0x134
-	if info[0:2] == '0x':
-		info = info[2:]
-	while info != '\n':
-		program[pc] = text_to_hex(info[0:2])
-		info = info[2:]
-		pc += 1
+  pc = 0x134
+  inhex = False
+  if info[0:2] == '0x':
+    info = info[2:]
+    inhex = True;
+  while info != '\n':
+    if inhex:
+      program[pc] = text_to_hex(info[0:2])
+      info = info[2:]
+    else:
+      program[pc] = ord(info[0]);
+      info = info[1:]
+    pc += 1
 
 def write_code(info,pc):
 	for opcode in info:

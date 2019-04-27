@@ -1,7 +1,6 @@
 #ifndef _SDL_rotozoom_h
 #define _SDL_rotozoom_h
 #include <SDL/SDL.h>
-#include "globals.h"
 
 
 /* ---- Defines */

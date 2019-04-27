@@ -1,29 +1,72 @@
 #include <iostream>
 #include <string>
-#include "globals.h"
+#include <argp.h>
+#include "cpu.h"
+#include "mem.h"
+#include "lcd.h"
 
-void print_help(void)
-{
-  using namespace std;
-  cout << "Gameboy Emulator\n";
-  cout << "Usage:\n";
-  cout << "  -h\t\t\tprint this help text\n";
-  cout << "  -r  [filename]\tload the given file and start the emulator\n";
-}
+struct arguments {
+  char *args[2];
+  bool gameloaded = false;
+  bool dumpmemory = false;
+  char *inputfile, *memorydumpfile;
+};
+
+static struct argp_option options[] = {
+  {"inputfile", 'l', "FILENAME", 0, "load the given file and start the emulator"},
+  {"memorydump", 'd', "OUTFILE", 0, "print addresses and values of non-zero memory into OUTFILE at the end of emulation"},
+  {0}
+};
+
+static error_t parse_opt(int key, char *arg, struct argp_state *state) {
+  struct arguments *arguments = (struct arguments *)state->input;
+  switch(key) {
+    case 'l':
+      arguments->inputfile = arg;
+      arguments->gameloaded = true;
+      break;
+    case 'd':
+      arguments->memorydumpfile = arg;
+      arguments->dumpmemory = true;
+      break;
+    //case ARGP_KEY_ARG:
+    //  if(state->arg_num >= 2) {
+    //    argp_usage(state);
+    //  }
+    //  arguments->args[state->arg_num] = arg;
+    //  break;
+    case ARGP_KEY_END:
+      if (!arguments->gameloaded) {
+        argp_usage(state);
+      }
+      break;
+    default:
+      return ARGP_ERR_UNKNOWN;
+  }
+  return 0;
+};
+
+static char args_doc[] = "-l FILENAME";
+static char doc[] = "Gameboy Emulator";
+
+static struct argp argp = {options, parse_opt, args_doc, doc};
 
 int main(int argc, char *argv[])
 {
-  if (argc <= 2)
-  {
-    print_help();
-    return 0;
-  }
-  string filename = argv[2];
+  struct arguments arguments;
+  argp_parse(&argp, argc, argv, 0, 0, &arguments);
+  string filename(arguments.inputfile);
   cpu *c;
   mem *m;
   lcd *l;
   c = new cpu;
-  m = new mem(filename);
+  if (arguments.dumpmemory) {
+    string memorydumpfile(arguments.memorydumpfile);
+    m = new mem(filename, memorydumpfile);
+  }
+  else {
+    m = new mem(filename);
+  }
   l = new lcd;
   c->emulate(*m, *l);
   delete c;

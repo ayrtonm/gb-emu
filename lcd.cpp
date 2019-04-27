@@ -1,7 +1,6 @@
-#include "globals.h"
 #include <iostream>
-
-using namespace std;
+#include "lcd.h"
+#include "mem.h"
 
 lcd::lcd()
 {
@@ -92,7 +91,6 @@ void lcd::step_lcd(uint8 dt, mem &m)
           Uint32 *pixels = (Uint32 *)screen->pixels;
           for (int i = 0; i < 160; i++)
           {
-            cout << "line color: " << linebuffer[i] << endl;
             if (!(m.read_byte(O_IO+IO_LCDC) & (LCDC_WIN_ENABLE|LCDC_BG_ENABLE)))
             {
               color = SDL_MapRGB(screen->format,0xff,0xff,0xff);
@@ -151,7 +149,9 @@ int lcd::parse_events(mem &m)
         switch(event.key.keysym.sym)
         {
           case SDLK_q: {
-            m.dump_memory("memory_dump");
+            if (m.check_memory_dump()) {
+              m.dump_memory();
+            }
             return 0;
           }
         }

@@ -1,6 +1,20 @@
 #ifndef CPU_H
 #define CPU_H
-#include "globals.h"
+#include "bits.h"
+#include "mem.h"
+#include "lcd.h"
+
+class cpu 
+{
+  public:
+    cpu();
+    word16 af, bc, de, hl, sp, pc;
+    uint8 ime;
+    uint8 ei_delay;
+    uint8 halt;
+    int emulate(mem &m, lcd &l);
+    void print_registers(void);
+};
 
 const static int interrupt_table[16] = {0,0x08,0,0x10,0,0,0,0x18,0,0,0,0,0,0,0,0x20};
 

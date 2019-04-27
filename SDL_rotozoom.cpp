@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "SDL_rotozoom.h"
+#include "lcd.h"
 /* 
  
  32bit Zoomer with optional anti-aliasing by bilinear interpolation.

@@ -1,13 +1,15 @@
-#include "globals.h"
+#include "mem.h"
 #include <iostream>
 #include <fstream>
 #include <cassert>
-#include <string>
 
 using namespace std;
 
-mem::mem(string filename)
-{
+mem::mem(string filename, string memorydump) {
+  if (memorydump != "") {
+    dumpmemory = true;
+    memorydumpfile = memorydump;
+  }
   load_cart(filename);
   io.at(IO_TIMA) = 0x00;
   io.at(IO_TMA) = 0x00;
@@ -159,10 +161,10 @@ void mem::set_format(const SDL_PixelFormat *fmt)
 {
   format = fmt;
 }
-void mem::dump_memory(string filename)
+void mem::dump_memory()
 {
   ofstream dump;
-  dump.open(filename);
+  dump.open(memorydumpfile);
   assert(dump.is_open());
   for (uint16 i = 0; i < 0xffff; i++) {
     if (read_byte(i) != 0) {

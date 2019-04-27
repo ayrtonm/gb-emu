@@ -39,7 +39,9 @@ class mem
     vector<uint8> rombn;
     array<uint8,0x2000> vram;
     //!External RAM has switchable 8 kB banks. Bank switching is handled the same way as @c rombn
-    vector<uint8> eram;
+    //temporarily making this a fixed 8 kB bank initiallized to 0 to make dumping memory easier
+    //vector<uint8> eram;
+    array<uint8,0x2000> eram;
     array<uint8,0x1000> wramb0;
     array<uint8,0x1000> wramb1;
     array<uint8,0xA0> oam;

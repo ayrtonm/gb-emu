@@ -5,7 +5,7 @@ BIN = main
 SRC = main.cpp cpu.cpp mem.cpp lcd.cpp
 OBJ = $(SRC:%.cpp=%.o) 
 
-all: clean bin
+all: bin
 bin: $(OBJ)
 	$(CXX) $(LIBS) -o $(BIN) $^
 %.o: %.c

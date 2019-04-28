@@ -10,15 +10,12 @@ lcd::lcd()
   SDL_Init(SDL_INIT_EVERYTHING);
   pixels.resize(160*144*4);
   window = SDL_CreateWindow("Game Boy Emulator",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,160,144,SDL_WINDOW_RESIZABLE|SDL_WINDOW_SHOWN);
-  //window = SDL_CreateWindow("Game Boy Emulator",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,160,144,SDL_WINDOW_SHOWN);
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
   screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 160, 144);
-  //screen = SDL_CreateRGBSurface(0,160,144,32,0,0,0,0);
-  //visible = SDL_GetWindowSurface(window);
   offset.x = 0;
   offset.y = 0;
-  //old SDL code
-  //SDL_WM_SetCaption("Game Boy Emulator",NULL);
+  offset.w = 160*scale;
+  offset.h = 144*scale;
   cout << "lcd initialized\n";
 }
 lcd::~lcd()
@@ -66,7 +63,7 @@ void lcd::step_lcd(uint8 dt, mem &m)
       {
         if (screenupdateclk > 66666) {
           SDL_UpdateTexture(screen, NULL, &pixels[0], 160*4);
-          SDL_RenderCopy(renderer, screen, NULL, NULL);
+          SDL_RenderCopy(renderer, screen, NULL, &offset);
           SDL_RenderPresent(renderer);
           screenupdateclk -= 66666;
         }
@@ -104,7 +101,6 @@ void lcd::step_lcd(uint8 dt, mem &m)
           {
             if (!(m.read_byte(O_IO+IO_LCDC) & (LCDC_WIN_ENABLE|LCDC_BG_ENABLE)))
             {
-              //color = SDL_MapRGB(screen->format,0xff,0xff,0xff);
               pal = {SDL_ALPHA_OPAQUE,0xff, 0xff, 0xff};
             }
             else if ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE) && !(LCDC_WIN_ENABLE & m.read_byte(O_IO+IO_LCDC)))
@@ -151,9 +147,17 @@ int lcd::parse_events(mem &m)
         case SDL_WINDOWEVENT_RESIZED: {
           if (event.window.data1 != 0 && event.window.data2 != 0)
           {
-            //scale = MIN((float)visible->w/160.0,(float)visible->h/144.0);
-            //offset.x = (visible->w - (160*scale))/2;
-            //offset.y = (visible->h - (144*scale))/2;
+            int w, h;
+            SDL_GetWindowSize(window, &w, &h);
+            scale = MIN((float)w/160.0,(float)h/144.0);
+            offset.x = (w - (160*scale))/2;
+            offset.y = (h - (144*scale))/2;
+            offset.w = 160*scale;
+            offset.h = 144*scale;
+            SDL_RenderClear(renderer);
+            SDL_UpdateTexture(screen, NULL, &pixels[0], 160*4);
+            SDL_RenderCopy(renderer, screen, NULL, &offset);
+            SDL_RenderPresent(renderer);
           }
           break;
         }

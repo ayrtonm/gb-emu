@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cassert>
+#include <unistd.h>
 #include "cpu.h"
 
 using namespace std;
@@ -32,10 +33,12 @@ void cpu::print_registers(void)
 
 int cpu::emulate(mem &m, lcd &l)
 {
-  m.set_format(l.screen->format);
+  //m.set_format(l.screen->format);
   char next;
   uint8 op;
   uint8 dt = 0;
+  int cputhrottleclk = 0;
+  struct timespec ts = {0, 0};
   for(;;)
   {
     if (halt || ime)
@@ -93,6 +96,11 @@ int cpu::emulate(mem &m, lcd &l)
     }
     l.step_lcd(dt,m);
     if(!l.parse_events(m)) return 0;
+    cputhrottleclk += dt;
+    if(cputhrottleclk == 40000) {
+      cputhrottleclk -= 40000;
+      usleep(100000);
+    }
   }
   return 1;
 }

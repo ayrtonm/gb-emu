@@ -1,8 +1,8 @@
 CXX = g++
-CXXFLAGS = -g -std=c++11 #-Wall
-LIBS = -lSDL
+CXXFLAGS = -O3 -g -std=c++11 #-Wall
+LIBS = -lSDL2
 BIN = main
-SRC = main.cpp cpu.cpp mem.cpp lcd.cpp SDL_rotozoom.cpp
+SRC = main.cpp cpu.cpp mem.cpp lcd.cpp
 OBJ = $(SRC:%.cpp=%.o) 
 
 all: clean bin

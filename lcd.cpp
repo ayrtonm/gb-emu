@@ -6,18 +6,25 @@ lcd::lcd()
 {
   scale = 1;
   clk = 0;
+  screenupdateclk = 0;
   SDL_Init(SDL_INIT_EVERYTHING);
-  screen = SDL_CreateRGBSurface(SDL_HWSURFACE,160,144,32,0,0,0,0);
-  visible = SDL_SetVideoMode(160*scale,144*scale,32,SDL_HWSURFACE|SDL_RESIZABLE);
+  pixels.resize(160*144*4);
+  //window = SDL_CreateWindow("Game Boy Emulator",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,160,144,SDL_WINDOW_RESIZABLE|SDL_WINDOW_SHOWN);
+  window = SDL_CreateWindow("Game Boy Emulator",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,160,144,SDL_WINDOW_SHOWN);
+  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+  screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 160, 144);
+  //screen = SDL_CreateRGBSurface(0,160,144,32,0,0,0,0);
+  //visible = SDL_GetWindowSurface(window);
   offset.x = 0;
   offset.y = 0;
-  SDL_WM_SetCaption("Game Boy Emulator",NULL);
+  //old SDL code
+  //SDL_WM_SetCaption("Game Boy Emulator",NULL);
   cout << "lcd initialized\n";
 }
 lcd::~lcd()
 {
-  SDL_FreeSurface(screen);
-  SDL_FreeSurface(visible);
+  SDL_DestroyRenderer(renderer);
+  SDL_DestroyWindow(window);
   SDL_Quit();
 }
 
@@ -27,6 +34,7 @@ void lcd::step_lcd(uint8 dt, mem &m)
   cout << hex << (int) (m.read_byte(O_IO+IO_LCDSTAT) & 0x03) << "\n";
   cout << "on line " << (int) m.read_byte(O_IO+IO_LY) << "\n";
 #endif
+  screenupdateclk += dt;
   clk -= dt;
   if (clk <= 0)
   {
@@ -56,8 +64,12 @@ void lcd::step_lcd(uint8 dt, mem &m)
       //Vertical Blank
       case 0x01:
       {
-        SDL_BlitSurface(zoomSurface(screen,scale,scale,0),NULL,visible,&offset);
-        SDL_Flip(visible);
+        if (screenupdateclk > 66666) {
+          SDL_UpdateTexture(screen, NULL, &pixels[0], 160*4);
+          SDL_RenderCopy(renderer, screen, NULL, NULL);
+          SDL_RenderPresent(renderer);
+          screenupdateclk -= 66666;
+        }
         compareLYtoLYC(m);
         if (m.read_byte(O_IO+IO_LY) < 153)
         {
@@ -87,34 +99,37 @@ void lcd::step_lcd(uint8 dt, mem &m)
         draw_line(m);
         if (m.read_byte(O_IO+IO_LCDC) & LCDC_ENABLE)
         {
-          Uint32 color;
-          Uint32 *pixels = (Uint32 *)screen->pixels;
+          color pal;
           for (int i = 0; i < 160; i++)
           {
             if (!(m.read_byte(O_IO+IO_LCDC) & (LCDC_WIN_ENABLE|LCDC_BG_ENABLE)))
             {
-              color = SDL_MapRGB(screen->format,0xff,0xff,0xff);
+              //color = SDL_MapRGB(screen->format,0xff,0xff,0xff);
+              pal = {0xff, 0xff, 0xff};
             }
             else if ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE) && !(LCDC_WIN_ENABLE & m.read_byte(O_IO+IO_LCDC)))
             {
-              color = m.get_palette(2).at(linebuffer[i] & 0x03); 
+              pal = m.get_palette(2).at(linebuffer[i] & 0x03); 
             }
             else if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE) && (LCDC_WIN_ENABLE & m.read_byte(O_IO+IO_LCDC)))
             {
-              color = m.get_palette(2).at(linebuffer[i] >> 2);
+              pal = m.get_palette(2).at(linebuffer[i] >> 2);
             }
             else 
             {
               if (!(linebuffer[i] >> 2))
               {
-                color = m.get_palette(2).at(linebuffer[i] & 0x03);
+                pal = m.get_palette(2).at(linebuffer[i] & 0x03);
               }
               else
               {
-                color = m.get_palette(2).at(linebuffer[i] >> 2);
+                pal = m.get_palette(2).at(linebuffer[i] >> 2);
               }
             }
-            pixels[(m.read_byte(O_IO+IO_LY)*screen->w) + i] = color;
+            pixels[(m.read_byte(O_IO+IO_LY)*160) + i] = 128;
+            pixels[(m.read_byte(O_IO+IO_LY)*160) + i + 1] = pal.r;
+            pixels[(m.read_byte(O_IO+IO_LY)*160) + i + 2] = pal.g;
+            pixels[(m.read_byte(O_IO+IO_LY)*160) + i + 3] = pal.b;
           }
         }
         draw_sprites(m);
@@ -131,29 +146,26 @@ int lcd::parse_events(mem &m)
 {
   while(SDL_PollEvent (&event))
   {
-    switch(event.type)
-    {
-      case SDL_VIDEORESIZE:
-      {
-        if (event.resize.w != 0 && event.resize.h != 0)
-        {
-          visible = SDL_SetVideoMode(MAX(160,event.resize.w),MAX(144,event.resize.h),32,SDL_HWSURFACE|SDL_RESIZABLE);
-          scale = MIN((float)visible->w/160.0,(float)visible->h/144.0);
-          offset.x = (visible->w - (160*scale))/2;
-          offset.y = (visible->h - (144*scale))/2;
-          SDL_BlitSurface(zoomSurface(screen,scale,scale,0),NULL,visible,&offset);
+    if (event.type == SDL_WINDOWEVENT) {
+      switch (event.window.event) {
+        case SDL_WINDOWEVENT_RESIZED: {
+          if (event.window.data1 != 0 && event.window.data2 != 0)
+          {
+            //scale = MIN((float)visible->w/160.0,(float)visible->h/144.0);
+            //offset.x = (visible->w - (160*scale))/2;
+            //offset.y = (visible->h - (144*scale))/2;
+          }
+          break;
         }
       }
-      case SDL_KEYDOWN:
-      {
-        switch(event.key.keysym.sym)
-        {
-          case SDLK_q: {
-            if (m.check_memory_dump()) {
-              m.dump_memory();
-            }
-            return 0;
+    }
+    else if (event.type == SDL_KEYDOWN) {
+      switch(event.key.keysym.sym) {
+        case SDLK_q: {
+          if (m.check_memory_dump()) {
+            m.dump_memory();
           }
+          return 0;
         }
       }
     }
@@ -287,10 +299,12 @@ void lcd::draw_sprites(mem &m)
             uint8 c = a + (b << 1);
             if (c != 0)
             {
-              Uint32 color;
-              Uint32 *pixels = (Uint32 *)screen->pixels;
-              color = (m.read_byte(O_OAM+LOW((i << 2) + 3)) & OAM_F_PAL ? m.get_palette(1).at(c) : m.get_palette(0).at(c));
-              pixels[m.read_byte(O_IO+IO_LY) * screen->w + m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8] = color;
+              color pal;
+              pal = (m.read_byte(O_OAM+LOW((i << 2) + 3)) & OAM_F_PAL ? m.get_palette(1).at(c) : m.get_palette(0).at(c));
+              pixels[m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8] = 128;
+              pixels[m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8 + 1] = pal.r;
+              pixels[m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8 + 2] = pal.g;
+              pixels[m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8 + 3] = pal.b;
             }
           }
         }

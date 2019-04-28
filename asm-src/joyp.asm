@@ -5,7 +5,7 @@
 .non-default destination
 
 .title
-custom title
+scroll right
 //0x435553544f4d20524f4d
 
 .start
@@ -64,40 +64,43 @@ ld #hl 0x1b
 //disable bkg, win/enable sprites
 ld $hl 0xff40
 ld #hl 0x86
+//counter for x-coordinate of sprite
+ld $a 0x00
+//increment for x-coordinate of sprite
+ld $b 0x01
 
 .0x1000
 //place sprite
 ld $hl 0xfe00
+//set y-coordinate
 ld #hl 0x10
+//move to address that controls x-coordinate
 inc $hl
-ld #hl 0x08
+//push $hl
 
-ld $hl 0xfe00
-ld #hl 0x14
-call 0x2000
-ld $hl 0xfe00
-ld #hl 0x18
-call 0x2000
-ld $hl 0xfe00
-ld #hl 0x1c
-call 0x2000
-ld $hl 0xfe00
-ld #hl 0x20
-call 0x2000
-ld $hl 0xfe00
-ld #hl 0x24
-call 0x2000
-ld $hl 0xfe00
-ld #hl 0x28
+//set vblank before updating sprite position to prevent tearing
+//ld $hl 0xff40
+//ld #hl 0x84
+//pop $hl
 
+ld #hl $a
+
+//ld $hl 0xff40
+//ld #hl 0x86
+
+add $b
+call 0x2000
 jp 0x1000
 
+//calling 0x2000 is a very rudimentary wait function
+//this works by running nop until the return statement below is executed
+//explicitly writing 0x00 to 0x2000 for clarity 
+//a better way to implement wait would be to use a register as a counter for a loop
+//that way the maximum time delay won't be limited by memory or maximum call stack (if there is one?)
+//4000 nops is approx 1ms delay
 .0x2000
-rst 0x00
-rst 0x00
-rst 0x00
-rst 0x00
-rst 0x00
+nop
+.0x6000
 ret
 
 .0x0000

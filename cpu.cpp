@@ -7,7 +7,7 @@
 //and real cpu usage is low
 //the screenupdateclk threshold can then be set based on CPU_SLEEP time so that the screen refreshes at approximately 60 Hz
 //I should add a function to automatically set this ratio to minimize cpu usage
-#define CPU_CLKS 5
+//#define CPU_CLKS 5
 //in nanoseconds
 //#define CPU_SLEEP 2
 
@@ -45,9 +45,9 @@ int cpu::emulate(mem &m, lcd &l)
   char next;
   int op;
   int dt = 0;
-  int cputhrottleclk = 0;
-  struct timespec wait; 
-  wait.tv_sec = 0;
+  //int cputhrottleclk = 0;
+  //struct timespec wait; 
+  //wait.tv_sec = 0;
   for(;;)
   {
     if (halt || ime)

@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include "lcd.h"
 #include "mem.h"
-#define LCDUPDATECLK 1
+#undef RENDERING
 
 lcd::lcd()
 {
@@ -11,6 +11,7 @@ lcd::lcd()
   screenupdateclk = 0;
   SDL_Init(SDL_INIT_EVERYTHING);
   pixels.resize(160*144*4);
+#ifdef RENDERING
   window = SDL_CreateWindow("Game Boy Emulator",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,160,144,SDL_WINDOW_RESIZABLE|SDL_WINDOW_SHOWN);
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
   screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 160, 144);
@@ -18,12 +19,15 @@ lcd::lcd()
   offset.y = 0;
   offset.w = 160*scale;
   offset.h = 144*scale;
+#endif
   cout << "lcd initialized\n";
 }
 lcd::~lcd()
 {
+#ifdef RENDERING
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
+#endif
   SDL_Quit();
 }
 
@@ -63,13 +67,14 @@ void lcd::step_lcd(int dt, mem &m)
       //Vertical Blank
       case 0x01:
       {
-        usleep(1100);
+#ifdef RENDERING
         //if (screenupdateclk >= LCDUPDATECLK) {
           SDL_UpdateTexture(screen, NULL, &pixels[0], 160*4);
           SDL_RenderCopy(renderer, screen, NULL, &offset);
           SDL_RenderPresent(renderer);
           //screenupdateclk -= LCDUPDATECLK;
         //}
+#endif
         compareLYtoLYC(m);
         if (m.read_byte(O_IO+IO_LY) < 153)
         {

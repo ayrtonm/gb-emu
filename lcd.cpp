@@ -9,8 +9,8 @@ lcd::lcd()
   screenupdateclk = 0;
   SDL_Init(SDL_INIT_EVERYTHING);
   pixels.resize(160*144*4);
-  //window = SDL_CreateWindow("Game Boy Emulator",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,160,144,SDL_WINDOW_RESIZABLE|SDL_WINDOW_SHOWN);
-  window = SDL_CreateWindow("Game Boy Emulator",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,160,144,SDL_WINDOW_SHOWN);
+  window = SDL_CreateWindow("Game Boy Emulator",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,160,144,SDL_WINDOW_RESIZABLE|SDL_WINDOW_SHOWN);
+  //window = SDL_CreateWindow("Game Boy Emulator",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,160,144,SDL_WINDOW_SHOWN);
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
   screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 160, 144);
   //screen = SDL_CreateRGBSurface(0,160,144,32,0,0,0,0);
@@ -105,7 +105,7 @@ void lcd::step_lcd(uint8 dt, mem &m)
             if (!(m.read_byte(O_IO+IO_LCDC) & (LCDC_WIN_ENABLE|LCDC_BG_ENABLE)))
             {
               //color = SDL_MapRGB(screen->format,0xff,0xff,0xff);
-              pal = {0xff, 0xff, 0xff};
+              pal = {SDL_ALPHA_OPAQUE,0xff, 0xff, 0xff};
             }
             else if ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE) && !(LCDC_WIN_ENABLE & m.read_byte(O_IO+IO_LCDC)))
             {
@@ -126,10 +126,10 @@ void lcd::step_lcd(uint8 dt, mem &m)
                 pal = m.get_palette(2).at(linebuffer[i] >> 2);
               }
             }
-            pixels[(m.read_byte(O_IO+IO_LY)*160) + i] = 128;
-            pixels[(m.read_byte(O_IO+IO_LY)*160) + i + 1] = pal.r;
-            pixels[(m.read_byte(O_IO+IO_LY)*160) + i + 2] = pal.g;
-            pixels[(m.read_byte(O_IO+IO_LY)*160) + i + 3] = pal.b;
+            pixels[(m.read_byte(O_IO+IO_LY)*160 + i)*4] = pal.b;
+            pixels[(m.read_byte(O_IO+IO_LY)*160 + i)*4 + 1] = pal.g;
+            pixels[(m.read_byte(O_IO+IO_LY)*160 + i)*4 + 2] = pal.r;
+            pixels[(m.read_byte(O_IO+IO_LY)*160 + i)*4 + 3] = pal.a;
           }
         }
         draw_sprites(m);
@@ -301,10 +301,10 @@ void lcd::draw_sprites(mem &m)
             {
               color pal;
               pal = (m.read_byte(O_OAM+LOW((i << 2) + 3)) & OAM_F_PAL ? m.get_palette(1).at(c) : m.get_palette(0).at(c));
-              pixels[m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8] = 128;
-              pixels[m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8 + 1] = pal.r;
-              pixels[m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8 + 2] = pal.g;
-              pixels[m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8 + 3] = pal.b;
+              pixels[(m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8)*4] = pal.b;
+              pixels[(m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8)*4 + 1] = pal.g;
+              pixels[(m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8)*4 + 2] = pal.r;
+              pixels[(m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8)*4 + 3] = pal.a;
             }
           }
         }

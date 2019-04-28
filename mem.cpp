@@ -154,10 +154,10 @@ void mem::update_palette(uint8 palette, uint8 value)
   {
     switch (GET(i,value) >> (j << 1))
     {
-      case 0: {palettes[palette].at(j) = {0xff,0xff,0xff};break;}
-      case 1: {palettes[palette].at(j) = {0xc0,0xc0,0xc0};break;}
-      case 2: {palettes[palette].at(j) = {0x60,0x60,0x60};break;}
-      case 3: {palettes[palette].at(j) = {0,0,0};break;}
+      case 0: {palettes[palette].at(j) = {SDL_ALPHA_OPAQUE,0xff,0xff,0xff};break;}
+      case 1: {palettes[palette].at(j) = {SDL_ALPHA_OPAQUE,0xc0,0xc0,0xc0};break;}
+      case 2: {palettes[palette].at(j) = {SDL_ALPHA_OPAQUE,0x60,0x60,0x60};break;}
+      case 3: {palettes[palette].at(j) = {SDL_ALPHA_OPAQUE,0,0,0};break;}
     }
     j++;
   }

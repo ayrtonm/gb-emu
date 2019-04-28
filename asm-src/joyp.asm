@@ -97,7 +97,7 @@ jp 0x1000
 //explicitly writing 0x00 to 0x2000 for clarity 
 //a better way to implement wait would be to use a register as a counter for a loop
 //that way the maximum time delay won't be limited by memory or maximum call stack (if there is one?)
-//4000 nops is approx 1ms delay
+//1000 nops is approx 250us delay
 .0x2000
 nop
 .0x6000

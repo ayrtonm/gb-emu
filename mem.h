@@ -9,7 +9,7 @@
 using namespace std;
 
 typedef struct color {
-  uint8 r,g,b;
+  uint8 a,r,g,b;
 } color;
 
 class mem 

@@ -14,3 +14,5 @@ clean:
 	rm -rf *.o *.s $(BIN)
 asm: $(SRC)
 	$(CXX) $(LIBS) -S -g $^
+test: all
+	./test_assembler.sh

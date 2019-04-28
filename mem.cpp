@@ -33,9 +33,9 @@ mem::mem(string filename, string memorydump) {
   memory.at(O_IO + IO_DMA) = 0x00;
   cout << "memory initialized\n";
 }
-uint8 mem::read_byte(uint16 address) const {
-  return memory.at(address);
-}
+//inline uint8 mem::read_byte(uint16 address) const {
+//  return memory.at(address);
+//}
 //uint8 mem::read_byte(uint16 address) const
 //{
 //#ifdef DEBUG
@@ -71,16 +71,16 @@ uint8 mem::read_byte(uint16 address) const {
 //  }
 //  return interrupt_enable;
 //}
-uint16 mem::read_word(uint16 address) const
-{
-  return (read_byte(address))+(read_byte(address + 1) << 8);
-}
-void mem::write_byte(uint16 address, uint8 data) {
-  if (address >= O_IO && address < O_HRAM) {
-    update_io();
-  }
-  memory.at(address) = data;
-}
+//uint16 mem::read_word(uint16 address) const
+//{
+//  return (read_byte(address))+(read_byte(address + 1) << 8);
+//}
+//inline void mem::write_byte(uint16 address, uint8 data) {
+//  if (address >= O_IO && address < O_HRAM) {
+//    update_io();
+//  }
+//  memory.at(address) = data;
+//}
 //void mem::write_byte(uint16 address, uint8 data)
 //{
 //#ifdef DEBUG
@@ -115,11 +115,11 @@ void mem::write_byte(uint16 address, uint8 data) {
 //    }
 //  }
 //}
-void mem::write_word(uint16 address, uint16 data)
-{
-  write_byte(address,data & 0x00ff);
-  write_byte(address+1,data >> 8);
-}
+//void mem::write_word(uint16 address, uint16 data)
+//{
+//  write_byte(address,data & 0x00ff);
+//  write_byte(address+1,data >> 8);
+//}
 void mem::load_cart(string filename)
 {
   streampos size;

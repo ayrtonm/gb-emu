@@ -100,7 +100,7 @@ jp 0x1000
 //1000 nops is approx 250us delay
 .0x2000
 nop
-.0x6000
+.0x4000
 ret
 
 .0x0000

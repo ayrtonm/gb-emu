@@ -19,13 +19,26 @@ class mem
     //!Sets @c rombn and @c eram sizes
     void load_cart(string filename);
     //!Adds offset to address if trying to access ROM Bank N or External RAM
-    uint8 read_byte(uint16 address) const;
-    uint8 read_byte_slow(uint16 address) const;
-    uint16 read_word(uint16 address) const;
+    inline uint8 read_byte(uint16 address) const {
+      return memory.at(address);
+    };
+    //uint8 read_byte_slow(uint16 address) const;
+    inline uint16 read_word(uint16 address) const {
+      return (read_byte(address))+(read_byte(address + 1) << 8);
+    };
     //!Adds offset to address if trying to modify ROM Bank N or External RAM
-    void write_byte(uint16 address, uint8 data);
-    void write_byte_slow(uint16 address, uint8 data);
-    void write_word(uint16 address, uint16 data);
+    inline void write_byte(uint16 address, uint8 data) {
+      if (address >= O_IO && address < O_HRAM) {
+        update_io();
+      };
+      memory.at(address) = data;
+    };
+    //void write_byte_slow(uint16 address, uint8 data);
+    inline void write_word(uint16 address, uint16 data)
+    {
+      write_byte(address,data & 0x00ff);
+      write_byte(address+1,data >> 8);
+    };
     //!called every time @c write_byte is called with an address between 0xff00 and 0xff80
     void update_io(void);
     void update_palette(uint8 palette, uint8 value);

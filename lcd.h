@@ -21,7 +21,7 @@ class lcd
     array<uint8,160> linebuffer;
     vector<uint8> pixels;
     int clk, screenupdateclk;
-    void step_lcd(uint8 dt, mem &m);
+    void step_lcd(int dt, mem &m);
     void compareLYtoLYC(mem &m);
     void draw_line(mem &m);
 

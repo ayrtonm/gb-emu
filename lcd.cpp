@@ -1,6 +1,8 @@
 #include <iostream>
+#include <unistd.h>
 #include "lcd.h"
 #include "mem.h"
+#define LCDUPDATECLK 1
 
 lcd::lcd()
 {
@@ -25,7 +27,7 @@ lcd::~lcd()
   SDL_Quit();
 }
 
-void lcd::step_lcd(uint8 dt, mem &m)
+void lcd::step_lcd(int dt, mem &m)
 {
 #ifdef DEBUG
   cout << hex << (int) (m.read_byte(O_IO+IO_LCDSTAT) & 0x03) << "\n";
@@ -61,12 +63,13 @@ void lcd::step_lcd(uint8 dt, mem &m)
       //Vertical Blank
       case 0x01:
       {
-        if (screenupdateclk > 66666) {
+        usleep(1100);
+        //if (screenupdateclk >= LCDUPDATECLK) {
           SDL_UpdateTexture(screen, NULL, &pixels[0], 160*4);
           SDL_RenderCopy(renderer, screen, NULL, &offset);
           SDL_RenderPresent(renderer);
-          screenupdateclk -= 66666;
-        }
+          //screenupdateclk -= LCDUPDATECLK;
+        //}
         compareLYtoLYC(m);
         if (m.read_byte(O_IO+IO_LY) < 153)
         {

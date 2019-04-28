@@ -1,15 +1,15 @@
 #include <iostream>
 #include <cassert>
-#include <unistd.h>
+#include <time.h>
 #include "cpu.h"
 //ideally the CPU should run at 4 MHz meaning CPU_CLKS/CPU_SLEEP = 4
 //realistically the ratio should be such that each call to usleep isn't noticeable (CPU_SLEEP isn't too long)
 //and real cpu usage is low
 //the screenupdateclk threshold can then be set based on CPU_SLEEP time so that the screen refreshes at approximately 60 Hz
 //I should add a function to automatically set this ratio to minimize cpu usage
-#define CPU_CLKS 4000
-//in microseconds
-#define CPU_SLEEP CPU_CLKS*4
+#define CPU_CLKS 5
+//in nanoseconds
+//#define CPU_SLEEP 2
 
 using namespace std;
 
@@ -43,10 +43,11 @@ int cpu::emulate(mem &m, lcd &l)
 {
   //m.set_format(l.screen->format);
   char next;
-  uint8 op;
-  uint8 dt = 0;
+  int op;
+  int dt = 0;
   int cputhrottleclk = 0;
-  struct timespec ts = {0, 0};
+  struct timespec wait; 
+  wait.tv_sec = 0;
   for(;;)
   {
     if (halt || ime)
@@ -73,7 +74,7 @@ int cpu::emulate(mem &m, lcd &l)
     if (ei_delay) {ime = 1; ei_delay = 0;}
     if (!halt)
     {
-      op = m.read_byte(pc.w);
+      op = (int)m.read_byte(pc.w);
 #ifdef DEBUG
       cout << "[0x" << hex << (int) pc.w << "]  " << "0x" << hex << (int) op; 
       for (int i = length[op]; i > 1; i--)
@@ -85,7 +86,7 @@ int cpu::emulate(mem &m, lcd &l)
       if (op == 0xcb)
       {
         pc.w++;
-        op = m.read_byte(pc.w++);
+        op = (int)m.read_byte(pc.w++);
         dt = cb_cycles[op & 0x07];
         switch(op)
         {
@@ -104,11 +105,12 @@ int cpu::emulate(mem &m, lcd &l)
     }
     l.step_lcd(dt,m);
     if(!l.parse_events(m)) return 0;
-    cputhrottleclk += dt;
-    if(cputhrottleclk >= CPU_CLKS) {
-      cputhrottleclk -= CPU_CLKS;
-      usleep(CPU_SLEEP);
-    }
+    //cputhrottleclk += dt;
+    //if(cputhrottleclk >= CPU_CLKS) {
+     // wait.tv_nsec = 5;
+      //cputhrottleclk -= CPU_CLKS;
+      //clock_nanosleep(CLOCK_MONOTONIC,0, &wait, NULL);
+    //}
   }
   return 1;
 }

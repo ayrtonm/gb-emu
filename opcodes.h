@@ -1,7 +1,4 @@
 //finish commented opcodes
-/*************************************************************************************************
-maybe problem with emulator is in opcode macros being correct but numbers being associated with the wrong operations
-*************************************************************************************************/
 case 0x0:  {break;}
 case 0x1:  {LD(bc.w,m.read_word(pc.w-2));break;}
 case 0x2:  {LD_RM(bc.w,af.b.h);break;}

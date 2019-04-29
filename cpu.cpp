@@ -10,6 +10,7 @@
 #define CPU_CLKS 25
 //in nanoseconds
 //#define CPU_SLEEP 2
+//#define DEBUG
 
 using namespace std;
 
@@ -41,7 +42,6 @@ void cpu::print_registers(void)
 
 int cpu::emulate(mem &m, lcd &l)
 {
-  //m.set_format(l.screen->format);
   int op;
   int dt = 0;
   int cputhrottleclk = 0;

@@ -114,21 +114,21 @@ void lcd::step_lcd(int dt, mem &m)
             }
             else if ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE) && !(LCDC_WIN_ENABLE & m.read_byte(O_IO+IO_LCDC)))
             {
-              pal = m.get_palette(2).at(linebuffer[i] & 0x03); 
+              pal = m.get_palette(2)[linebuffer[i] & 0x03]; 
             }
             else if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE) && (LCDC_WIN_ENABLE & m.read_byte(O_IO+IO_LCDC)))
             {
-              pal = m.get_palette(2).at(linebuffer[i] >> 2);
+              pal = m.get_palette(2)[linebuffer[i] >> 2];
             }
             else 
             {
               if (!(linebuffer[i] >> 2))
               {
-                pal = m.get_palette(2).at(linebuffer[i] & 0x03);
+                pal = m.get_palette(2)[linebuffer[i] & 0x03];
               }
               else
               {
-                pal = m.get_palette(2).at(linebuffer[i] >> 2);
+                pal = m.get_palette(2)[linebuffer[i] >> 2];
               }
             }
             pixels[(m.read_byte(O_IO+IO_LY)*160 + i)*4] = pal.b;
@@ -270,7 +270,7 @@ void lcd::draw_line(mem &m)
       uint8 a = (LOW(t_data) & BIT(7-x)) >> (7-x);
       uint8 b = (HIGH(t_data) & BIT(7-x)) >> (7-x);
       uint8 c = a + (b << 1);
-      linebuffer.at(i) = c;
+      linebuffer[i] = c;
       x++;
       if (x == 8)
       {
@@ -286,7 +286,7 @@ void lcd::draw_line(mem &m)
       }
     }
   }
-  else if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE)) {for(int i = 0; i < 160; i++) {linebuffer.at(i) = 0;}}
+  else if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE)) {for(int i = 0; i < 160; i++) {linebuffer[i] = 0;}}
   if (m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_ENABLE && m.read_byte(O_IO+IO_WY) <= m.read_byte(O_IO+IO_LY))
   {
     uint8 w_offset = (((m.read_byte(O_IO+IO_LY) - m.read_byte(O_IO+IO_WY)) >> 3) & 31) << 5;
@@ -301,7 +301,7 @@ void lcd::draw_line(mem &m)
       uint8 a = (LOW(w_data) & BIT(7-x)) >> (7-x);
       uint8 b = (HIGH(w_data) & BIT(7-x)) >> (7-x);
       uint8 c =  (a << 2) + (b << 3);
-      linebuffer.at(i) += c;
+      linebuffer[i] += c;
       x++;
       if (x == 8)
       {
@@ -341,7 +341,7 @@ void lcd::draw_sprites(mem &m)
         //counting backwards since bit 7 is leftmost pixel and bit 0 is rightmost
         for (int x = 7; x >= 0; x--)
         {
-          if (m.read_byte(O_OAM+((i << 2) + 1)) + x - 8 >= 0 && m.read_byte(O_OAM+((i << 2) + 1)) + x - 8 < 160 && (!(m.read_byte(O_OAM+((i << 2) + 3)) & OAM_F_BG) || (linebuffer.at(m.read_byte(O_OAM+((i << 2) + 1)) + x - 8) & 0x03) == 0))
+          if (m.read_byte(O_OAM+((i << 2) + 1)) + x - 8 >= 0 && m.read_byte(O_OAM+((i << 2) + 1)) + x - 8 < 160 && (!(m.read_byte(O_OAM+((i << 2) + 3)) & OAM_F_BG) || (linebuffer[m.read_byte(O_OAM+((i << 2) + 1)) + x - 8] & 0x03) == 0))
           {
             uint8 a = (LOW(t_data) & BIT(x)) >> x;
             uint8 b = (HIGH(t_data) & BIT(x)) >> x;
@@ -349,7 +349,7 @@ void lcd::draw_sprites(mem &m)
             if (c != 0)
             {
               color pal;
-              pal = (m.read_byte(O_OAM+((i << 2) + 3)) & OAM_F_PAL ? m.get_palette(1).at(c) : m.get_palette(0).at(c));
+              pal = (m.read_byte(O_OAM+((i << 2) + 3)) & OAM_F_PAL ? m.get_palette(1)[c] : m.get_palette(0)[c]);
               pixels[(m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+((i << 2) + 1)) + x - 8)*4] = pal.b;
               pixels[(m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+((i << 2) + 1)) + x - 8)*4 + 1] = pal.g;
               pixels[(m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+((i << 2) + 1)) + x - 8)*4 + 2] = pal.r;

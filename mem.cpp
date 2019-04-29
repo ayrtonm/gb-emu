@@ -12,26 +12,26 @@ mem::mem(string filename, string memorydump) {
     memorydumpfile = memorydump;
   }
   load_cart(filename);
-  memory.at(O_IO + IO_TIMA) = 0x00;
-  memory.at(O_IO + IO_TMA) = 0x00;
-  memory.at(O_IO + IO_TAC) = 0x00;
-  memory.at(O_IO + IO_LCDC) = 0x91;
-  memory.at(O_IO + IO_SCY) = 0x00;
-  memory.at(O_IO + IO_SCX) = 0x00;
-  memory.at(O_IO + IO_LYC) = 0x00;
-  memory.at(O_IO + IO_BGP) = 0xfc;
-  memory.at(O_IO + IO_OBP0) = 0xff;
-  memory.at(O_IO + IO_OBP1) = 0xff;
-  memory.at(O_IO + IO_WY) = 0x00;
-  memory.at(O_IO + IO_WX) = 0x00;
+  memory[O_IO + IO_TIMA] = 0x00;
+  memory[O_IO + IO_TMA] = 0x00;
+  memory[O_IO + IO_TAC] = 0x00;
+  memory[O_IO + IO_LCDC] = 0x91;
+  memory[O_IO + IO_SCY] = 0x00;
+  memory[O_IO + IO_SCX] = 0x00;
+  memory[O_IO + IO_LYC] = 0x00;
+  memory[O_IO + IO_BGP] = 0xfc;
+  memory[O_IO + IO_OBP0] = 0xff;
+  memory[O_IO + IO_OBP1] = 0xff;
+  memory[O_IO + IO_WY] = 0x00;
+  memory[O_IO + IO_WX] = 0x00;
   //initialized to 0x91 so lcd mode is initially VBLANK(0x01)
-  memory.at(O_IO + IO_LCDSTAT) = 0x91;
+  memory[O_IO + IO_LCDSTAT] = 0x91;
   //initializing the following to 0x00 to prevent warnings
-  memory.at(O_IO + IO_JOYP) = 0x00;
-  memory.at(O_IO + IO_DIV) = 0x00;
-  memory.at(O_IO + IO_IR) = 0x00;
-  memory.at(O_IO + IO_LY) = 0x00;
-  memory.at(O_IO + IO_DMA) = 0x00;
+  memory[O_IO + IO_JOYP] = 0x00;
+  memory[O_IO + IO_DIV] = 0x00;
+  memory[O_IO + IO_IR] = 0x00;
+  memory[O_IO + IO_LY] = 0x00;
+  memory[O_IO + IO_DMA] = 0x00;
   cout << "memory initialized\n";
 }
 
@@ -49,19 +49,19 @@ void mem::load_cart(string filename)
   //cart.read((char *) &romb0[0],O_ROMBN);
   //cart.read((char *) &rombn[0],(int)size-(int)O_ROMBN);
   cart.close();
-  for (int i =0x0134; i < 0x0144; i++) cout << memory.at(i);//print title
-  cout << (memory.at(0x014A) ? "\nNon-Japanese" : "\nJapanese");
+  for (int i =0x0134; i < 0x0144; i++) cout << memory[i];//print title
+  cout << (memory[0x014A] ? "\nNon-Japanese" : "\nJapanese");
   cout << "\n";
 }
 void mem::update_io(void)
 {
-  update_palette(2,memory.at(O_IO + IO_BGP));
-  update_palette(0,memory.at(O_IO + IO_OBP0));
-  update_palette(1,memory.at(O_IO + IO_OBP1));
+  update_palette(2,memory[O_IO + IO_BGP]);
+  update_palette(0,memory[O_IO + IO_OBP0]);
+  update_palette(1,memory[O_IO + IO_OBP1]);
   //since the palette has changed, the following lines
   //request an interrupt to update the screen
-  memory.at(O_IO + IO_IR) &= 0x1f;
-  memory.at(O_IO + IO_LCDSTAT) &= 0x78;
+  memory[O_IO + IO_IR] &= 0x1f;
+  memory[O_IO + IO_LCDSTAT] &= 0x78;
 }
 //I should split this function up
 void mem::update_palette(uint8 palette, uint8 value)
@@ -72,10 +72,10 @@ void mem::update_palette(uint8 palette, uint8 value)
   {
     switch (GET(i,value) >> (j << 1))
     {
-      case 0: {palettes[palette].at(j) = {SDL_ALPHA_OPAQUE,0xc0,0xc0,0xc0};break;}
-      case 1: {palettes[palette].at(j) = {SDL_ALPHA_OPAQUE,0x80,0x80,0x80};break;}
-      case 2: {palettes[palette].at(j) = {SDL_ALPHA_OPAQUE,0x60,0x60,0x60};break;}
-      case 3: {palettes[palette].at(j) = {SDL_ALPHA_OPAQUE,0x30,0x30,0x30};break;}
+      case 0: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0xc0,0xc0,0xc0};break;}
+      case 1: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0x80,0x80,0x80};break;}
+      case 2: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0x60,0x60,0x60};break;}
+      case 3: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0x30,0x30,0x30};break;}
     }
     j++;
   }
@@ -84,10 +84,6 @@ void mem::update_palette(uint8 palette, uint8 value)
 array<color,4> mem::get_palette(uint8 palette_num)
 {
   return palettes[palette_num];
-}
-void mem::set_format(const SDL_PixelFormat *fmt)
-{
-  format = fmt;
 }
 void mem::dump_memory()
 {

@@ -281,7 +281,7 @@ case 0xf7:  {RST(0x30);break;}
 //case 0xf8:  {break;}//ld hl, sp+r8
 case 0xf9:  {LD(sp.w,hl.w);break;}
 case 0xfa:  {LD_MR(af.b.h,m.read_word(pc.w-2));break;}
-case 0xfb:  {ei_delay = 1;break;}
+case 0xfb:  {ime=1;ei_delay = 1;break;}
 case 0xfc:  {break;}//no opcode
 case 0xfd:  {break;}//no opcode
 case 0xfe:  {CP(m.read_byte(pc.w-1));break;}

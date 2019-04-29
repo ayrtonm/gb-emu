@@ -22,9 +22,8 @@ cpu::cpu()
   hl.w = 0x014d;
   sp.w = 0xfffe;
   pc.w = 0x0100;
-  //what do I initialize the following variables to?
   halt = 0;
-  ime = 0;
+  ime = 1;
   ei_delay = 0;
   cout << "cpu initialized\n";
 }
@@ -51,21 +50,20 @@ int cpu::emulate(mem &m, lcd &l)
   {
     if (halt || ime)
     {
-      int i = 1;
-      while ((!(m.read_byte(O_IO + IO_IR) & i) || !(m.read_byte(O_IO + IO_IR) & i)) && (i <= 0x10))
-      {
-        i <<= 1;
-      }
-      if (i <= 0x10)
-      {
-        if (halt) {pc.w++;}
-        if (ime)
-        {
-          ime = 0;
-          m.write_byte(O_IO + IO_IR, m.read_byte(O_IO + IO_IR) & ~i);
-          ei_delay = 0;
-          PUSH(pc.b.h,pc.b.l);
-          pc.w = 0x40 + interrupt_table[i-1];
+      //find first set bit of interrupt request byte IO_IR
+      for (int i = 1; i <= 0x10; i <<= 1) {
+        //if bit i is both requested and enabled break out of the for loop to execute that interrupt
+        //lowest set bit of IO_IR and IE has priority
+        if ((m.read_byte(O_IO + IO_IR) & i) && (m.read_byte(O_IE) & i)) {
+          if (halt) {pc.w++;}
+          if (ime)
+          {
+            ime = 0;
+            m.write_byte(O_IO + IO_IR, m.read_byte(O_IO + IO_IR) & ~i);
+            ei_delay = 0;
+            PUSH(pc.b.h,pc.b.l);
+            pc.w = 0x40 + interrupt_table[i-1];
+          }
         }
       }
     }
@@ -102,6 +100,7 @@ int cpu::emulate(mem &m, lcd &l)
         }
       }
     }
+    m.update_timers(dt);
     l.step_lcd(dt,m);
     if(!l.parse_events(m)) return 0;
     cputhrottleclk += dt;

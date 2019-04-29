@@ -15,6 +15,7 @@ mem::mem(string filename, string memorydump) {
   memory[O_IO + IO_TIMA] = 0x00;
   memory[O_IO + IO_TMA] = 0x00;
   memory[O_IO + IO_TAC] = 0x00;
+  //remember to set initial values for NR registers (sound)
   memory[O_IO + IO_LCDC] = 0x91;
   memory[O_IO + IO_SCY] = 0x00;
   memory[O_IO + IO_SCX] = 0x00;
@@ -24,14 +25,13 @@ mem::mem(string filename, string memorydump) {
   memory[O_IO + IO_OBP1] = 0xff;
   memory[O_IO + IO_WY] = 0x00;
   memory[O_IO + IO_WX] = 0x00;
+  memory[O_IE] = 0x00;
   //initialized to 0x91 so lcd mode is initially VBLANK(0x01)
-  memory[O_IO + IO_LCDSTAT] = 0x91;
-  //initializing the following to 0x00 to prevent warnings
-  memory[O_IO + IO_JOYP] = 0x00;
-  memory[O_IO + IO_DIV] = 0x00;
-  memory[O_IO + IO_IR] = 0x00;
-  memory[O_IO + IO_LY] = 0x00;
-  memory[O_IO + IO_DMA] = 0x00;
+  //"" "" to 0x79 so "" "" and all other lcd interrupts are enabled
+  memory[O_IO + IO_LCDSTAT] = 0x79;
+  divtimer = 0;
+  timatimer = 0;
+  tacthreshold = 1024;
   cout << "memory initialized\n";
 }
 
@@ -51,22 +51,11 @@ void mem::load_cart(string filename)
   cart.close();
   for (int i =0x0134; i < 0x0144; i++) cout << memory[i];//print title
   cout << (memory[0x014A] ? "\nNon-Japanese" : "\nJapanese");
+  cout << (memory[0x0147] == 0x00 ? "\ncartridge is ROM only" : "\ncartridge includes MBC (not implemented)");
   cout << "\n";
 }
-void mem::update_io(void)
-{
-  update_palette(2,memory[O_IO + IO_BGP]);
-  update_palette(0,memory[O_IO + IO_OBP0]);
-  update_palette(1,memory[O_IO + IO_OBP1]);
-  //since the palette has changed, the following lines
-  //request an interrupt to update the screen
-  memory[O_IO + IO_IR] &= 0x1f;
-  memory[O_IO + IO_LCDSTAT] &= 0x78;
-}
-//I should split this function up
 void mem::update_palette(uint8 palette, uint8 value)
 {
-  //value &= 0xfc;
   int j = 0;
   for (int i = 0x03; i < 0xff; i = i << 2)
   {
@@ -96,4 +85,28 @@ void mem::dump_memory()
     }
   }
   dump.close();
+}
+void mem::update_timers(int dt) {
+  //compute increment based on time opcode takes to give a 16.384 kHz increment rate
+  //increment every 256 CPU clicks
+  //this should be independent of CPU throttling which is artificial
+  divtimer += dt;
+  if (divtimer > 256) {
+    divtimer -= 256;
+    //directly accessing memory since writing to it resets it to zero
+    memory[O_IO+IO_DIV]++;
+  }
+  if (memory[O_IO+IO_TAC] & TIMER_ENABLED) {
+    timatimer += dt;
+    if (timatimer > tacthreshold) {
+      timatimer -= tacthreshold;
+      memory[O_IO+IO_TIMA]++;
+      //if overflow load value in TMA register
+      if (memory[O_IO+IO_TIMA] == 0x00) {
+        memory[O_IO+IO_TIMA] = memory[O_IO+IO_TMA];
+        //request a timer interrupt
+        write_byte(O_IO+IO_IR, read_byte(O_IO+IO_IR) | INT_TIM);
+      }
+    }
+  }
 }

@@ -61,24 +61,27 @@ typedef union
 #define T_OAM     80
 #define T_VRAM    172
 #define TIO_LY_INC  ((T_HBLANK)+(T_OAM)+(T_VRAM))
+//timer flags
+#define TIMER_ENABLED 0x04
 //!cpu flags
 #define F_Z       0x80
 #define F_N       0x40
 #define F_H       0x20
 #define F_C       0x10
 //!offsets for memory sections
-#define O_ROMBN  0x4000 
-#define O_VRAM   0x8000
+#define O_ROMBN    0x4000 
+#define O_VRAM     0x8000
 #define O_ERAM     0xa000
 #define O_WRAM0    0xc000
 #define O_WRAM1    0xd000
 #define O_ECHO0    0xe000
 #define O_ECHO1    0xf000
-#define O_OAM    0xfe00
+#define O_OAM      0xfe00
 #define O_UNUSED   0xfea0
 #define O_IO       0xff00
 #define O_HRAM     0xff80
 #define O_HRAM_END 0xfffe
+#define O_IE       0xffff
 //!offsets within vram
 #define V_TD_0    0x0000
 #define V_TD_1    0x0800

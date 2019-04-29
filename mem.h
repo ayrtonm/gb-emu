@@ -8,6 +8,8 @@
 
 using namespace std;
 
+const static int tacvals[4] = {1024, 16, 64, 256};
+
 typedef struct color {
   uint8 a,r,g,b;
 } color;
@@ -22,31 +24,46 @@ class mem
     inline uint8 read_byte(uint16 address) const {
       return memory[address];
     };
-    //uint8 read_byte_slow(uint16 address) const;
     inline uint16 read_word(uint16 address) const {
       return (read_byte(address))+(read_byte(address + 1) << 8);
     };
     //!Adds offset to address if trying to modify ROM Bank N or External RAM
     inline void write_byte(uint16 address, uint8 data) {
       memory[address] = data;
-      if ((address == O_IO+IO_BGP) || (address == O_IO+IO_OBP0) || (address == O_IO+IO_OBP1)) {
-        update_io();
-      };
+      if (address == O_IO+IO_BGP) {
+        update_palette(2,memory[O_IO + IO_BGP]);
+        memory[O_IO + IO_IR] &= 0x1f;
+        memory[O_IO + IO_LCDSTAT] &= 0x78;
+      }
+      else if (address == O_IO+IO_OBP0) {
+        update_palette(0,memory[O_IO + IO_BGP]);
+        memory[O_IO + IO_IR] &= 0x1f;
+        memory[O_IO + IO_LCDSTAT] &= 0x78;
+      }
+      else if (address == O_IO+IO_OBP1) {
+        update_palette(1,memory[O_IO + IO_BGP]);
+        memory[O_IO + IO_IR] &= 0x1f;
+        memory[O_IO + IO_LCDSTAT] &= 0x78;
+      }
+      else if (address == O_IO+IO_DIV) {
+        memory[O_IO+IO_DIV] = 0x00;
+      }
+      else if (address == O_IO+IO_TAC) {
+        tacthreshold = tacvals[data & 0x03];
+      }
     };
-    //void write_byte_slow(uint16 address, uint8 data);
     inline void write_word(uint16 address, uint16 data)
     {
       write_byte(address,data & 0x00ff);
       write_byte(address+1,data >> 8);
     };
-    //!called every time @c write_byte is called with an address between 0xff00 and 0xff80
-    void update_io(void);
     void update_palette(uint8 palette, uint8 value);
     array<color,4> get_palette(uint8 palette_num);
     void dump_memory();
     bool check_memory_dump() {
       return dumpmemory; 
     }
+    void update_timers(int dt);
   private:
     //addressable memory
     array<uint8,0x10000> memory;
@@ -54,6 +71,11 @@ class mem
     array<color,4> palettes[3];
     bool dumpmemory = false;
     string memorydumpfile;
+    //divtimer counts every 256 CPU clicks
+    //making it int to prevent having to cast dt and since it is likely to overflow
+    int divtimer;
+    int timatimer;
+    int tacthreshold;
 };
 
 #endif

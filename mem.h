@@ -32,18 +32,18 @@ class mem
       memory[address] = data;
       if (address == O_IO+IO_BGP) {
         update_palette(2,memory[O_IO + IO_BGP]);
-        memory[O_IO + IO_IR] &= 0x1f;
-        memory[O_IO + IO_LCDSTAT] &= 0x78;
+        //memory[O_IO + IO_IR] &= 0x1f;
+        //memory[O_IO + IO_LCDSTAT] &= 0x78;
       }
       else if (address == O_IO+IO_OBP0) {
         update_palette(0,memory[O_IO + IO_BGP]);
-        memory[O_IO + IO_IR] &= 0x1f;
-        memory[O_IO + IO_LCDSTAT] &= 0x78;
+        //memory[O_IO + IO_IR] &= 0x1f;
+        //memory[O_IO + IO_LCDSTAT] &= 0x78;
       }
       else if (address == O_IO+IO_OBP1) {
         update_palette(1,memory[O_IO + IO_BGP]);
-        memory[O_IO + IO_IR] &= 0x1f;
-        memory[O_IO + IO_LCDSTAT] &= 0x78;
+        //memory[O_IO + IO_IR] &= 0x1f;
+        //memory[O_IO + IO_LCDSTAT] &= 0x78;
       }
       else if (address == O_IO+IO_DIV) {
         memory[O_IO+IO_DIV] = 0x00;
@@ -72,7 +72,8 @@ class mem
       return dumpmemory; 
     }
     void update_timers(int dt);
-    void update_keys(bool special, uint8 bit, uint8 value);
+    void update_keys(bool special, uint8 bit, bool down);
+    uint8 get_keys(bool special);
   private:
     //addressable memory
     array<uint8,0x10000> memory;

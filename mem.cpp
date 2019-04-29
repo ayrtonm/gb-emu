@@ -113,21 +113,29 @@ void mem::update_timers(int dt) {
   }
 }
 
-void mem::update_keys(bool special, uint8 bit, uint8 value) {
+void mem::update_keys(bool special, uint8 bit, bool down) {
   if (special) {
-    if (value) {
-      joyspecial |= bit;
+    if (down) {
+      joyspecial &= ~bit;
     }
     else {
-      joyspecial &= ~bit;
+      joyspecial |= bit;
     }
   }
   else {
-    if (value) {
-      joydirection |= bit;
-    }
-    else {
+    if (down) {
       joydirection &= ~bit;
     }
+    else {
+      joydirection |= bit;
+    }
+  }
+}
+uint8 mem::get_keys(bool special) {
+  if (special) {
+    return joyspecial;
+  }
+  else {
+    return joydirection;
   }
 }

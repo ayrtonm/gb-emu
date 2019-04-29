@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -O3 -g -std=c++11 #-Wall
+CXXFLAGS = -g -std=c++11 -Wall
 LIBS = -lSDL2
 BIN = main
 SRC = main.cpp cpu.cpp mem.cpp lcd.cpp

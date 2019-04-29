@@ -1,4 +1,5 @@
 #include "mem.h"
+#include "bits.h"
 #include <iostream>
 #include <fstream>
 #include <cassert>
@@ -33,93 +34,7 @@ mem::mem(string filename, string memorydump) {
   memory.at(O_IO + IO_DMA) = 0x00;
   cout << "memory initialized\n";
 }
-//inline uint8 mem::read_byte(uint16 address) const {
-//  return memory.at(address);
-//}
-//uint8 mem::read_byte(uint16 address) const
-//{
-//#ifdef DEBUG
-//  cout << "reading from [0x" << hex << (int) address << "]\n";
-//#endif
-//  switch(address & 0xf000)
-//  {
-//    case 0x0000:
-//    case 0x1000:
-//    case 0x2000:
-//    case 0x3000: {return romb0.at(address);}
-//    case 0x4000:
-//    case 0x5000:
-//    case 0x6000:
-//    case 0x7000: {return rombn.at(address - O_ROMBN);}//this is temporary, eventually will add offset for mbc
-//    case 0x8000:
-//    case 0x9000: {return vram.at(address - O_VRAM);}
-//    case 0xa000:
-//    case 0xb000: {return eram.at(address - O_ERAM);}//this is temporary, eventually will add offset for mbc
-//    case 0xc000: {return wramb0.at(address - O_WRAM0);}
-//    case 0xd000: {return wramb1.at(address - O_WRAM1);}
-//    case 0xe000: {return wramb0.at(address - O_ECHO0);}
-//    case 0xf000:
-//    {
-////      assert(!(O_UNUSED <= address <= 0xfeff));
-//      if (address < O_OAM) {return wramb1.at(address - O_ECHO1);}
-//      else if (address < O_UNUSED) {return oam.at(address - O_OAM);}
-//      else if (address < O_IO) {return 0;}//unused section of memory returns 0
-//      else if (address < O_HRAM) {return io.at(address - O_IO);}
-//      else if (address <= O_HRAM_END) {return hram.at(address - O_HRAM);}
-//      else {return interrupt_enable;}
-//    }
-//  }
-//  return interrupt_enable;
-//}
-//uint16 mem::read_word(uint16 address) const
-//{
-//  return (read_byte(address))+(read_byte(address + 1) << 8);
-//}
-//inline void mem::write_byte(uint16 address, uint8 data) {
-//  if (address >= O_IO && address < O_HRAM) {
-//    update_io();
-//  }
-//  memory.at(address) = data;
-//}
-//void mem::write_byte(uint16 address, uint8 data)
-//{
-//#ifdef DEBUG
-//  cout << "writing 0x" << hex << (int) data << " to [0x" << hex << (int) address << "]\n";
-//#endif
-//  switch(address & 0xf000)
-//  {
-//    case 0x0000:
-//    case 0x1000:
-//    case 0x2000:
-//    case 0x3000:
-//    case 0x4000:
-//    case 0x5000:
-//    case 0x6000:
-//    case 0x7000: {break;}
-//    case 0x8000:
-//    case 0x9000: {vram.at(address - O_VRAM) = data;break;}
-//    case 0xa000:
-//    case 0xb000: {eram.at(address - O_ERAM) = data;break;}//this is temporary, eventually will add offset for mbc
-//    case 0xc000: {wramb0.at(address - O_WRAM0) = data;break;}
-//    case 0xd000: {wramb1.at(address - O_WRAM1) = data;break;}
-//    case 0xe000: {wramb0.at(address - O_ECHO0) = data;break;}
-//    case 0xf000:
-//    {
-////      assert(!(O_UNUSED <= address <= 0xfeff));
-//      if (address < O_OAM) {wramb1.at(address - O_ECHO1) = data;break;}
-//      else if (address < O_UNUSED) {oam.at(address - O_OAM) = data;break;}
-//      else if (address < O_IO) {break;}
-//      else if (address < O_HRAM) {update_io();io.at(address - O_IO) = data;break;}
-//      else if (address <= O_HRAM_END) {hram.at(address - O_HRAM) = data;break;}
-//      else {interrupt_enable = data & 0x1f;break;}
-//    }
-//  }
-//}
-//void mem::write_word(uint16 address, uint16 data)
-//{
-//  write_byte(address,data & 0x00ff);
-//  write_byte(address+1,data >> 8);
-//}
+
 void mem::load_cart(string filename)
 {
   streampos size;
@@ -140,24 +55,27 @@ void mem::load_cart(string filename)
 }
 void mem::update_io(void)
 {
-  memory.at(O_IO + IO_IR) &= 0x1f;
-  memory.at(O_IO + IO_LCDSTAT) &= 0x78;
   update_palette(2,memory.at(O_IO + IO_BGP));
   update_palette(0,memory.at(O_IO + IO_OBP0));
   update_palette(1,memory.at(O_IO + IO_OBP1));
+  //since the palette has changed, the following lines
+  //request an interrupt to update the screen
+  memory.at(O_IO + IO_IR) &= 0x1f;
+  memory.at(O_IO + IO_LCDSTAT) &= 0x78;
 }
 //I should split this function up
 void mem::update_palette(uint8 palette, uint8 value)
 {
+  //value &= 0xfc;
   int j = 0;
   for (int i = 0x03; i < 0xff; i = i << 2)
   {
     switch (GET(i,value) >> (j << 1))
     {
-      case 0: {palettes[palette].at(j) = {SDL_ALPHA_OPAQUE,0xff,0xff,0xff};break;}
-      case 1: {palettes[palette].at(j) = {SDL_ALPHA_OPAQUE,0xc0,0xc0,0xc0};break;}
+      case 0: {palettes[palette].at(j) = {SDL_ALPHA_OPAQUE,0xc0,0xc0,0xc0};break;}
+      case 1: {palettes[palette].at(j) = {SDL_ALPHA_OPAQUE,0x80,0x80,0x80};break;}
       case 2: {palettes[palette].at(j) = {SDL_ALPHA_OPAQUE,0x60,0x60,0x60};break;}
-      case 3: {palettes[palette].at(j) = {SDL_ALPHA_OPAQUE,0,0,0};break;}
+      case 3: {palettes[palette].at(j) = {SDL_ALPHA_OPAQUE,0x30,0x30,0x30};break;}
     }
     j++;
   }

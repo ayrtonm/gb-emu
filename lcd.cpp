@@ -2,7 +2,8 @@
 #include <unistd.h>
 #include "lcd.h"
 #include "mem.h"
-#undef RENDERING
+#define RENDERING
+#define LCDUPDATECLK 10000
 
 lcd::lcd()
 {
@@ -68,12 +69,12 @@ void lcd::step_lcd(int dt, mem &m)
       case 0x01:
       {
 #ifdef RENDERING
-        //if (screenupdateclk >= LCDUPDATECLK) {
+        if (screenupdateclk >= LCDUPDATECLK) {
           SDL_UpdateTexture(screen, NULL, &pixels[0], 160*4);
           SDL_RenderCopy(renderer, screen, NULL, &offset);
           SDL_RenderPresent(renderer);
-          //screenupdateclk -= LCDUPDATECLK;
-        //}
+          screenupdateclk -= LCDUPDATECLK;
+        }
 #endif
         compareLYtoLYC(m);
         if (m.read_byte(O_IO+IO_LY) < 153)
@@ -109,7 +110,7 @@ void lcd::step_lcd(int dt, mem &m)
           {
             if (!(m.read_byte(O_IO+IO_LCDC) & (LCDC_WIN_ENABLE|LCDC_BG_ENABLE)))
             {
-              pal = {SDL_ALPHA_OPAQUE,0xff, 0xff, 0xff};
+              pal = {SDL_ALPHA_OPAQUE,0xc0, 0xc0, 0xc0};
             }
             else if ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE) && !(LCDC_WIN_ENABLE & m.read_byte(O_IO+IO_LCDC)))
             {
@@ -231,8 +232,11 @@ void lcd::draw_line(mem &m)
     uint16 t_data = ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_DATA) ? m.read_word(O_VRAM + 16*t_map_number + (y << 1)) : m.read_word(O_VRAM + 16*t_map_number + (y << 1) + V_TD_1));
     for (int i = 0; i < 160; i++)
     {
-      uint8 a = (LOW(t_data) & BIT(x)) >> x;
-      uint8 b = (HIGH(t_data) & BIT(x)) >> x;
+      //see comment on counting backwards in draw_sprite
+      //here we count up since x is a uint8 (return type of read_byte)
+      //to avoid having to depend on underflow let's count normally and use 7-x to access data
+      uint8 a = (LOW(t_data) & BIT(7-x)) >> (7-x);
+      uint8 b = (HIGH(t_data) & BIT(7-x)) >> (7-x);
       uint8 c = a + (b << 1);
       linebuffer.at(i) = c;
       x++;
@@ -246,7 +250,7 @@ void lcd::draw_line(mem &m)
           if (t_map_number > 127) {t_map_number -= 128;}
           else {t_map_number += 128;}
         }
-        uint16 t_data = ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_DATA) ? m.read_word(O_VRAM + 16*t_map_number + (y << 1)) : m.read_word(O_VRAM + 16*t_map_number + (y << 1) + V_TD_1));
+        t_data = ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_DATA) ? m.read_word(O_VRAM + 16*t_map_number + (y << 1)) : m.read_word(O_VRAM + 16*t_map_number + (y << 1) + V_TD_1));
       }
     }
   }
@@ -262,8 +266,8 @@ void lcd::draw_line(mem &m)
     int i;
     for (i = MAX(m.read_byte(O_IO+IO_WX)-7,0); i < 160; i++)
     {
-      uint8 a = (LOW(w_data) & BIT(x)) >> x;
-      uint8 b = (HIGH(w_data) & BIT(x)) >> x;
+      uint8 a = (LOW(w_data) & BIT(7-x)) >> (7-x);
+      uint8 b = (HIGH(w_data) & BIT(7-x)) >> (7-x);
       uint8 c =  (a << 2) + (b << 3);
       linebuffer.at(i) += c;
       x++;
@@ -272,7 +276,7 @@ void lcd::draw_line(mem &m)
         x = 0;
         w_offset = (((m.read_byte(O_IO+IO_LY)-m.read_byte(O_IO+IO_WY)) >> 3) & 31) << 5;
         uint8 w_map_number = ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) ? m.read_byte(O_VRAM + w_offset + V_MD_1) : m.read_byte(O_VRAM + w_offset + V_MD_0));
-        uint16 w_data = m.read_byte(O_VRAM + 16*w_map_number + (y << 1) + V_TD_1);
+        w_data = m.read_byte(O_VRAM + 16*w_map_number + (y << 1) + V_TD_1);
       }
     }
   }
@@ -286,25 +290,26 @@ void lcd::draw_sprites(mem &m)
     int count = 0;
     for (int i = 0; i < 40; i++)
     {
-      if (m.read_byte(O_OAM+LOW(i << 2)) - 16 <= m.read_byte(O_IO+IO_LY) && (m.read_byte(O_OAM+LOW(i << 2)) - 16 + ((m.read_byte(O_IO+IO_LCDC) & LCDC_OBJ_SIZE) ? 16 : 8)) > m.read_byte(O_IO+IO_LY))
+      if (m.read_byte(O_OAM+(i << 2)) - 16 <= m.read_byte(O_IO+IO_LY) && (m.read_byte(O_OAM+(i << 2)) - 16 + ((m.read_byte(O_IO+IO_LCDC) & LCDC_OBJ_SIZE) ? 16 : 8)) > m.read_byte(O_IO+IO_LY))
       {
-        uint8 y = ((m.read_byte(O_IO+IO_LY) - m.read_byte(O_OAM+LOW(i << 2)) + 16) & 7) << 1;
-        uint8 yflip = (7 - ((m.read_byte(O_IO+IO_LY) - m.read_byte(O_OAM+LOW(i << 2)) + 16) & 7)) << 1;
-        uint8 t_number = m.read_byte(O_OAM+LOW((i << 2) + 2));
+        uint8 y = ((m.read_byte(O_IO+IO_LY) - m.read_byte(O_OAM+(i << 2)) + 16) & 7) << 1;
+        uint8 yflip = (7 - ((m.read_byte(O_IO+IO_LY) - m.read_byte(O_OAM+(i << 2)) + 16) & 7)) << 1;
+        uint8 t_number = m.read_byte(O_OAM+((i << 2) + 2));
         uint16 t_data;
         if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_OBJ_SIZE))//8x8 mode
         {
-          t_data = m.read_byte(O_VRAM + 16*t_number + ((m.read_byte(O_OAM+LOW((i << 2) + 3)) & OAM_F_YFLIP) ? yflip : y));
+          t_data = m.read_byte(O_VRAM + 16*t_number + ((m.read_byte(O_OAM+(i << 2) + 3) & OAM_F_YFLIP) ? yflip : y));
         }
         else //8x16 mode
         {
-          t_data = m.read_byte(O_VRAM + 16*(((m.read_byte(O_IO+IO_LY) - m.read_byte(O_OAM+LOW(i << 2)) + 16) > 7) || !(yflip) ? (t_number | 0x01) : (t_number & 0xFE)) + ((m.read_byte(O_OAM+LOW((i << 2) + 3) & OAM_F_YFLIP) ? yflip : y)));
+          t_data = m.read_byte(O_VRAM + 16*(((m.read_byte(O_IO+IO_LY) - m.read_byte(O_OAM+(i << 2)) + 16) > 7) || !(yflip) ? (t_number | 0x01) : (t_number & 0xFE)) + ((m.read_byte(O_OAM+(i << 2) + 3) & OAM_F_YFLIP) ? yflip : y));
         }
-        if (!(m.read_byte(O_OAM+LOW((i << 2) + 3)) & OAM_F_XFLIP)) {REVERSE_WORD(t_data);}
+        if (!(m.read_byte(O_OAM+((i << 2) + 3)) & OAM_F_XFLIP)) {REVERSE_WORD(t_data);}
         count++;
-        for (int x = 0; x < 8; x++)
+        //counting backwards since bit 7 is leftmost pixel and bit 0 is rightmost
+        for (int x = 7; x >= 0; x--)
         {
-          if (m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8 >= 0 && m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8 < 160 && (!(m.read_byte(O_OAM+LOW((i << 2) + 3)) & OAM_F_BG) || (linebuffer.at(m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8) & 0x03) == 0))
+          if (m.read_byte(O_OAM+((i << 2) + 1)) + x - 8 >= 0 && m.read_byte(O_OAM+((i << 2) + 1)) + x - 8 < 160 && (!(m.read_byte(O_OAM+((i << 2) + 3)) & OAM_F_BG) || (linebuffer.at(m.read_byte(O_OAM+((i << 2) + 1)) + x - 8) & 0x03) == 0))
           {
             uint8 a = (LOW(t_data) & BIT(x)) >> x;
             uint8 b = (HIGH(t_data) & BIT(x)) >> x;
@@ -312,11 +317,11 @@ void lcd::draw_sprites(mem &m)
             if (c != 0)
             {
               color pal;
-              pal = (m.read_byte(O_OAM+LOW((i << 2) + 3)) & OAM_F_PAL ? m.get_palette(1).at(c) : m.get_palette(0).at(c));
-              pixels[(m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8)*4] = pal.b;
-              pixels[(m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8)*4 + 1] = pal.g;
-              pixels[(m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8)*4 + 2] = pal.r;
-              pixels[(m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+LOW((i << 2) + 1)) + x - 8)*4 + 3] = pal.a;
+              pal = (m.read_byte(O_OAM+((i << 2) + 3)) & OAM_F_PAL ? m.get_palette(1).at(c) : m.get_palette(0).at(c));
+              pixels[(m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+((i << 2) + 1)) + x - 8)*4] = pal.b;
+              pixels[(m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+((i << 2) + 1)) + x - 8)*4 + 1] = pal.g;
+              pixels[(m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+((i << 2) + 1)) + x - 8)*4 + 2] = pal.r;
+              pixels[(m.read_byte(O_IO+IO_LY) * 160 + m.read_byte(O_OAM+((i << 2) + 1)) + x - 8)*4 + 3] = pal.a;
             }
           }
         }

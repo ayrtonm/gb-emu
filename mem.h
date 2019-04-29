@@ -28,10 +28,10 @@ class mem
     };
     //!Adds offset to address if trying to modify ROM Bank N or External RAM
     inline void write_byte(uint16 address, uint8 data) {
-      if (address >= O_IO && address < O_HRAM) {
+      memory.at(address) = data;
+      if ((address == O_IO+IO_BGP) || (address == O_IO+IO_OBP0) || (address == O_IO+IO_OBP1)) {
         update_io();
       };
-      memory.at(address) = data;
     };
     //void write_byte_slow(uint16 address, uint8 data);
     inline void write_word(uint16 address, uint16 data)

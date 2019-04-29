@@ -16,7 +16,8 @@ using namespace std;
 
 cpu::cpu()
 {
-  af.b.l = 0x01;
+  //af.b.l = 0x01;
+  af.w = 0x01b0;
   bc.w = 0x0013;
   de.w = 0x00d8;
   hl.w = 0x014d;
@@ -55,15 +56,25 @@ int cpu::emulate(mem &m, lcd &l)
         //if bit i is both requested and enabled break out of the for loop to execute that interrupt
         //lowest set bit of IO_IR and IE has priority
         if ((m.read_byte(O_IO + IO_IR) & i) && (m.read_byte(O_IE) & i)) {
+          if (i == INT_JOY) {
+          cout <<  "triggered interrupt" << endl;
+          }
+          //if halted let's push program counter + 1 onto the stack since this is where we want to return
           if (halt) {pc.w++;}
-          if (ime)
-          {
+          //if interrupts enabled
+          //will interrupts occur if halted but ime is 0???
+          //if (ime)
+          //{
+            //let's disable interrupts
             ime = 0;
+            //clear the interrupt flag that was just triggered
             m.write_byte(O_IO + IO_IR, m.read_byte(O_IO + IO_IR) & ~i);
             ei_delay = 0;
+            //push the program counter onto the stack
             PUSH(pc.b.h,pc.b.l);
+            //jump to location based on lookup table for that interrupt (avoids having to take log2)
             pc.w = 0x40 + interrupt_table[i-1];
-          }
+          //}
         }
       }
     }
@@ -107,7 +118,7 @@ int cpu::emulate(mem &m, lcd &l)
     if(cputhrottleclk >= CPU_CLKS) {
       wait.tv_nsec = 1;
       cputhrottleclk -= CPU_CLKS;
-      clock_nanosleep(CLOCK_MONOTONIC,0, &wait, NULL);
+      //clock_nanosleep(CLOCK_MONOTONIC,0, &wait, NULL);
     }
   }
   return 1;

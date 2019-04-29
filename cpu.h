@@ -16,6 +16,8 @@ class cpu
     void print_registers(void);
 };
 
+//using lookup table to avoid having to do log2
+//not totally sure there is a performance improvement but it is easier to implement for now
 const static uint16 interrupt_table[16] = {0,0x08,0,0x10,0,0,0,0x18,0,0,0,0,0,0,0,0x20};
 
 const static uint16 length[0x0100] = 

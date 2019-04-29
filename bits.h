@@ -63,6 +63,17 @@ typedef union
 #define TIO_LY_INC  ((T_HBLANK)+(T_OAM)+(T_VRAM))
 //timer flags
 #define TIMER_ENABLED 0x04
+//joypad flags
+#define JOYP_DIRECTION_SELECTED 0x10
+#define JOYP_SPECIAL_SELECTED   0x20
+#define JOYP_A_BIT 0x01
+#define JOYP_B_BIT 0x02
+#define JOYP_SELECT_BIT 0x04
+#define JOYP_START_BIT 0x08
+#define JOYP_R_BIT 0x01
+#define JOYP_L_BIT 0x02
+#define JOYP_U_BIT 0x04
+#define JOYP_D_BIT 0x08
 //!cpu flags
 #define F_Z       0x80
 #define F_N       0x40

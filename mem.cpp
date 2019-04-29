@@ -32,6 +32,8 @@ mem::mem(string filename, string memorydump) {
   divtimer = 0;
   timatimer = 0;
   tacthreshold = 1024;
+  joydirection = 0x10;
+  joyspecial = 0x20;
   cout << "memory initialized\n";
 }
 
@@ -107,6 +109,25 @@ void mem::update_timers(int dt) {
         //request a timer interrupt
         write_byte(O_IO+IO_IR, read_byte(O_IO+IO_IR) | INT_TIM);
       }
+    }
+  }
+}
+
+void mem::update_keys(bool special, uint8 bit, uint8 value) {
+  if (special) {
+    if (value) {
+      joyspecial |= bit;
+    }
+    else {
+      joyspecial &= ~bit;
+    }
+  }
+  else {
+    if (value) {
+      joydirection |= bit;
+    }
+    else {
+      joydirection &= ~bit;
     }
   }
 }

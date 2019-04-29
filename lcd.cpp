@@ -172,46 +172,16 @@ int lcd::parse_events(mem &m)
         }
       }
     }
+    //update memory but don't trigger interrupt on release
     else if (event.type == SDL_KEYUP) {
       switch(event.key.keysym.sym) {
-        case SDLK_z: {
-          //pressed A
-          m.write_byte(O_IO+IO_JOYP, (m.read_byte(O_IO+IO_JOYP)&(~0x20))|0x01);
-          //request joypad interrupt
-          m.write_byte(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
-          break;
-        }
-        case SDLK_x: {
-          //pressed B
-          m.write_byte(O_IO+IO_JOYP, (m.read_byte(O_IO+IO_JOYP)&(~0x20))|0x02);
-          //request joypad interrupt
-          m.write_byte(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
-          break;
-        }
+        #include "keyup.h"
       }
     }
+    //update memory and trigger on interrupt
     else if (event.type == SDL_KEYDOWN) {
       switch(event.key.keysym.sym) {
-        case SDLK_q: {
-          if (m.check_memory_dump()) {
-            m.dump_memory();
-          }
-          return 0;
-        }
-        case SDLK_z: {
-          //pressed A
-          m.write_byte(O_IO+IO_JOYP, m.read_byte(O_IO+IO_JOYP)&(~0x21));
-          //request joypad interrupt
-          m.write_byte(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
-          break;
-        }
-        case SDLK_x: {
-          //pressed B
-          m.write_byte(O_IO+IO_JOYP, m.read_byte(O_IO+IO_JOYP)&(~0x22));
-          //request joypad interrupt
-          m.write_byte(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
-          break;
-        }
+        #include "keydown.h"
       }
     }
   }

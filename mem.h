@@ -51,6 +51,14 @@ class mem
       else if (address == O_IO+IO_TAC) {
         tacthreshold = tacvals[data & 0x03];
       }
+      else if (address == O_IO+IO_JOYP) {
+        if (~data & JOYP_DIRECTION_SELECTED) {
+          memory[O_IO+IO_JOYP] = joydirection;
+        }
+        else if (~data & JOYP_SPECIAL_SELECTED) {
+          memory[O_IO+IO_JOYP] = joyspecial;
+        }
+      }
     };
     inline void write_word(uint16 address, uint16 data)
     {
@@ -64,6 +72,7 @@ class mem
       return dumpmemory; 
     }
     void update_timers(int dt);
+    void update_keys(bool special, uint8 bit, uint8 value);
   private:
     //addressable memory
     array<uint8,0x10000> memory;
@@ -76,6 +85,9 @@ class mem
     int divtimer;
     int timatimer;
     int tacthreshold;
+    //need two bytes to store the joypad data since only one is available in addressable memory at any time
+    uint8 joydirection;
+    uint8 joyspecial;
 };
 
 #endif

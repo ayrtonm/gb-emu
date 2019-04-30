@@ -1,11 +1,9 @@
 //joyp.asm
-//should've been joypad test
-//turned out to be almost everything beside joypad
 
 .non-default destination
 
 .title
-scroll right
+keypad test
 //0x435553544f4d20524f4d
 
 .start
@@ -64,12 +62,12 @@ ld #hl 0x1b
 //disable bkg, win/enable sprites
 ld $hl 0xff40
 ld #hl 0x86
+//select direction keys
+ld $hl 0xff00
+ld #hl 0x20
 //counter for x-coordinate of sprite
-ld $a 0x00
-//increment for x-coordinate of sprite
-ld $b 0x01
-
-.0x1000
+ld $b 0x10
+ld $c 0x01
 //place sprite
 ld $hl 0xfe00
 //set y-coordinate
@@ -77,19 +75,26 @@ ld #hl 0x10
 //move to address that controls x-coordinate
 inc $hl
 //push $hl
+jp 0x1000
 
-//set vblank before updating sprite position to prevent tearing
-//ld $hl 0xff40
-//ld #hl 0x84
+.0x1000
 //pop $hl
+//set sprite's x-coordinate
+ld $hl 0xfe01
+ld #hl $b
+//store variables on stack
+//push $hl
 
-ld #hl $a
-
-//ld $hl 0xff40
-//ld #hl 0x86
-
+//see if right key is pushed down
+ld $hl 0xff00
+ld $a 0x01
+and #hl
+jpnz 0x1000
+ld $a 0x00
 add $b
-call 0x2000
+add $c
+ld $b $a
+call 0x3000
 jp 0x1000
 
 //calling 0x2000 is a very rudimentary wait function
@@ -98,7 +103,7 @@ jp 0x1000
 //a better way to implement wait would be to use a register as a counter for a loop
 //that way the maximum time delay won't be limited by memory or maximum call stack (if there is one?)
 //1000 nops is approx 250us delay
-.0x2000
+.0x3000
 nop
 .0x4000
 ret

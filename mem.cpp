@@ -32,8 +32,12 @@ mem::mem(string filename, string memorydump) {
   divtimer = 0;
   timatimer = 0;
   tacthreshold = 1024;
-  joydirection = 0x10;
-  joyspecial = 0x20;
+  dmatimer = 0;
+  //0x0f is no keys pressed
+  joydirection = 0x0f;
+  joyspecial = 0x0f;
+  //initiallize joypad register to something sensible
+  //memory[O_IO + IO_JOYP] = 0x20 + joydirection;
   cout << "memory initialized\n";
 }
 
@@ -111,6 +115,12 @@ void mem::update_timers(int dt) {
       }
     }
   }
+  if (dmatimer != 0) {
+    dmatimer -= dt;
+    if (dmatimer <= 0) {
+      dmatimer = 0;
+    }
+  }
 }
 
 void mem::update_keys(bool special, uint8 bit, bool down) {
@@ -121,6 +131,11 @@ void mem::update_keys(bool special, uint8 bit, bool down) {
     else {
       joyspecial |= bit;
     }
+    //update addressable memory special keys are currently selected
+    //this way memory is kept up to date without having to check in read_byte
+    if ((memory[O_IO + IO_JOYP] & JOYP_SPECIAL_SELECTED) == 0x00) {
+      memory[O_IO + IO_JOYP] = joyspecial + (memory[O_IO + IO_JOYP] & 0xf0);
+    }
   }
   else {
     if (down) {
@@ -128,6 +143,9 @@ void mem::update_keys(bool special, uint8 bit, bool down) {
     }
     else {
       joydirection |= bit;
+    }
+    if ((memory[O_IO + IO_JOYP] & JOYP_DIRECTION_SELECTED) == 0x00) {
+      memory[O_IO + IO_JOYP] = joydirection + (memory[O_IO + IO_JOYP] & 0xf0);
     }
   }
 }

@@ -4,6 +4,7 @@
 #include <vector>
 #include <array>
 #include <string>
+#include <iostream>
 #include <SDL2/SDL.h>
 
 using namespace std;
@@ -29,21 +30,36 @@ class mem
     };
     //!Adds offset to address if trying to modify ROM Bank N or External RAM
     inline void write_byte(uint16 address, uint8 data) {
+      //prevent writing to OAM while LCD is writing to OAM
+      //if ((address < O_UNUSED) && (address >= O_OAM) && (memory[O_IO+IO_LCDSTAT] & 0x02)) {
+      //  return;
+      //}
+      ////prevent writing to OAM and VRAM while LCD is writing to both
+      //else if ((((address < O_UNUSED) && (address >= O_OAM)) || ((address < O_ERAM) && (address >= O_VRAM))) && (memory[O_IO+IO_LCDSTAT] & 0x03)) {
+      //  return;
+      //}
+      if (dmatimer != 0) {
+        if ((address >= O_HRAM) && (address != O_IE)) {
+          memory[address] = data;
+        }
+      }
+      else {
       memory[address] = data;
+      //not totally sure if modifying IO_IR and IO_LCDSTAT is necessary after updating the palettes
       if (address == O_IO+IO_BGP) {
         update_palette(2,memory[O_IO + IO_BGP]);
-        //memory[O_IO + IO_IR] &= 0x1f;
-        //memory[O_IO + IO_LCDSTAT] &= 0x78;
+        memory[O_IO + IO_IR] &= 0x1f;
+        memory[O_IO + IO_LCDSTAT] &= 0x78;
       }
       else if (address == O_IO+IO_OBP0) {
         update_palette(0,memory[O_IO + IO_BGP]);
-        //memory[O_IO + IO_IR] &= 0x1f;
-        //memory[O_IO + IO_LCDSTAT] &= 0x78;
+        memory[O_IO + IO_IR] &= 0x1f;
+        memory[O_IO + IO_LCDSTAT] &= 0x78;
       }
       else if (address == O_IO+IO_OBP1) {
         update_palette(1,memory[O_IO + IO_BGP]);
-        //memory[O_IO + IO_IR] &= 0x1f;
-        //memory[O_IO + IO_LCDSTAT] &= 0x78;
+        memory[O_IO + IO_IR] &= 0x1f;
+        memory[O_IO + IO_LCDSTAT] &= 0x78;
       }
       else if (address == O_IO+IO_DIV) {
         memory[O_IO+IO_DIV] = 0x00;
@@ -52,12 +68,26 @@ class mem
         tacthreshold = tacvals[data & 0x03];
       }
       else if (address == O_IO+IO_JOYP) {
-        if (~data & JOYP_DIRECTION_SELECTED) {
-          memory[O_IO+IO_JOYP] = joydirection;
+        //get lower 4 bits of joydirection/special and combine that with upper 4 bits in memory
+        if ((data & JOYP_DIRECTION_SELECTED) == 0x00) {
+          memory[O_IO+IO_JOYP] = joydirection + (data & 0xf0);
         }
-        else if (~data & JOYP_SPECIAL_SELECTED) {
-          memory[O_IO+IO_JOYP] = joyspecial;
+        else if ((data & JOYP_SPECIAL_SELECTED) == 0x00) {
+          memory[O_IO+IO_JOYP] = joyspecial + (data & 0xf0);
         }
+        else if ((data & 0xf0) == (JOYP_SPECIAL_SELECTED|JOYP_DIRECTION_SELECTED)) {
+          memory[O_IO+IO_JOYP] = 0x0f + (data & 0xf0);
+        }
+      }
+      else if (address == O_IO+IO_DMA) {
+        //4 MHz * 160 microseconds
+        dmatimer = 640;
+        if (data <= 0xF1) {
+          for (int i = 0; i < 160; i++) {
+            memory[0xFE00 + i] = memory[(data << 8) + i];
+          }
+        }
+      }
       }
     };
     inline void write_word(uint16 address, uint16 data)
@@ -86,6 +116,7 @@ class mem
     int divtimer;
     int timatimer;
     int tacthreshold;
+    int dmatimer;
     //need two bytes to store the joypad data since only one is available in addressable memory at any time
     uint8 joydirection;
     uint8 joyspecial;

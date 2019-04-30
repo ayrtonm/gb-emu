@@ -1,13 +1,14 @@
 #include <iostream>
 #include <cassert>
 #include <time.h>
+#include <unistd.h>
 #include "cpu.h"
 //ideally the CPU should run at 4 MHz meaning CPU_CLKS/CPU_SLEEP = 4
 //realistically the ratio should be such that each call to usleep isn't noticeable (CPU_SLEEP isn't too long)
 //and real cpu usage is low
 //the screenupdateclk threshold can then be set based on CPU_SLEEP time so that the screen refreshes at approximately 60 Hz
 //I should add a function to automatically set this ratio to minimize cpu usage
-#define CPU_CLKS 1000
+#define CPU_CLKS 100
 //in nanoseconds
 //#define CPU_SLEEP 2
 //#define DEBUG
@@ -89,7 +90,8 @@ int cpu::emulate(mem &m, lcd &l)
       {
         cout << " 0x" << hex << (int) m.read_byte(pc.w+length[op]-i+1);
       }
-      cout << "\n";
+      //cout << " bc register " << hex << (int) bc.w << "\n";
+      cout << endl;
 #endif
       if (op == 0xcb)
       {
@@ -118,7 +120,8 @@ int cpu::emulate(mem &m, lcd &l)
     if(cputhrottleclk >= CPU_CLKS) {
       wait.tv_nsec = 1000;
       cputhrottleclk -= CPU_CLKS;
-      nanosleep(&wait, NULL);
+      //nanosleep(&wait, NULL);
+      usleep(100);
     }
   }
   return 1;

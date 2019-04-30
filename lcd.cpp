@@ -322,16 +322,14 @@ void lcd::draw_sprites(mem &m)
           t_data = m.read_word(O_VRAM + 16*(((curline - oam_y) > 7) || !(yflip) ? (t_number | 0x01) : (t_number & 0xFE)) + ((oam_prop & OAM_F_YFLIP) ? yflip : y));
         }
         //if flipped in the x direction reverse the 2 bytes
-        if (!(oam_prop & OAM_F_XFLIP)) {REVERSE_WORD(t_data);}
+        if (oam_prop & OAM_F_XFLIP) {REVERSE_WORD(t_data);}
         count++;
-        //counting backwards since bit 7 is leftmost pixel and bit 0 is rightmost
-        //for (int x = 7; x >= 0; x--)
         for (int x = 0; x < 8; x++)
         {
           //for each pixel if x coordinate is on screen (between 0 and 160) and (sprites have priority over the background or the backgroun is clear)
           if (((oam_x + x >= 0) && (oam_x + x < 160)) && (!(oam_prop & OAM_F_BG) || ((linebuffer[oam_x + x] & 0x03) == 0)))
           {
-            //not sure why this seems to be backwards from the background/window tiles
+            //accessing bits backwards since bit 7 is leftmost pixel and bit 0 is rightmost
             uint8 a = (LOW(t_data) & BIT(7-x)) >> (7-x);
             uint8 b = (HIGH(t_data) & BIT(7-x)) >> (7-x);
             uint8 c = a + (b << 1);

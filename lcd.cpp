@@ -220,6 +220,7 @@ void lcd::compareLYtoLYC(mem &m)
 **/
 void lcd::draw_line(mem &m)
 {
+  fill(begin(linebuffer),end(linebuffer),0);
   if (m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE)
   {
     uint16 mapoffset = ((((m.read_byte(O_IO+IO_LY) + m.read_byte(O_IO+IO_SCY)) >> 3) & 31) << 5) + ((m.read_byte(O_IO+IO_SCX) >> 3) & 31);
@@ -287,30 +288,41 @@ void lcd::draw_line(mem &m)
 void lcd::draw_sprites(mem &m)
 {
   //OAM(s,p) = m.read_byte(O_OAM+LOW((s << 2) + p))
+  //if sprites enabled in LCDC
   if (m.read_byte(O_IO+IO_LCDC) & LCDC_OBJ_ENABLE)
   {
     int count = 0;
+    //loop through the 40 sprites in the OAM table
     for (int i = 0; i < 40; i++)
     {
+      //if part of the sprite is on the line we are current drawing LY
       if (m.read_byte(O_OAM+(i * 4)) - 16 <= m.read_byte(O_IO+IO_LY) && (m.read_byte(O_OAM+(i * 4)) - 16 + ((m.read_byte(O_IO+IO_LCDC) & LCDC_OBJ_SIZE) ? 16 : 8)) > m.read_byte(O_IO+IO_LY))
       {
+        //get y offset within the 8x8 or 8x16 tile from the OAM table
         uint8 y = ((m.read_byte(O_IO+IO_LY) - m.read_byte(O_OAM+(i * 4)) + 16) & 7) << 1;
         uint8 yflip = (7 - ((m.read_byte(O_IO+IO_LY) - m.read_byte(O_OAM+(i * 4)) + 16) & 7)) << 1;
+        //get the tile number from the OAM table
         uint8 t_number = m.read_byte(O_OAM+((i * 4) + 2));
         uint16 t_data;
-        if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_OBJ_SIZE))//8x8 mode
+        //if in 8x8 mode
+        if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_OBJ_SIZE))
         {
+          //get the 2 bytes for the sprite's current line
           t_data = m.read_word(O_VRAM + 16*t_number + ((m.read_byte(O_OAM+(i * 4) + 3) & OAM_F_YFLIP) ? yflip : y));
         }
-        else //8x16 mode
+        //if in 8x16 mode
+        else
         {
+          //get the 2 bytes for the sprite's current line
           t_data = m.read_word(O_VRAM + 16*(((m.read_byte(O_IO+IO_LY) - m.read_byte(O_OAM+(i * 4)) + 16) > 7) || !(yflip) ? (t_number | 0x01) : (t_number & 0xFE)) + ((m.read_byte(O_OAM+(i * 4) + 3) & OAM_F_YFLIP) ? yflip : y));
         }
+        //if flipped in the x direction reverse the 2 bytes
         if (!(m.read_byte(O_OAM+((i * 4) + 3)) & OAM_F_XFLIP)) {REVERSE_WORD(t_data);}
         count++;
         //counting backwards since bit 7 is leftmost pixel and bit 0 is rightmost
         for (int x = 7; x >= 0; x--)
         {
+          //for each pixel if x coordinate is on screen (between 0 and 160) and (sprites have priority over the background or the backgroun is clear)
           if (((m.read_byte(O_OAM+((i * 4) + 1)) + x - 8 >= 0) && (m.read_byte(O_OAM+((i * 4) + 1)) + x - 8 < 160)) && (!(m.read_byte(O_OAM+((i * 4) + 3)) & OAM_F_BG) || (linebuffer[m.read_byte(O_OAM+((i * 4) + 1)) + x - 8] & 0x03) == 0))
           {
             uint8 a = (LOW(t_data) & BIT(x)) >> x;

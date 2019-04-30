@@ -116,7 +116,7 @@ int cpu::emulate(mem &m, lcd &l)
     if(!l.parse_events(m)) return 0;
     cputhrottleclk += dt;
     if(cputhrottleclk >= CPU_CLKS) {
-      wait.tv_nsec = 1;
+      wait.tv_nsec = 1000;
       cputhrottleclk -= CPU_CLKS;
       nanosleep(&wait, NULL);
     }

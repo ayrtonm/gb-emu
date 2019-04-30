@@ -65,20 +65,25 @@ ld #hl 0x86
 //select direction keys
 ld $hl 0xff00
 ld #hl 0x20
-//counter for x-coordinate of sprite
-ld $b 0x10
-ld $c 0x01
+
+//set 8x8 sprites
 ld $hl 0xff40
 ld $a #hl
+//used to clear 3rd bit of [0xff40]
 ld $b 0xfb
 and $b
 ld #hl $a
+
 //place sprite
 ld $hl 0xfe00
 //set y-coordinate
 ld #hl 0x10
-//move to address that controls x-coordinate
+//move to address that controls x coordinate
 inc $hl
+//initial sprite x coordinate
+ld $b 0x10
+//increment x coordinate by $c if right button is pressed
+ld $c 0x01
 //push $hl
 jp 0x1000
 

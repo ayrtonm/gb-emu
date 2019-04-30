@@ -62,17 +62,18 @@ void mem::load_cart(string filename)
 }
 void mem::update_palette(uint8 palette, uint8 value)
 {
+  cout << "updating palette number 0x0" << hex << (int) palette << " to 0x" << hex << (int)value << endl;
   //sprite palettes don't use lowest two bits so let's keep them zeroed out
-  if (palette != 2) {value &= 0xfc;}
+  //if (palette != 2) {value &= 0xfc;}
   int j = 0;
   for (int i = 0x03; i < 0xff; i = i << 2)
   {
     switch ((value & i) >> (2*j))
     {
-      case 0: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0xc0,0xc0,0xc0};break;}
-      case 1: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0x80,0x80,0x80};break;}
-      case 2: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0x60,0x60,0x60};break;}
-      case 3: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0x30,0x30,0x30};break;}
+      case 0: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0xcc,0xcc,0xcc};break;}
+      case 1: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0x88,0x88,0x88};break;}
+      case 2: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0x66,0x66,0x66};break;}
+      case 3: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0x33,0x33,0x33};break;}
     }
     j++;
   }

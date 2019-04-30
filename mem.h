@@ -48,18 +48,18 @@ class mem
       //not totally sure if modifying IO_IR and IO_LCDSTAT is necessary after updating the palettes
       if (address == O_IO+IO_BGP) {
         update_palette(2,memory[O_IO + IO_BGP]);
-        memory[O_IO + IO_IR] &= 0x1f;
-        memory[O_IO + IO_LCDSTAT] &= 0x78;
+        //memory[O_IO + IO_IR] &= 0x1f;
+        //memory[O_IO + IO_LCDSTAT] &= 0x78;
       }
       else if (address == O_IO+IO_OBP0) {
-        update_palette(0,memory[O_IO + IO_BGP]);
-        memory[O_IO + IO_IR] &= 0x1f;
-        memory[O_IO + IO_LCDSTAT] &= 0x78;
+        update_palette(0,memory[O_IO + IO_OBP0]);
+        //memory[O_IO + IO_IR] &= 0x1f;
+        //memory[O_IO + IO_LCDSTAT] &= 0x78;
       }
       else if (address == O_IO+IO_OBP1) {
-        update_palette(1,memory[O_IO + IO_BGP]);
-        memory[O_IO + IO_IR] &= 0x1f;
-        memory[O_IO + IO_LCDSTAT] &= 0x78;
+        update_palette(1,memory[O_IO + IO_OBP1]);
+        //memory[O_IO + IO_IR] &= 0x1f;
+        //memory[O_IO + IO_LCDSTAT] &= 0x78;
       }
       else if (address == O_IO+IO_DIV) {
         memory[O_IO+IO_DIV] = 0x00;

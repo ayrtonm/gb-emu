@@ -30,7 +30,7 @@ class mem
     };
     //!Adds offset to address if trying to modify ROM Bank N or External RAM
     inline void write_byte(uint16 address, uint8 data) {
-      //prevent writing to OAM while LCD is writing to OAM
+      ////prevent writing to OAM while LCD is writing to OAM
       //if ((address < O_UNUSED) && (address >= O_OAM) && (memory[O_IO+IO_LCDSTAT] & 0x02)) {
       //  return;
       //}
@@ -39,7 +39,7 @@ class mem
       //  return;
       //}
       if (dmatimer != 0) {
-        if ((address >= O_HRAM) && (address != O_IE)) {
+        if (address >= O_HRAM) {
           memory[address] = data;
         }
       }
@@ -76,7 +76,7 @@ class mem
           memory[O_IO+IO_JOYP] = joyspecial + (data & 0xf0);
         }
         else if ((data & 0xf0) == (JOYP_SPECIAL_SELECTED|JOYP_DIRECTION_SELECTED)) {
-          memory[O_IO+IO_JOYP] = 0x0f + (data & 0xf0);
+          memory[O_IO+IO_JOYP] = joydirection + (data & 0xf0);
         }
       }
       else if (address == O_IO+IO_DMA) {

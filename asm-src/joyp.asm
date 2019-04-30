@@ -68,6 +68,11 @@ ld #hl 0x20
 //counter for x-coordinate of sprite
 ld $b 0x10
 ld $c 0x01
+ld $hl 0xff40
+ld $a #hl
+ld $b 0xfb
+and $b
+ld #hl $a
 //place sprite
 ld $hl 0xfe00
 //set y-coordinate

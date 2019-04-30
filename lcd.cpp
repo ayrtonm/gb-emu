@@ -278,7 +278,7 @@ void lcd::draw_line(mem &m)
         x = 0;
         w_offset = (((m.read_byte(O_IO+IO_LY)-m.read_byte(O_IO+IO_WY)) >> 3) & 31) << 5;
         uint8 w_map_number = ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) ? m.read_byte(O_VRAM + w_offset + V_MD_1) : m.read_byte(O_VRAM + w_offset + V_MD_0));
-        w_data = m.read_byte(O_VRAM + 16*w_map_number + (y << 1) + V_TD_1);
+        w_data = m.read_word(O_VRAM + 16*w_map_number + (y << 1) + V_TD_1);
       }
     }
   }
@@ -300,18 +300,18 @@ void lcd::draw_sprites(mem &m)
         uint16 t_data;
         if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_OBJ_SIZE))//8x8 mode
         {
-          t_data = m.read_byte(O_VRAM + 16*t_number + ((m.read_byte(O_OAM+(i * 4) + 3) & OAM_F_YFLIP) ? yflip : y));
+          t_data = m.read_word(O_VRAM + 16*t_number + ((m.read_byte(O_OAM+(i * 4) + 3) & OAM_F_YFLIP) ? yflip : y));
         }
         else //8x16 mode
         {
-          t_data = m.read_byte(O_VRAM + 16*(((m.read_byte(O_IO+IO_LY) - m.read_byte(O_OAM+(i * 4)) + 16) > 7) || !(yflip) ? (t_number | 0x01) : (t_number & 0xFE)) + ((m.read_byte(O_OAM+(i * 4) + 3) & OAM_F_YFLIP) ? yflip : y));
+          t_data = m.read_word(O_VRAM + 16*(((m.read_byte(O_IO+IO_LY) - m.read_byte(O_OAM+(i * 4)) + 16) > 7) || !(yflip) ? (t_number | 0x01) : (t_number & 0xFE)) + ((m.read_byte(O_OAM+(i * 4) + 3) & OAM_F_YFLIP) ? yflip : y));
         }
         if (!(m.read_byte(O_OAM+((i * 4) + 3)) & OAM_F_XFLIP)) {REVERSE_WORD(t_data);}
         count++;
         //counting backwards since bit 7 is leftmost pixel and bit 0 is rightmost
         for (int x = 7; x >= 0; x--)
         {
-          if (m.read_byte(O_OAM+((i * 4) + 1)) + x - 8 >= 0 && m.read_byte(O_OAM+((i * 4) + 1)) + x - 8 < 160 && (!(m.read_byte(O_OAM+((i * 4) + 3)) & OAM_F_BG) || (linebuffer[m.read_byte(O_OAM+((i * 4) + 1)) + x - 8] & 0x03) == 0))
+          if (((m.read_byte(O_OAM+((i * 4) + 1)) + x - 8 >= 0) && (m.read_byte(O_OAM+((i * 4) + 1)) + x - 8 < 160)) && (!(m.read_byte(O_OAM+((i * 4) + 3)) & OAM_F_BG) || (linebuffer[m.read_byte(O_OAM+((i * 4) + 1)) + x - 8] & 0x03) == 0))
           {
             uint8 a = (LOW(t_data) & BIT(x)) >> x;
             uint8 b = (HIGH(t_data) & BIT(x)) >> x;

@@ -9,7 +9,6 @@
 
 using namespace std;
 
-//const static int tacvals[4] = {1024, 16, 64, 256};
 const static int tacvals[4] = {256, 4, 16, 64};
 
 typedef struct color {

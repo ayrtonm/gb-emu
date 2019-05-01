@@ -8,7 +8,7 @@
 //and real cpu usage is low
 //the screenupdateclk threshold can then be set based on CPU_SLEEP time so that the screen refreshes at approximately 60 Hz
 //I should add a function to automatically set this ratio to minimize cpu usage
-#define CPU_CLKS 100
+#define CPU_CLKS 1000
 //in nanoseconds
 //#define CPU_SLEEP 2
 //#define DEBUG
@@ -30,17 +30,24 @@ cpu::cpu()
   cout << "cpu initialized\n";
 }
 
-void cpu::print_registers(void)
+void cpu::print_registers(mem &m)
 {
-  cout << "AF: 0x" << hex <<  (int) af.w << '\n';
-  cout << "BC: 0x" << hex <<  (int) bc.w << '\n';
-  cout << "DE 0x" << hex <<  (int) de.w << '\n';
-  cout << "HL 0x" << hex <<  (int) hl.w << '\n';
-  cout << "SP 0x" << hex <<  (int) sp.w << '\n';
-  cout << "PC 0x" << hex <<  (int) pc.w << '\n';
+  cout << "AF: 0x" << hex <<  (int) af.w << endl;
+  cout << "BC: 0x" << hex <<  (int) bc.w << endl;
+  cout << "DE 0x" << hex <<  (int) de.w << endl;
+  cout << "HL 0x" << hex <<  (int) hl.w << endl;
+  cout << "SP 0x" << hex <<  (int) sp.w << endl;
+  cout << "PC 0x" << hex <<  (int) pc.w << endl;
+  cout << "[PC] 0x" << hex << (int) m.read_byte(pc.w);
+  for (int i = length[m.read_byte(pc.w)]; i > 1; i--)
+  {
+    cout << " 0x" << hex << (int) m.read_byte(pc.w+length[m.read_byte(pc.w)]-i+1);
+  }
+  cout << endl;
   return;
 }
 
+//one cpu click is approximately 0.953674 microseconds
 int cpu::emulate(mem &m, lcd &l)
 {
   int op;
@@ -90,8 +97,8 @@ int cpu::emulate(mem &m, lcd &l)
       {
         cout << " 0x" << hex << (int) m.read_byte(pc.w+length[op]-i+1);
       }
-      //cout << " bc register " << hex << (int) bc.w << "\n";
       cout << endl;
+      cout << "stack is pointing at 0x" << hex <<(int)sp.w << endl;
 #endif
       if (op == 0xcb)
       {
@@ -121,7 +128,7 @@ int cpu::emulate(mem &m, lcd &l)
       wait.tv_nsec = 1000;
       cputhrottleclk -= CPU_CLKS;
       //nanosleep(&wait, NULL);
-      usleep(100);
+      usleep(1000);
     }
   }
   return 1;

@@ -56,10 +56,10 @@ typedef union
 #define OAM_F_XFLIP 0x20
 #define OAM_F_PAL   0x10
 //!time in each lcd mode in lcd clks
-#define T_HBLANK  204
-#define T_VBLANK  4560
-#define T_OAM     80
-#define T_VRAM    172
+#define T_HBLANK  51
+#define T_VBLANK  1140
+#define T_OAM     20
+#define T_VRAM    43
 #define TIO_LY_INC  ((T_HBLANK)+(T_OAM)+(T_VRAM))
 //timer flags
 #define TIMER_ENABLED 0x04

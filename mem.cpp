@@ -52,7 +52,7 @@ void mem::write_byte(uint16 address, uint8 data) {
   //  return;
   //}
   if (1){//(dmatimer != 0) {
-  //  if (address >= O_HRAM) {
+  //  if ((address >= O_HRAM) && (address != O_IE)) {
   //    memory[address] = data;
   //  }
   //}
@@ -88,12 +88,11 @@ void mem::write_byte(uint16 address, uint8 data) {
     else if ((data & JOYP_SPECIAL_SELECTED) == 0x00) {
       memory[O_IO+IO_JOYP] = joyspecial + (data & 0xf0);
     }
-    else if ((data & 0xf0) == (JOYP_SPECIAL_SELECTED|JOYP_DIRECTION_SELECTED)) {
+    else if ((data & 0x30) == (JOYP_SPECIAL_SELECTED|JOYP_DIRECTION_SELECTED)) {
       memory[O_IO+IO_JOYP] = joydirection + (data & 0xf0);
     }
   }
   else if (address == O_IO+IO_DMA) {
-    //4 MHz * 160 microseconds (might be off by factor of 4)
     dmatimer = 160;
     if (data <= 0xF1) {
       for (int i = 0; i < 160; i++) {

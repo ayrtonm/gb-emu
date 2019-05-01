@@ -70,8 +70,11 @@ ld #hl 0x20
 ld $hl 0xff40
 ld $a #hl
 //used to clear 3rd bit of [0xff40]
-ld $b 0xfb
-and $b
+//ld $b 0xfb
+//and $b
+//used to set 3rd bit of [0xff40]
+ld $b 0x04
+or $b
 ld #hl $a
 
 //place sprite

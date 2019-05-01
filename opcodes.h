@@ -272,16 +272,17 @@ case 0xef:  {RST(0x28);break;}
 case 0xf0:  {uint16 temp=m.read_byte(pc.w-1)+0xFF00;LD_MR(af.b.h,temp);break;}
 case 0xf1:  {POP(af.b.h,af.b.l);break;}
 case 0xf2:  {uint16 temp=bc.b.l+0xFF00;LD_MR(af.b.h,temp);break;}
-case 0xf3:  {ime=0;/*ei_delay = 0;*/break;}
+case 0xf3:  {ime=0;ei_delay = 0;break;}
 case 0xf4:  {break;}//no opcode
 case 0xf5:  {PUSH(af.b.h,af.b.l);break;}
 case 0xf6:  {OR(m.read_byte(pc.w-1));break;}
 case 0xf7:  {RST(0x30);break;}
 
-//case 0xf8:  {break;}//ld hl, sp+r8
+//ostensibly opcode 0xf8 is this but we need to set some flags
+case 0xf8:  {int mtemp = sp.w + ((signed char)m.read_byte(pc.w-1));af.b.l = (mtemp & 0x0100 ? F_C : 0)|((hl.w^(m.read_byte(pc.w-1))^(mtemp & 0xFFFF)) & 0x10 ? F_H : 0);LD(hl.w,mtemp & 0xFFFF);break;}//add sp, r8
 case 0xf9:  {LD(sp.w,hl.w);break;}
 case 0xfa:  {LD_MR(af.b.h,m.read_word(pc.w-2));break;}
-case 0xfb:  {ime=1;/*ei_delay = 1;*/break;}
+case 0xfb:  {ime=1;ei_delay = 1;break;}
 case 0xfc:  {break;}//no opcode
 case 0xfd:  {break;}//no opcode
 case 0xfe:  {CP(m.read_byte(pc.w-1));break;}

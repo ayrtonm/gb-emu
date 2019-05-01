@@ -56,6 +56,12 @@ typedef union
 #define OAM_F_XFLIP 0x20
 #define OAM_F_PAL   0x10
 //!time in each lcd mode in lcd clks
+//with these settings opus5.gb shows up on screen but timing is incorrect
+//#define T_HBLANK  204
+//#define T_VBLANK  4560
+//#define T_OAM     80
+//#define T_VRAM    172
+//with these settings tetris.gb shows up on but I should verify these are correct
 #define T_HBLANK  51
 #define T_VBLANK  1140
 #define T_OAM     20

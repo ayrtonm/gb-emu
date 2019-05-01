@@ -38,7 +38,9 @@ mem::mem(string filename, string memorydump) {
   joydirection = 0x0f;
   joyspecial = 0x0f;
   //initiallize joypad register to something sensible
-  //memory[O_IO + IO_JOYP] = 0x20 + joydirection;
+  loadeddirection = true;
+  //direction is actually selected since setting the bit disables it
+  memory[O_IO + IO_JOYP] = (JOYP_SPECIAL_SELECTED|0x0f);
   cout << "memory initialized\n";
 }
 //!Adds offset to address if trying to modify ROM Bank N or External RAM
@@ -57,7 +59,7 @@ void mem::write_byte(uint16 address, uint8 data) {
     }
   }
   else {
-  memory[address] = data;
+  if (address != O_IO+IO_JOYP) {memory[address] = data;}
   //not totally sure if modifying IO_IR and IO_LCDSTAT is necessary after updating the palettes
   if (address == O_IO+IO_BGP) {
     update_palette(2,memory[O_IO + IO_BGP]);
@@ -74,6 +76,10 @@ void mem::write_byte(uint16 address, uint8 data) {
     //memory[O_IO + IO_IR] &= 0x1f;
     //memory[O_IO + IO_LCDSTAT] &= 0x78;
   }
+  else if (address == O_IO+IO_LY) {
+    //memory[O_IO+IO_LY] = 0x00;
+    //not sure what "reset the counter" means
+  }
   else if (address == O_IO+IO_DIV) {
     memory[O_IO+IO_DIV] = 0x00;
   }
@@ -81,16 +87,33 @@ void mem::write_byte(uint16 address, uint8 data) {
     tacthreshold = tacvals[data & 0x03];
   }
   else if (address == O_IO+IO_JOYP) {
-    //get lower 4 bits of joydirection/special and combine that with upper 4 bits in memory
-    if ((data & JOYP_DIRECTION_SELECTED) == 0x00) {
-      memory[O_IO+IO_JOYP] = joydirection + (data & 0xf0);
+    uint8 keysselected = data & 0x30;
+    //if special keys are selected
+    if (keysselected == JOYP_DIRECTION_SELECTED) {
+      //cout << hex << (int)data << " game tried accessing special keys!\n";
+      //toggle internal memory flag to false
+      loadeddirection = false;
+      //load saved joydirection into memory
+      //also load top 4 bits of data
+      memory[O_IO+IO_JOYP] = (joyspecial & 0x0f)|(data & 0xf0);
     }
-    else if ((data & JOYP_SPECIAL_SELECTED) == 0x00) {
-      memory[O_IO+IO_JOYP] = joyspecial + (data & 0xf0);
+    //if direction keys are selected
+    else if (keysselected == JOYP_SPECIAL_SELECTED) {
+      //cout << hex << (int)data << " game tried accessing direction keys!\n";
+      //toggle internal memory flag to true
+      loadeddirection = true;
+      //load saved joydirection into memory
+      //also load top 4 bits of data
+      memory[O_IO+IO_JOYP] = (joydirection & 0x0f)|(data & 0xf0);
     }
-    else if ((data & 0x30) == (JOYP_SPECIAL_SELECTED|JOYP_DIRECTION_SELECTED)) {
-      //memory[O_IO+IO_JOYP] = 0x0f + (data & 0xf0);
-      return;
+    else if (keysselected == (JOYP_SPECIAL_SELECTED|JOYP_DIRECTION_SELECTED)) {
+      //keep same set of keys loaded
+      memory[O_IO+IO_JOYP] |= (JOYP_SPECIAL_SELECTED|JOYP_DIRECTION_SELECTED);
+      //cout << hex << (int)data << " game tried blocking both sets of keys!\n";
+    }
+    else if (keysselected == 0x00) {
+      //cout << hex << (int)data << " game tried accessing both sets of keys!\n";
+      memory[O_IO+IO_JOYP] = ((data & 0xf0)|0x0f);
     }
   }
   else if (address == O_IO+IO_DMA) {
@@ -187,31 +210,36 @@ void mem::update_timers(int dt) {
 }
 
 void mem::update_keys(bool special, uint8 bit, bool down) {
+  //cout << hex << (int)memory[O_IO+IO_JOYP] << " " << hex << (int)joyspecial << " " << hex << (int)joydirection << "  to  ";
   if (special) {
     if (down) {
+      //if the key for a special button is pressed, clear that bit in joyspecial
       joyspecial &= ~bit;
     }
     else {
+      //if the key for a special button is released, set that bit in joyspecial
       joyspecial |= bit;
     }
-    //update addressable memory special keys are currently selected
-    //this way memory is kept up to date without having to check in read_byte
-    if ((memory[O_IO + IO_JOYP] & JOYP_SPECIAL_SELECTED) == 0x00) {
-      memory[O_IO + IO_JOYP] = joyspecial + (memory[O_IO + IO_JOYP] & 0xf0);
+    //if joyspecial is currently loaded, update the lower 4 bits in memory
+    if (!loadeddirection) {
+      memory[O_IO + IO_JOYP] = (joyspecial & 0x0f) | (memory[O_IO + IO_JOYP] & 0xf0);
     }
   }
   else {
     if (down) {
+      //if the key for a direction button is pressed, clear that bit in joydirection
       joydirection &= ~bit;
     }
     else {
+      //if the key for a direction button is released, set that bit in joydirection
       joydirection |= bit;
     }
-    if ((memory[O_IO + IO_JOYP] & JOYP_DIRECTION_SELECTED) == 0x00) {
-      memory[O_IO + IO_JOYP] = joydirection + (memory[O_IO + IO_JOYP] & 0xf0);
+    //if joydirection is currently loaded, update the lower 4 bits in memory
+    if (loadeddirection) {
+      memory[O_IO + IO_JOYP] = (joydirection & 0x0f) | (memory[O_IO + IO_JOYP] & 0xf0);
     }
   }
-  //cout << hex << (int)(memory[O_IO+IO_JOYP] & 0x0f) << " " << hex << (int)joyspecial << " " << hex << (int)joydirection << endl;
+  //cout << hex << (int)memory[O_IO+IO_JOYP] << " " << hex << (int)joyspecial << " " << hex << (int)joydirection << endl;
 }
 uint8 mem::get_keys(bool special) {
   if (special) {
@@ -220,4 +248,7 @@ uint8 mem::get_keys(bool special) {
   else {
     return joydirection;
   }
+}
+bool mem::direction_loaded() {
+  return loadeddirection;
 }

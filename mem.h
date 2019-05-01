@@ -43,6 +43,7 @@ class mem
     void update_timers(int dt);
     void update_keys(bool special, uint8 bit, bool down);
     uint8 get_keys(bool special);
+    bool direction_loaded();
   private:
     //addressable memory
     array<uint8,0x10000> memory;
@@ -57,6 +58,7 @@ class mem
     int tacthreshold;
     int dmatimer;
     //need two bytes to store the joypad data since only one is available in addressable memory at any time
+    bool loadeddirection;
     uint8 joydirection;
     uint8 joyspecial;
 };

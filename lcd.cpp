@@ -189,13 +189,15 @@ int lcd::parse_events(mem &m)
 }
 void lcd::compareLYtoLYC(mem &m)
 {
-  if (m.read_byte(O_IO+IO_LY) == m.read_byte(O_IO+IO_LYC))
+  uint8 curline = m.read_byte(O_IO+IO_LY);
+  uint8 compline = m.read_byte(O_IO+IO_LYC);
+  if (curline == compline)
   {
     m.write_byte(O_IO+IO_LCDSTAT, m.read_byte(O_IO+IO_LCDSTAT) | 0x04);
-    if (m.read_byte(O_IO+IO_LCDSTAT) & 0x40) 
-    {
+    //if (m.read_byte(O_IO+IO_LCDSTAT) & 0x40) 
+    //{
       m.write_byte(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_LCD);
-    }
+    //}
   }
   else
   {

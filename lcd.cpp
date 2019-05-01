@@ -248,7 +248,7 @@ void lcd::draw_line(mem &m)
       if (x == 8)
       {
         x = 0;
-        mapoffset = ((((curline + scrolly) >> 3) & 31) << 5) + (((scrollx + i) >> 3) & 31);
+        mapoffset = ((((curline + scrolly) >> 3) & 31) << 5) + (((scrollx + i + 1) >> 3) & 31);
         t_map_number = ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_MAP) ? m.read_byte(O_VRAM + mapoffset + V_MD_1) : m.read_byte(O_VRAM + mapoffset + V_MD_0));
         if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_BG_DATA))
         {
@@ -263,17 +263,16 @@ void lcd::draw_line(mem &m)
     fill(begin(linebuffer),end(linebuffer),0);
   }
   uint8 winy = m.read_byte(O_IO+IO_WY);
+  uint8 winx = m.read_byte(O_IO+IO_WX);
   if ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_ENABLE) && (winy <= curline))
   {
-    uint8 w_offset = (((curline - winy) >> 3) & 31) << 5;
+    uint8 w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((7 - winx) >> 3) & 31);
     uint8 w_map_number = ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) ? m.read_byte(O_VRAM + w_offset + V_MD_1) : m.read_byte(O_VRAM + w_offset + V_MD_0));
     //offsets within tile
-    int x = 0;
+    uint8 x = 0;
     uint8 y = (curline - winy) & 7;
     uint16 w_data = m.read_word(O_VRAM + 16*w_map_number + (y << 1) + V_TD_1);
-    int i;
-    uint8 winx = m.read_byte(O_IO+IO_WX);
-    for (i = MAX(winx-7,0); i < 160; i++)
+    for (int i = MAX(winx-7,0); i < 160; i++)
     {
       uint8 a = (LOW(w_data) & BIT(7-x)) >> (7-x);
       uint8 b = (HIGH(w_data) & BIT(7-x)) >> (7-x);
@@ -283,7 +282,7 @@ void lcd::draw_line(mem &m)
       if (x == 8)
       {
         x = 0;
-        w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((i - winx + 7) >> 3) & 31);
+        w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((1 + i - winx + 7) >> 3) & 31);
         w_map_number = ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) ? m.read_byte(O_VRAM + w_offset + V_MD_1) : m.read_byte(O_VRAM + w_offset + V_MD_0));
         w_data = m.read_word(O_VRAM + 16*w_map_number + (y << 1) + V_TD_1);
       }

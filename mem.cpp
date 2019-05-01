@@ -43,7 +43,7 @@ mem::mem(string filename, string memorydump) {
 }
 //!Adds offset to address if trying to modify ROM Bank N or External RAM
 void mem::write_byte(uint16 address, uint8 data) {
-  ////prevent writing to OAM while LCD is writing to OAM
+  //prevent writing to OAM while LCD is writing to OAM
   //if ((address < O_UNUSED) && (address >= O_OAM) && (memory[O_IO+IO_LCDSTAT] & 0x02)) {
   //  return;
   //}
@@ -51,12 +51,12 @@ void mem::write_byte(uint16 address, uint8 data) {
   //else if ((((address < O_UNUSED) && (address >= O_OAM)) || ((address < O_ERAM) && (address >= O_VRAM))) && (memory[O_IO+IO_LCDSTAT] & 0x03)) {
   //  return;
   //}
-  if (1){//(dmatimer != 0) {
-  //  if ((address >= O_HRAM) && (address != O_IE)) {
-  //    memory[address] = data;
-  //  }
-  //}
-  //else {
+  if(dmatimer != 0) {
+    if ((address >= O_HRAM) && (address != O_IE)) {
+      memory[address] = data;
+    }
+  }
+  else {
   memory[address] = data;
   //not totally sure if modifying IO_IR and IO_LCDSTAT is necessary after updating the palettes
   if (address == O_IO+IO_BGP) {
@@ -89,7 +89,8 @@ void mem::write_byte(uint16 address, uint8 data) {
       memory[O_IO+IO_JOYP] = joyspecial + (data & 0xf0);
     }
     else if ((data & 0x30) == (JOYP_SPECIAL_SELECTED|JOYP_DIRECTION_SELECTED)) {
-      memory[O_IO+IO_JOYP] = joydirection + (data & 0xf0);
+      //memory[O_IO+IO_JOYP] = 0x0f + (data & 0xf0);
+      return;
     }
   }
   else if (address == O_IO+IO_DMA) {
@@ -210,6 +211,7 @@ void mem::update_keys(bool special, uint8 bit, bool down) {
       memory[O_IO + IO_JOYP] = joydirection + (memory[O_IO + IO_JOYP] & 0xf0);
     }
   }
+  //cout << hex << (int)(memory[O_IO+IO_JOYP] & 0x0f) << " " << hex << (int)joyspecial << " " << hex << (int)joydirection << endl;
 }
 uint8 mem::get_keys(bool special) {
   if (special) {

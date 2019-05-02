@@ -15,7 +15,24 @@ mem::mem(string filename, string memorydump) {
   memory[O_IO + IO_TIMA] = 0x00;
   memory[O_IO + IO_TMA] = 0x00;
   memory[O_IO + IO_TAC] = 0x00;
-  //remember to set initial values for NR registers (sound)
+  memory[O_IO + IO_NR10] = 0x80;
+  memory[O_IO + IO_NR11] = 0xbf;
+  memory[O_IO + IO_NR12] = 0xf3;
+  memory[O_IO + IO_NR14] = 0xbf;
+  memory[O_IO + IO_NR21] = 0x3f;
+  memory[O_IO + IO_NR22] = 0x00;
+  memory[O_IO + IO_NR24] = 0xbf;
+  memory[O_IO + IO_NR30] = 0x7f;
+  memory[O_IO + IO_NR31] = 0xff;
+  memory[O_IO + IO_NR32] = 0x9f;
+  memory[O_IO + IO_NR33] = 0xbf;
+  memory[O_IO + IO_NR41] = 0xff;
+  memory[O_IO + IO_NR42] = 0x00;
+  memory[O_IO + IO_NR43] = 0x00;
+  memory[O_IO + IO_NR44] = 0xbf;
+  memory[O_IO + IO_NR50] = 0x77;
+  memory[O_IO + IO_NR51] = 0xf3;
+  memory[O_IO + IO_NR52] = 0xf1;
   memory[O_IO + IO_LCDC] = 0x91;
   memory[O_IO + IO_SCY] = 0x00;
   memory[O_IO + IO_SCX] = 0x00;
@@ -26,14 +43,16 @@ mem::mem(string filename, string memorydump) {
   memory[O_IO + IO_WY] = 0x00;
   memory[O_IO + IO_WX] = 0x00;
   memory[O_IE] = 0x00;
-  //initialized to 0x91 so lcd mode is initially VBLANK(0x01)
-  //"" "" to 0x79 so "" "" and all other lcd interrupts are enabled
-  //memory[O_IO + IO_LCDSTAT] = 0x93;
-  memory[O_IO + IO_LCDSTAT] = 0x73;
+  
+  lcdmode = 1;
+  memory[O_IO + IO_LCDSTAT] = 0x91;
+
   divtimer = 0;
   timatimer = 0;
   tacthreshold = tacvals[0];
   dmatimer = 0;
+  dmatransfering = false;
+  dmasrc = 0x00;
   //0x0f is no keys pressed
   joydirection = 0x0f;
   joyspecial = 0x0f;
@@ -43,87 +62,116 @@ mem::mem(string filename, string memorydump) {
   memory[O_IO + IO_JOYP] = (JOYP_SPECIAL_SELECTED|0x0f);
   cout << "memory initialized\n";
 }
-//!Adds offset to address if trying to modify ROM Bank N or External RAM
+void mem::write_byte_internal(uint16 address, uint8 data) {
+  //this can only take values between 0 and 153 but step_lcd takes care of that
+  if (address == O_IO+IO_LY) {
+    assert(data < 154);
+    memory[O_IO+IO_LY] = data;
+  }
+  else if (address == O_IO+IO_LCDSTAT) {
+    memory[O_IO+IO_LCDSTAT] = data;
+    lcdmode = data & 0x03;
+  }
+  else {
+    memory[address] = data;
+  }
+}
 void mem::write_byte(uint16 address, uint8 data) {
-  //prevent writing to OAM while LCD is writing to OAM
-  //if ((address < O_UNUSED) && (address >= O_OAM) && (memory[O_IO+IO_LCDSTAT] & 0x02)) {
-  //  return;
-  //}
-  ////prevent writing to OAM and VRAM while LCD is writing to both
-  //else if ((((address < O_UNUSED) && (address >= O_OAM)) || ((address < O_ERAM) && (address >= O_VRAM))) && (memory[O_IO+IO_LCDSTAT] & 0x03)) {
-  //  return;
-  //}
-  if(dmatimer != 0) {
+  if (dmatransfering) {
     if ((address >= O_HRAM) && (address != O_IE)) {
       memory[address] = data;
     }
+    return;
   }
-  else {
-  if (address != O_IO+IO_JOYP) {memory[address] = data;}
-  //not totally sure if modifying IO_IR and IO_LCDSTAT is necessary after updating the palettes
-  if (address == O_IO+IO_BGP) {
-    update_palette(2,memory[O_IO + IO_BGP]);
-    //memory[O_IO + IO_IR] &= 0x1f;
-    //memory[O_IO + IO_LCDSTAT] &= 0x78;
-  }
-  else if (address == O_IO+IO_OBP0) {
-    update_palette(0,memory[O_IO + IO_OBP0]);
-    //memory[O_IO + IO_IR] &= 0x1f;
-    //memory[O_IO + IO_LCDSTAT] &= 0x78;
-  }
-  else if (address == O_IO+IO_OBP1) {
-    update_palette(1,memory[O_IO + IO_OBP1]);
-    //memory[O_IO + IO_IR] &= 0x1f;
-    //memory[O_IO + IO_LCDSTAT] &= 0x78;
+  //else if (((address < O_UNUSED) && (address >= O_OAM)) && ((lcdmode == 2) || (lcdmode == 3))) {
+  //  //can't access OAM during lcd modes 2 and 3
+  //  return;
+  //}
+  //else if (((address < O_ERAM) && (address >= O_VRAM)) && (lcdmode == 3)) {
+  //  //can't access VRAM during lcd mode 3
+  //  return;
+  //}
+  else if (address == O_IO+IO_LCDSTAT) {
+    //lower 3 bits of LCD STAT are read only
+    //also since we can't change lcd mode directly, lcdmode doesn't have to be updated here
+    memory[O_IO+IO_LCDSTAT] = (memory[O_IO+IO_LCDSTAT] & 0x07) | (data & 0xf8);
+    return;
   }
   else if (address == O_IO+IO_LY) {
-    //memory[O_IO+IO_LY] = 0x00;
-    //not sure what "reset the counter" means
+    //this is read only
+    return;
+  }
+  else if (address == O_IO+IO_BGP) {
+    memory[address] = data;
+    update_palette(2, data);
+    return;
+  }
+  else if (address == O_IO+IO_OBP0) {
+    memory[address] = data;
+    update_palette(0, data);
+    return;
+  }
+  else if (address == O_IO+IO_OBP1) {
+    memory[address] = data;
+    update_palette(1, data);
+    return;
+  }
+  else if (address == O_IO+IO_LY) {
+    //this is read only, attempting to write to it "resets the counter"
+    memory[O_IO+IO_LY] = 0;
+    return;
   }
   else if (address == O_IO+IO_DIV) {
     memory[O_IO+IO_DIV] = 0x00;
+    return;
   }
   else if (address == O_IO+IO_TAC) {
     tacthreshold = tacvals[data & 0x03];
+    memory[O_IO+IO_TAC] = data;
+    return;
   }
   else if (address == O_IO+IO_JOYP) {
     uint8 keysselected = data & 0x30;
     //if special keys are selected
     if (keysselected == JOYP_DIRECTION_SELECTED) {
-      //cout << hex << (int)data << " game tried accessing special keys!\n";
-      //toggle internal memory flag to false
       loadeddirection = false;
-      //load saved joydirection into memory
-      //also load top 4 bits of data
       memory[O_IO+IO_JOYP] = (joyspecial & 0x0f)|(data & 0xf0);
+      return;
     }
     //if direction keys are selected
     else if (keysselected == JOYP_SPECIAL_SELECTED) {
-      //cout << hex << (int)data << " game tried accessing direction keys!\n";
-      //toggle internal memory flag to true
       loadeddirection = true;
-      //load saved joydirection into memory
-      //also load top 4 bits of data
       memory[O_IO+IO_JOYP] = (joydirection & 0x0f)|(data & 0xf0);
+      return;
     }
-    else if (keysselected == (JOYP_SPECIAL_SELECTED|JOYP_DIRECTION_SELECTED)) {
-      //keep same set of keys loaded
-      memory[O_IO+IO_JOYP] |= (JOYP_SPECIAL_SELECTED|JOYP_DIRECTION_SELECTED);
-      //cout << hex << (int)data << " game tried blocking both sets of keys!\n";
+    //if neither set is selected
+    else if (keysselected == (JOYP_DIRECTION_SELECTED|JOYP_SPECIAL_SELECTED)) {
+      //keep previous setting for loadeddirection
+      memory[O_IO+IO_JOYP] = (data & 0xf0);
+      return;
     }
+    //if both sets are selected (undefined behavior)
     else if (keysselected == 0x00) {
-      //cout << hex << (int)data << " game tried accessing both sets of keys!\n";
-      memory[O_IO+IO_JOYP] = ((data & 0xf0)|0x0f);
+      //ignore attempt to write to memory
+      return;
     }
   }
   else if (address == O_IO+IO_DMA) {
-    dmatimer = 160;
     if (data <= 0xF1) {
-      for (int i = 0; i < 160; i++) {
-        memory[0xFE00 + i] = memory[(data << 8) + i];
-      }
+      dmatimer = 160;
+      dmatransfering = true;
+      dmasrc = data;
+      //for (int i = 0; i < 160; i++) {
+      //  memory[0xFE00 + i] = memory[(data << 8) + i];
+      //}
     }
   }
+  else if (address < 0x8000) {
+    cout << hex <<(int)address << " " << hex << (int)data<< " tried writing to ROM\n";
+    return;
+  }
+  else {
+    memory[address] = data;
   }
 };
 
@@ -141,9 +189,9 @@ void mem::load_cart(string filename)
   //cart.read((char *) &romb0[0],O_ROMBN);
   //cart.read((char *) &rombn[0],(int)size-(int)O_ROMBN);
   cart.close();
-  for (int i =0x0134; i < 0x0144; i++) cout << memory[i];//print title
-  cout << (memory[0x014A] ? "\nNon-Japanese" : "\nJapanese");
-  cout << (memory[0x0147] == 0x00 ? "\ncartridge is ROM only" : "\ncartridge includes MBC (not implemented)");
+  for (int i =0x0134; i < 0x0144; i++) cout << read_byte(i);//print title
+  cout << (read_byte(0x014A) ? "\nNon-Japanese" : "\nJapanese");
+  cout << (read_byte(0x0147) == 0x00 ? "\ncartridge is ROM only" : "\ncartridge includes MBC (not implemented)");
   cout << "\n";
 }
 void mem::update_palette(uint8 palette, uint8 value)
@@ -185,26 +233,29 @@ void mem::update_timers(int dt) {
   divtimer += dt;
   if (divtimer > 64) {
     divtimer -= 64;
-    //directly accessing memory since writing to it resets it to zero
-    memory[O_IO+IO_DIV]++;
+    write_byte_internal(O_IO+IO_DIV, read_byte(O_IO+IO_DIV)+1);
   }
-  if (memory[O_IO+IO_TAC] & TIMER_ENABLED) {
+  if (read_byte(O_IO+IO_TAC) & TIMER_ENABLED) {
     timatimer += dt;
     if (timatimer > tacthreshold) {
       timatimer -= tacthreshold;
-      memory[O_IO+IO_TIMA]++;
+      write_byte_internal(O_IO+IO_TIMA, read_byte(O_IO+IO_TIMA)+1);
       //if overflow load value in TMA register
-      if (memory[O_IO+IO_TIMA] == 0x00) {
-        memory[O_IO+IO_TIMA] = memory[O_IO+IO_TMA];
+      if (read_byte(O_IO+IO_TIMA) == 0x00) {
+        write_byte_internal(O_IO+IO_TIMA, read_byte(O_IO+IO_TMA));
         //request a timer interrupt
-        write_byte(O_IO+IO_IR, read_byte(O_IO+IO_IR) | INT_TIM);
+        write_byte_internal(O_IO+IO_IR, read_byte(O_IO+IO_IR) | INT_TIM);
       }
     }
   }
   if (dmatimer != 0) {
+    for (int i = 160-dmatimer; i < MIN(160-dmatimer+dt,160); i++) {
+      memory[0xFE00 + i] = memory[(dmasrc << 8) + i];
+    }
     dmatimer -= dt;
     if (dmatimer <= 0) {
       dmatimer = 0;
+      dmatransfering = false;
     }
   }
 }
@@ -222,7 +273,7 @@ void mem::update_keys(bool special, uint8 bit, bool down) {
     }
     //if joyspecial is currently loaded, update the lower 4 bits in memory
     if (!loadeddirection) {
-      memory[O_IO + IO_JOYP] = (joyspecial & 0x0f) | (memory[O_IO + IO_JOYP] & 0xf0);
+      write_byte_internal(O_IO+IO_JOYP,(joyspecial & 0x0f) | (read_byte(O_IO+IO_JOYP) & 0xf0));
     }
   }
   else {
@@ -236,7 +287,7 @@ void mem::update_keys(bool special, uint8 bit, bool down) {
     }
     //if joydirection is currently loaded, update the lower 4 bits in memory
     if (loadeddirection) {
-      memory[O_IO + IO_JOYP] = (joydirection & 0x0f) | (memory[O_IO + IO_JOYP] & 0xf0);
+      write_byte_internal(O_IO+IO_JOYP,(joydirection & 0x0f) | (read_byte(O_IO+IO_JOYP) & 0xf0));
     }
   }
   //cout << hex << (int)memory[O_IO+IO_JOYP] << " " << hex << (int)joyspecial << " " << hex << (int)joydirection << endl;

@@ -76,7 +76,7 @@ int cpu::emulate(mem &m, lcd &l)
             //let's disable interrupts
             ime = 0;
             //clear the interrupt flag that was just triggered
-            m.write_byte(O_IO + IO_IR, m.read_byte(O_IO + IO_IR) & ~i);
+            m.write_byte_internal(O_IO + IO_IR, m.read_byte(O_IO + IO_IR) & ~i);
             ei_delay = 0;
             //push the program counter onto the stack
             PUSH(pc.b.h,pc.b.l);

@@ -25,15 +25,18 @@ class mem
     inline uint8 read_byte(uint16 address) const {
       return memory[address];
     };
-    void write_byte(uint16 address, uint8 data);
     inline uint16 read_word(uint16 address) const {
       return (read_byte(address))+(read_byte(address + 1) << 8);
     };
+
+    void write_byte_internal(uint16 address, uint8 data);
+    void write_byte(uint16 address, uint8 data);
     inline void write_word(uint16 address, uint16 data)
     {
       write_byte(address,data & 0x00ff);
       write_byte(address+1,data >> 8);
     };
+
     void update_palette(uint8 palette, uint8 value);
     array<color,4> get_palette(uint8 palette_num);
     void dump_memory();
@@ -44,19 +47,24 @@ class mem
     void update_keys(bool special, uint8 bit, bool down);
     uint8 get_keys(bool special);
     bool direction_loaded();
+
   private:
     //addressable memory
-    array<uint8,0x10000> memory;
+    array<uint8,0x10000> memory = {};
     //!First palette is obp0, then obp1, then bgp
     array<color,4> palettes[3];
     bool dumpmemory = false;
     string memorydumpfile;
+
+    int lcdmode;
     //divtimer counts every 256 CPU clicks
     //making it int to prevent having to cast dt and since it is likely to overflow
     int divtimer;
     int timatimer;
     int tacthreshold;
     int dmatimer;
+    bool dmatransfering;
+    uint8 dmasrc;
     //need two bytes to store the joypad data since only one is available in addressable memory at any time
     bool loadeddirection;
     uint8 joydirection;

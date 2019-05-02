@@ -3,10 +3,11 @@
 #include "lcd.h"
 #include "mem.h"
 #define RENDERING
-#define LCDUPDATECLK 10000
+#define LCDUPDATECLK 1000
 
 lcd::lcd()
 {
+  fill(begin(linebuffer),end(linebuffer),0);
   scale = 1;
   clk = 0;
   screenupdateclk = 0;
@@ -47,20 +48,31 @@ void lcd::step_lcd(int dt, mem &m)
       //Horizontal Blank
       case 0x00:
       {
-        m.write_byte(O_IO+IO_LY, m.read_byte(O_IO+IO_LY)+1);
+        m.write_byte_internal(O_IO+IO_LY, m.read_byte(O_IO+IO_LY)+1);
         compareLYtoLYC(m);
         if (m.read_byte(O_IO+IO_LY) < 143)
         {
+          //if OAM interrupt enabled
+          if (m.read_byte(O_IO+IO_LCDSTAT) & LCDSTAT_OAM_INT) {
+            //request OAM interrupt
+            m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_LCD);
+          }
           //set lcd mode to OAM
-          m.write_byte(O_IO+IO_LCDSTAT, (m.read_byte(O_IO+IO_LCDSTAT) | 0x02) & ~(0x01));
+          m.write_byte_internal(O_IO+IO_LCDSTAT, (m.read_byte(O_IO+IO_LCDSTAT) | 0x02) & ~(0x01));
           clk += T_OAM;
         }
         else
         {
+          //not sure which interrupt to request when switching to vblank
+          //if vblank interrupt enabled
+          if (m.read_byte(O_IO+IO_LCDSTAT) & LCDSTAT_VBL_INT) {
+            //request vblank interrupt
+            m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_LCD);
+          }
           //request vblank interrupt
-          m.write_byte(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_VBL);
+          m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_VBL);
           //set lcd mode to VBLANK 
-          m.write_byte(O_IO+IO_LCDSTAT, (m.read_byte(O_IO+IO_LCDSTAT) | 0x01) & ~(0x02));
+          m.write_byte_internal(O_IO+IO_LCDSTAT, (m.read_byte(O_IO+IO_LCDSTAT) | 0x01) & ~(0x02));
           clk += TIO_LY_INC;
         }
         break;
@@ -79,14 +91,19 @@ void lcd::step_lcd(int dt, mem &m)
         compareLYtoLYC(m);
         if (m.read_byte(O_IO+IO_LY) < 153)
         {
-          m.write_byte(O_IO+IO_LY, m.read_byte(O_IO+IO_LY)+1);
+          m.write_byte_internal(O_IO+IO_LY, m.read_byte(O_IO+IO_LY)+1);
           clk += TIO_LY_INC;
         }
         else
         {
-          m.write_byte(O_IO+IO_LY, 0);
+          m.write_byte_internal(O_IO+IO_LY, 0);
+          //if OAM interrupt enabled
+          if (m.read_byte(O_IO+IO_LCDSTAT) & LCDSTAT_OAM_INT) {
+            //request OAM interrupt
+            m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_LCD);
+          }
           //set lcd mode to OAM
-          m.write_byte(O_IO+IO_LCDSTAT, (m.read_byte(O_IO+IO_LCDSTAT) | 0x02) & ~(0x01));
+          m.write_byte_internal(O_IO+IO_LCDSTAT, (m.read_byte(O_IO+IO_LCDSTAT) | 0x02) & ~(0x01));
           clk += T_OAM;
         }
         break;
@@ -95,7 +112,7 @@ void lcd::step_lcd(int dt, mem &m)
       case 0x02:
       {
         //set lcd mode to VRAM 
-        m.write_byte(O_IO+IO_LCDSTAT, m.read_byte(O_IO+IO_LCDSTAT) | 0x03);
+        m.write_byte_internal(O_IO+IO_LCDSTAT, m.read_byte(O_IO+IO_LCDSTAT) | 0x03);
         clk += T_VRAM;
         break;
       }
@@ -138,8 +155,13 @@ void lcd::step_lcd(int dt, mem &m)
           }
         }
         draw_sprites(m);
+        //if hblank interrupt enabled
+          if (m.read_byte(O_IO+IO_LCDSTAT) & LCDSTAT_HBL_INT) {
+            //request HBL interrupt
+            m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_LCD);
+          }
         //set lcd mode to HBLANK
-        m.write_byte(O_IO+IO_LCDSTAT, m.read_byte(O_IO+IO_LCDSTAT) & ~(0x03));
+        m.write_byte_internal(O_IO+IO_LCDSTAT, m.read_byte(O_IO+IO_LCDSTAT) & ~(0x03));
         clk += T_HBLANK;
         break;
       }
@@ -193,15 +215,15 @@ void lcd::compareLYtoLYC(mem &m)
   uint8 compline = m.read_byte(O_IO+IO_LYC);
   if (curline == compline)
   {
-    m.write_byte(O_IO+IO_LCDSTAT, m.read_byte(O_IO+IO_LCDSTAT) | 0x04);
-    //if (m.read_byte(O_IO+IO_LCDSTAT) & 0x40) 
-    //{
-      m.write_byte(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_LCD);
-    //}
+    m.write_byte_internal(O_IO+IO_LCDSTAT, m.read_byte(O_IO+IO_LCDSTAT) | 0x04);
+    if (m.read_byte(O_IO+IO_LCDSTAT) & LCDSTAT_LYC_INT) 
+    {
+      m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_LCD);
+    }
   }
   else
   {
-    m.write_byte(O_IO+IO_LCDSTAT, m.read_byte(O_IO+IO_LCDSTAT) & ~(0x04));
+    m.write_byte_internal(O_IO+IO_LCDSTAT, m.read_byte(O_IO+IO_LCDSTAT) & ~(0x04));
   }
 }
 /**
@@ -268,7 +290,8 @@ void lcd::draw_line(mem &m)
   uint8 winx = m.read_byte(O_IO+IO_WX);
   if ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_ENABLE) && (winy <= curline))
   {
-    uint8 w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((7 - winx) >> 3) & 31);
+    if ((winx <= 166) && ((winy - 7) <= 144)) {
+    uint8 w_offset = ((((curline - winy) >> 3) & 31) << 5);// + (((7 - winx) >> 3) & 31);
     uint8 w_map_number = ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) ? m.read_byte(O_VRAM + w_offset + V_MD_1) : m.read_byte(O_VRAM + w_offset + V_MD_0));
     //offsets within tile
     uint8 x = 0;
@@ -289,6 +312,7 @@ void lcd::draw_line(mem &m)
         w_data = m.read_word(O_VRAM + 16*w_map_number + (y << 1) + V_TD_1);
       }
     }
+  }
   }
 }
 

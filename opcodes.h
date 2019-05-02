@@ -278,7 +278,6 @@ case 0xf5:  {PUSH(af.b.h,af.b.l);break;}
 case 0xf6:  {OR(m.read_byte(pc.w-1));break;}
 case 0xf7:  {RST(0x30);break;}
 
-//ostensibly opcode 0xf8 is this but we need to set some flags
 case 0xf8:  {int mtemp = sp.w + ((signed char)m.read_byte(pc.w-1));af.b.l = (mtemp & 0x0100 ? F_C : 0)|((hl.w^(m.read_byte(pc.w-1))^(mtemp & 0xFFFF)) & 0x10 ? F_H : 0);LD(hl.w,mtemp & 0xFFFF);break;}//add sp, r8
 case 0xf9:  {LD(sp.w,hl.w);break;}
 case 0xfa:  {LD_MR(af.b.h,m.read_word(pc.w-2));break;}

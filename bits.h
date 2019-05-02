@@ -50,6 +50,12 @@ typedef union
 #define LCDC_OBJ_SIZE   0x04
 #define LCDC_OBJ_ENABLE 0x02
 #define LCDC_BG_ENABLE  0x01
+
+#define LCDSTAT_HBL_INT 0x08
+#define LCDSTAT_VBL_INT 0x10
+#define LCDSTAT_OAM_INT 0x20
+#define LCDSTAT_LYC_INT 0x40
+
 //!oam bit flags
 #define OAM_F_BG    0x80
 #define OAM_F_YFLIP 0x40
@@ -110,6 +116,26 @@ typedef union
 #define IO_TIMA     0x05
 #define IO_TMA      0x06
 #define IO_TAC	    0x07
+
+#define IO_NR10     0x10
+#define IO_NR11     0x11
+#define IO_NR12     0x12
+#define IO_NR14     0x14
+#define IO_NR21     0x21
+#define IO_NR22     0x22
+#define IO_NR24     0x24
+#define IO_NR30     0x30
+#define IO_NR31     0x31
+#define IO_NR32     0x32
+#define IO_NR33     0x33
+#define IO_NR41     0x41
+#define IO_NR42     0x42
+#define IO_NR43     0x43
+#define IO_NR44     0x44
+#define IO_NR50     0x50
+#define IO_NR51     0x51
+#define IO_NR52     0x52
+
 #define IO_IR	      0x0F
 #define IO_LCDC		  0x40
 #define IO_LCDSTAT  0x41

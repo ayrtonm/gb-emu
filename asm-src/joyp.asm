@@ -77,37 +77,50 @@ ld $b 0x04
 or $b
 ld #hl $a
 
-//place sprite
-ld $hl 0xfe00
-//set y-coordinate
-ld #hl 0x10
-//move to address that controls x coordinate
-inc $hl
 //initial sprite x coordinate
 ld $b 0x10
-//increment x coordinate by $c if right button is pressed
+//increment x coordinate by $c if right button is not pressed
 ld $c 0x01
-//push $hl
+//initial sprite y coordinate
+ld $d 0x10
+//increment y coordinate by $e if B button is not pressed
+ld $e 0x01
 jp 0x1000
 
 .0x1000
-//pop $hl
-//set sprite's x-coordinate
-ld $hl 0xfe01
+ld $hl 0xfe00
+//set sprite's y coordinate
+ld #hl $d
+inc $hl
+//set sprite's x coordinate
 ld #hl $b
-//store variables on stack
-//push $hl
 
-//see if right key is pushed down
+//see if right button is pushed down
 ld $hl 0xff00
+ld #hl 0x20
 ld $a 0x01
 and #hl
-jpnz 0x1000
+jpnz 0x2000
 ld $a 0x00
 add $b
 add $c
 ld $b $a
-call 0x3000
+call 0x4000
+jp 0x2000
+
+.0x2000
+//see if B button is pushed down
+ld $hl 0xff00
+ld #hl 0x10
+ld $a 0x02
+and #hl
+jpnz 0x1000
+ld $a 0x00
+add $d
+add $e
+ld $d $a
+call 0x4000
+
 jp 0x1000
 
 //calling 0x2000 is a very rudimentary wait function
@@ -116,17 +129,17 @@ jp 0x1000
 //a better way to implement wait would be to use a register as a counter for a loop
 //that way the maximum time delay won't be limited by memory or maximum call stack (if there is one?)
 //1000 nops is approx 250us delay
-.0x3000
-nop
 .0x4000
+nop
+.0x5000
 ret
 
 .0x0000
-ld $hl 0xff44
-ld $a #hl
-ld $b 0x91
-cp $b
-jpnz 0x0000
-ld $hl 0xff40
-ld #hl 0x06
-ret
+//ld $hl 0xff44
+//ld $a #hl
+//ld $b 0x91
+//cp $b
+//jpnz 0x0000
+//ld $hl 0xff40
+//ld #hl 0x06
+//ret

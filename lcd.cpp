@@ -50,7 +50,7 @@ void lcd::step_lcd(int dt, mem &m)
       {
         m.write_byte_internal(O_IO+IO_LY, m.read_byte(O_IO+IO_LY)+1);
         compareLYtoLYC(m);
-        if (m.read_byte(O_IO+IO_LY) < 143)
+        if (m.read_byte(O_IO+IO_LY) < 144)
         {
           //if OAM interrupt enabled
           if (m.read_byte(O_IO+IO_LCDSTAT) & LCDSTAT_OAM_INT) {
@@ -88,7 +88,6 @@ void lcd::step_lcd(int dt, mem &m)
           screenupdateclk -= LCDUPDATECLK;
         }
 #endif
-        compareLYtoLYC(m);
         if (m.read_byte(O_IO+IO_LY) < 153)
         {
           m.write_byte_internal(O_IO+IO_LY, m.read_byte(O_IO+IO_LY)+1);
@@ -106,6 +105,7 @@ void lcd::step_lcd(int dt, mem &m)
           m.write_byte_internal(O_IO+IO_LCDSTAT, (m.read_byte(O_IO+IO_LCDSTAT) | 0x02) & ~(0x01));
           clk += T_OAM;
         }
+        compareLYtoLYC(m);
         break;
       }
       //OAM

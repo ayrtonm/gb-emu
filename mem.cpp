@@ -118,15 +118,17 @@ void mem::write_byte(uint16 address, uint8 data) {
   }
   else if (address == O_IO+IO_LY) {
     //this is read only, attempting to write to it "resets the counter"
-    memory[O_IO+IO_LY] = 0;
+    //memory[O_IO+IO_LY] = 0;
     return;
   }
   else if (address == O_IO+IO_DIV) {
     memory[O_IO+IO_DIV] = 0x00;
+    divtimer = 0;
     return;
   }
   else if (address == O_IO+IO_TAC) {
     tacthreshold = tacvals[data & 0x03];
+    timatimer = 0;
     memory[O_IO+IO_TAC] = data;
     return;
   }
@@ -161,9 +163,9 @@ void mem::write_byte(uint16 address, uint8 data) {
       dmatimer = 160;
       dmatransfering = true;
       dmasrc = data;
-      //for (int i = 0; i < 160; i++) {
-      //  memory[0xFE00 + i] = memory[(data << 8) + i];
-      //}
+      for (int i = 0; i < 160; i++) {
+        memory[0xFE00 + i] = memory[(data << 8) + i];
+      }
     }
   }
   else if (address < 0x8000) {
@@ -249,9 +251,9 @@ void mem::update_timers(int dt) {
     }
   }
   if (dmatimer != 0) {
-    for (int i = 160-dmatimer; i < MIN(160-dmatimer+dt,160); i++) {
-      memory[0xFE00 + i] = memory[(dmasrc << 8) + i];
-    }
+    //for (int i = 160-dmatimer; i < MIN(160-dmatimer+dt,160); i++) {
+    //  memory[0xFE00 + i] = memory[(dmasrc << 8) + i];
+    //}
     dmatimer -= dt;
     if (dmatimer <= 0) {
       dmatimer = 0;
@@ -302,4 +304,8 @@ uint8 mem::get_keys(bool special) {
 }
 bool mem::direction_loaded() {
   return loadeddirection;
+}
+
+bool mem::dma_running() {
+  return dmatransfering;
 }

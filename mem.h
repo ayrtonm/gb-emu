@@ -47,6 +47,7 @@ class mem
     void update_keys(bool special, uint8 bit, bool down);
     uint8 get_keys(bool special);
     bool direction_loaded();
+    bool dma_running();
 
   private:
     //addressable memory

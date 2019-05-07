@@ -25,7 +25,7 @@ cpu::cpu()
   sp.w = 0xfffe;
   pc.w = 0x0100;
   halt = 0;
-  ime = 1;
+  ime = 0;
   ei_delay = 0;
   cout << "cpu initialized\n";
 }
@@ -57,38 +57,36 @@ int cpu::emulate(mem &m, lcd &l)
   wait.tv_sec = 0;
   for(;;)
   {
-    if (halt || ime)
+    //if (m.read_byte(O_IO+IO_IR) & m.read_byte(O_IE)) {
+    //  halt = false;
+    //}
+    if (ime)
     {
       //find first set bit of interrupt request byte IO_IR
       for (int i = 1; i <= 0x10; i <<= 1) {
         //if bit i is both requested and enabled break out of the for loop to execute that interrupt
         //lowest set bit of IO_IR and IE has priority
         if ((m.read_byte(O_IO + IO_IR) & i) && (m.read_byte(O_IE) & i)) {
-          if (i == INT_JOY) {
-          cout <<  "triggered interrupt" << endl;
-          }
           //if halted let's push program counter + 1 onto the stack since this is where we want to return
-          if (halt) {pc.w++;}
+          //if (halt) {pc.w++;}
+          halt = 0;
           //if interrupts enabled
-          //will interrupts occur if halted but ime is 0???
-          //if (ime)
-          //{
-            //let's disable interrupts
-            ime = 0;
-            //clear the interrupt flag that was just triggered
-            m.write_byte_internal(O_IO + IO_IR, m.read_byte(O_IO + IO_IR) & ~i);
-            ei_delay = 0;
-            //push the program counter onto the stack
-            PUSH(pc.b.h,pc.b.l);
-            //jump to location based on lookup table for that interrupt (avoids having to take log2)
-            pc.w = 0x40 + interrupt_table[i-1];
-          //}
+          //let's disable interrupts
+          ime = 0;
+          //clear the interrupt flag that was just triggered
+          m.write_byte_internal(O_IO + IO_IR, m.read_byte(O_IO + IO_IR) & ~i);
+          ei_delay = 0;
+          //push the program counter onto the stack
+          PUSH(pc.b.h,pc.b.l);
+          //jump to location based on lookup table for that interrupt (avoids having to take log2)
+          pc.w = 0x40 + interrupt_table[i-1];
+          dt = 3;
         }
       }
     }
     if (halt) {dt = 4;}
     if (ei_delay) {ime = 1; ei_delay = 0;}
-    if (!halt)
+    if ((!halt) && (!m.dma_running()))
     {
       op = (int)m.read_byte(pc.w);
 #ifdef DEBUG

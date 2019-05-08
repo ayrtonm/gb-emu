@@ -2,6 +2,7 @@
 #define CACHE_H
 #define MAX_BLOCKS 32
 #include <vector>
+#include <utility>
 #include "bits.h"
 
 using namespace std;
@@ -13,6 +14,6 @@ typedef struct cache_block {
   bool in_use = false;
 } cache_block;
 
-extern bool in_cache(uint16 start_address, cache_block *cache);
+extern pair<bool, int> in_cache(uint16 start_address, cache_block *cache);
 
 #endif

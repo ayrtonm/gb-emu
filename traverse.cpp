@@ -91,5 +91,5 @@ void print_cache_block(cache_block block) {
   cout << "starting address: " << hex << (int)block.start_address << endl;
   cout << "end address: " << hex << (int)block.end_address << endl;
   cout << "if condition is true, go to: " << hex << (int)block.if_true << endl;
-  cout << "if condition is false, go to: " << hex << (int)block.if_false << endl;
+  cout << "if condition is false, go to: " << hex << (int)block.if_false << endl << endl;
 }

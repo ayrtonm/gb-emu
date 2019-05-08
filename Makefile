@@ -1,6 +1,7 @@
-CXX = g++
-CXXFLAGS = -g -std=c++11 -Wall
+CXX = clang++
+CXXFLAGS = -O0 -g -std=c++11 -Wall #$(DYREC)
 LIBS = -lSDL2
+DYREC = `llvm-config --cxxflags --ldflags --system-libs --libs core`
 BIN = emulator
 SRC = main.cpp cpu.cpp mem.cpp lcd.cpp dynarec.cpp traverse.cpp emit.cpp cache.cpp
 OBJ = $(SRC:%.cpp=%.o) 

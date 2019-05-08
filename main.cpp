@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <argp.h>
+#include "dynarec.h"
 #include "cpu.h"
 #include "mem.h"
 #include "lcd.h"
@@ -9,12 +10,14 @@ struct arguments {
   char *args[2];
   bool gameloaded = false;
   bool dumpmemory = false;
+  bool recompiled = false;
   char *inputfile, *memorydumpfile;
 };
 
 static struct argp_option options[] = {
   {"inputfile", 'l', "FILENAME", 0, "load the given file and start the emulator"},
   {"memorydump", 'd', "OUTFILE", 0, "print addresses and values of non-zero memory into OUTFILE at the end of emulation"},
+  {NULL, 'r', NULL, 0, "use dynamic recompilation"},
   {0}
 };
 
@@ -28,6 +31,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     case 'd':
       arguments->memorydumpfile = arg;
       arguments->dumpmemory = true;
+      break;
+    case 'r':
+      arguments->recompiled = true;
       break;
     //case ARGP_KEY_ARG:
     //  if(state->arg_num >= 2) {
@@ -53,24 +59,35 @@ static struct argp argp = {options, parse_opt, args_doc, doc};
 
 int main(int argc, char *argv[])
 {
+  //parse command line arguments
   struct arguments arguments;
   argp_parse(&argp, argc, argv, 0, 0, &arguments);
+  //get filename
   string filename(arguments.inputfile);
-  cpu *c;
+
+  //pointers to classes for emulated subsystems
   mem *m;
-  lcd *l;
-  c = new cpu;
+  //if were going to dump memory to a file on exit, store that files name in the mem class
   if (arguments.dumpmemory) {
     string memorydumpfile(arguments.memorydumpfile);
     m = new mem(filename, memorydumpfile);
   }
+  //otherwise initialize mem class like normal
   else {
     m = new mem(filename);
   }
-  l = new lcd;
-  c->emulate(*m, *l);
-  delete c;
+  //if we are not dynamically recompiling, make a pointer to an instance of the cpu class and start emulator
+  if (!arguments.recompiled) {
+    cpu *c = new cpu;
+    lcd *l = new lcd;
+    c->emulate(*m, *l);
+    delete c;
+    delete l;
+  }
+  //otherwise pass control to dynarec loop
+  else {
+    dynamic_recompile_loop(*m);
+  }
   delete m;
-  delete l;
   return 0;
 }

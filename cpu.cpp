@@ -12,6 +12,8 @@
 //in nanoseconds
 //#define CPU_SLEEP 2
 //#define DEBUG
+//#define PRINT_REGISTERS
+//#define PRINT_INTERRUPTS
 
 using namespace std;
 
@@ -27,6 +29,7 @@ cpu::cpu()
   halt = 0;
   ime = 0;
   ei_delay = 0;
+  repeat = false;
   cout << "cpu initialized\n";
 }
 
@@ -44,49 +47,64 @@ void cpu::print_registers(mem &m)
     cout << " 0x" << hex << (int) m.read_byte(pc.w+length[m.read_byte(pc.w)]-i+1);
   }
   cout << endl;
+  cout << "Zero flag is " << (af.b.l & F_Z ? "set" : "clear") << endl;
+  cout << "N flag is " << (af.b.l & F_N ? "set" : "clear") << endl;
+  cout << "H flag is " << (af.b.l & F_H ? "set" : "clear") << endl;
+  cout << "Carry flag is " << (af.b.l & F_C ? "set" : "clear") << endl;
   return;
 }
 
 //one cpu click is approximately 0.953674 microseconds
-int cpu::emulate(mem &m, lcd &l)
+int cpu::emulate(mem &m)
 {
   int op;
   int dt = 0;
   int cputhrottleclk = 0;
-  struct timespec wait; 
-  wait.tv_sec = 0;
+  //struct timespec wait; 
+  //wait.tv_sec = 0;
+
+  lcd *l;
+  l = new lcd;
   for(;;)
   {
-    //if (m.read_byte(O_IO+IO_IR) & m.read_byte(O_IE)) {
-    //  halt = false;
-    //}
+#ifdef PRINT_REGISTERS
+    cin.get();
+    //system("clear");
+    print_registers(m);
+#endif
+    if ((INT_VBL|INT_LCD|INT_TIM|INT_SER|INT_JOY) & m.read_byte(O_IO+IO_IR) & m.read_byte(O_IE)) {
+      halt = false;
+    }
     if (ime)
     {
       //find first set bit of interrupt request byte IO_IR
-      for (int i = 1; i <= 0x10; i <<= 1) {
+      for (int i = 1; i <= 0x20; i <<= 1) {
         //if bit i is both requested and enabled break out of the for loop to execute that interrupt
         //lowest set bit of IO_IR and IE has priority
         if ((m.read_byte(O_IO + IO_IR) & i) && (m.read_byte(O_IE) & i)) {
-          //if halted let's push program counter + 1 onto the stack since this is where we want to return
-          //if (halt) {pc.w++;}
-          halt = 0;
-          //if interrupts enabled
-          //let's disable interrupts
+          //let's disable further interrupts
           ime = 0;
+          ei_delay = 0;
           //clear the interrupt flag that was just triggered
           m.write_byte_internal(O_IO + IO_IR, m.read_byte(O_IO + IO_IR) & ~i);
-          ei_delay = 0;
           //push the program counter onto the stack
           PUSH(pc.b.h,pc.b.l);
-          //jump to location based on lookup table for that interrupt (avoids having to take log2)
           pc.w = 0x40 + interrupt_table[i-1];
-          dt = 3;
+#ifdef PRINT_INTERRUPTS
+          cout << "executed interrupt 0x" << hex << (int)i << endl;
+#endif
+          //dt = 3;
+          //if halted let's push program counter + 1 onto the stack since this is where we want to return
+          //if (halt) {pc.w++;}
+          //halt = 0;
+          //if interrupts enabled
+          //jump to location based on lookup table for that interrupt (avoids having to take log2)
         }
       }
     }
-    if (halt) {dt = 4;}
     if (ei_delay) {ime = 1; ei_delay = 0;}
-    if ((!halt) && (!m.dma_running()))
+    if (halt) {dt = 1;}
+    if (!halt)
     {
       op = (int)m.read_byte(pc.w);
 #ifdef DEBUG
@@ -118,16 +136,21 @@ int cpu::emulate(mem &m, lcd &l)
         }
       }
     }
+    if (repeat) {repeat = false; pc.w -= length[op]-1;}
     m.update_timers(dt);
-    l.step_lcd(dt,m);
-    if(!l.parse_events(m)) return 0;
+    l->step_lcd(dt,m);
+    if(!l->parse_events(m)) {
+      return 0;
+      delete l;
+    };
     cputhrottleclk += dt;
     if(cputhrottleclk >= CPU_CLKS) {
-      wait.tv_nsec = 1000;
+      //wait.tv_nsec = 1000;
       cputhrottleclk -= CPU_CLKS;
       //nanosleep(&wait, NULL);
       usleep(1000);
     }
   }
+  delete l;
   return 1;
 }

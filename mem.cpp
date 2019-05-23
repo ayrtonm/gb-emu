@@ -2,7 +2,8 @@
 #include "bits.h"
 #include <iostream>
 #include <fstream>
-#include <cassert>
+#undef DEBUG_INTERNAL
+#undef DEBUG
 
 using namespace std;
 
@@ -63,9 +64,12 @@ mem::mem(string filename, string memorydump) {
   cout << "memory initialized\n";
 }
 void mem::write_byte_internal(uint16 address, uint8 data) {
+#ifdef DEBUG_INTERNAL
+  cout << "called mem::write_byte_internal(0x" << hex << (int)address << ", 0x" << hex << (int)data << ")" << endl;
+#endif
   //this can only take values between 0 and 153 but step_lcd takes care of that
   if (address == O_IO+IO_LY) {
-    assert(data < 154);
+    //assert(data < 154);
     memory[O_IO+IO_LY] = data;
   }
   else if (address == O_IO+IO_LCDSTAT) {
@@ -77,12 +81,19 @@ void mem::write_byte_internal(uint16 address, uint8 data) {
   }
 }
 void mem::write_byte(uint16 address, uint8 data) {
+#ifdef DEBUG
+  cout << "called mem::write_byte(0x" << hex << (int)address << ", 0x" << hex << (int)data << ")" << endl;
+#endif
+  //writing to anything by HRAM is restricted during DMA transfer
+  //this seems to work ok
   if (dmatransfering) {
     if ((address >= O_HRAM) && (address != O_IE)) {
       memory[address] = data;
     }
     return;
   }
+  //writing to OAM and VRAM is restricted during certain LCD modes
+  //this doesn't give good results yet
   //else if (((address < O_UNUSED) && (address >= O_OAM)) && ((lcdmode == 2) || (lcdmode == 3))) {
   //  //can't access OAM during lcd modes 2 and 3
   //  return;
@@ -91,7 +102,7 @@ void mem::write_byte(uint16 address, uint8 data) {
   //  //can't access VRAM during lcd mode 3
   //  return;
   //}
-  else if (address == O_IO+IO_LCDSTAT) {
+  if (address == O_IO+IO_LCDSTAT) {
     //lower 3 bits of LCD STAT are read only
     //also since we can't change lcd mode directly, lcdmode doesn't have to be updated here
     memory[O_IO+IO_LCDSTAT] = (memory[O_IO+IO_LCDSTAT] & 0x07) | (data & 0xf8);
@@ -120,6 +131,116 @@ void mem::write_byte(uint16 address, uint8 data) {
     //this is read only, attempting to write to it "resets the counter"
     //memory[O_IO+IO_LY] = 0;
     return;
+  }
+  //only implementing appropriate read/write permissions and side effects for now (i.e. reading/writing won't actually produce sound)
+  else if (address == O_IO + IO_NR10) {
+    memory[address] = data;
+  }
+  //bits 6-7 are read/write, other bits are write only and produce side effects
+  else if (address == O_IO + IO_NR11) {
+    memory[address] = data & 0xc0;
+  }
+  //read/write with side effects
+  else if (address == O_IO + IO_NR12) {
+    memory[address] = data;
+  }
+  //write only with side effects
+  else if (address == O_IO + IO_NR13) {
+    memory[address] = 0;
+  }
+  //can only read from bit 6, bits 0-2 and bit 7 are write only with side effects
+  else if (address == O_IO + IO_NR14) {
+    //if writing to bit 7, set flag in NR52
+    if (data & 0x80) {
+      memory[O_IO+IO_NR52] |= 0x01;
+    }
+    memory[address] = data & 0x40;
+  }
+  //bits 6-7 are read/write, bits 0-5 are write only with side effects
+  else if (address == O_IO + IO_NR21) {
+    memory[address] = data & 0xc0;
+  }
+  //read/write with side effects
+  else if (address == O_IO + IO_NR22) {
+    memory[address] = data;
+  }
+  //write only with side effects
+  else if (address == O_IO + IO_NR23) {
+    memory[address] = 0;
+  }
+  //can only read from bit 6, bits 0-2 and bit 7 are write only with side effects
+  else if (address == O_IO + IO_NR24) {
+    //if writing to bit 7, set flag in NR52
+    if (data & 0x80) {
+      memory[O_IO+IO_NR52] |= 0x02;
+    }
+    memory[address] = data & 0x40;
+  }
+  //bit 7 is read/write with side effects
+  else if (address == O_IO + IO_NR30) {
+    memory[address] = data & 0x80;
+  }
+  //permissions not specified in pandocs
+  //possibly a timer/counter
+  else if (address == O_IO + IO_NR31) {
+    memory[address] = data;
+  }
+  //bits 5-6 are read/write with side effects
+  else if (address == O_IO + IO_NR32) {
+    memory[address] = data & 0x60;
+  }
+  //write only with side effects
+  else if (address == O_IO + IO_NR33) {
+    memory[address] = 0;
+  }
+  //can only read from bit 6, bits 0-2 and bit 7 are write only with side effects
+  else if (address == O_IO + IO_NR34) {
+    //if writing to bit 7, set flag in NR52
+    if (data & 0x80) {
+      memory[O_IO+IO_NR52] |= 0x04;
+    }
+    memory[address] = data & 0x40;
+  }
+  //bits 0-5 are read/write with side effects
+  else if (address == O_IO + IO_NR41) {
+    memory[address] = data & 0x3f;
+  }
+  //read/write with side effects
+  else if (address == O_IO + IO_NR42) {
+    memory[address] = data;
+  }
+  //read/write with side effects
+  else if (address == O_IO + IO_NR43) {
+    memory[address] = data;
+  }
+  //bit 6 is read/write, bit 7 is write only with side effects
+  else if (address == O_IO + IO_NR44) {
+    //if writing to bit 7, set flag in NR52
+    if (data & 0x80) {
+      memory[O_IO+IO_NR52] |= 0x08;
+    }
+    memory[address] = data & 0x40;
+  }
+  //read/write with side effects
+  else if (address == O_IO + IO_NR50) {
+    memory[address] = data;
+  }
+  //read/write with side effects
+  else if (address == O_IO + IO_NR51) {
+    memory[address] = data;
+  }
+  //bit 7 is read/write, bits 0-3 are read only
+  else if (address == O_IO + IO_NR52) {
+    //writing to bit 7 destroys the contents of all sound registers
+    if (data & 0x80) {
+      for (uint8 i = IO_NR10; i <= IO_NR52; i++) {
+        //sound registers are contiguous memory from NR10 to NR52 except 0xFF15 and 0xFF1F
+        if (i != 0x15 && i != 0x1f) {
+          memory[O_IO + i] = 0;
+        }
+      }
+    }
+    memory[address] = data & 0x80;
   }
   else if (address == O_IO+IO_DIV) {
     memory[O_IO+IO_DIV] = 0x00;
@@ -155,6 +276,7 @@ void mem::write_byte(uint16 address, uint8 data) {
     //if both sets are selected (undefined behavior)
     else if (keysselected == 0x00) {
       //ignore attempt to write to memory
+      memory[O_IO+IO_JOYP] = data;
       return;
     }
   }
@@ -182,8 +304,16 @@ void mem::load_cart(string filename)
   streampos size;
   ifstream cart;
   //open file with pointer positioned at the end
+  //file is a binary and set the initial position at the end of the file to get its size
   cart.open(filename, ios::binary|ios::ate);
-  assert(cart.is_open());
+  //if we can't manage to open the file
+  //I should signal to main() to return with an error code from here
+  if (!cart.is_open()) {
+    cout << "unable to open " << filename << ": no cartridge loaded" << endl;
+    //execute halt instruction if no file is loaded (temporary)
+    memory[0x0100] = 0x76;
+    return;
+  }
   size = cart.tellg();
   //rombn.resize((int)size - (int)O_ROMBN);
   cart.seekg(0,ios::beg);
@@ -220,7 +350,7 @@ void mem::dump_memory()
 {
   ofstream dump;
   dump.open(memorydumpfile);
-  assert(dump.is_open());
+  //assert(dump.is_open());
   for (uint16 i = 0; i < 0xffff; i++) {
     if (read_byte(i) != 0) {
       dump << "[0x" << hex << i << "]  0x" << hex << (int)read_byte(i) << endl;
@@ -309,3 +439,15 @@ bool mem::direction_loaded() {
 bool mem::dma_running() {
   return dmatransfering;
 }
+
+#ifdef TEST
+#include <cassert>
+
+int main(int argc, char *argv[]) {
+  mem *m = new mem(argv[1]);
+  assert(m->read_byte(0x0100) == 0x00);
+  assert(m->read_byte(0x0101) == 0xc3);
+  delete m;
+}
+
+#endif

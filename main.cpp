@@ -58,7 +58,6 @@ int main(int argc, char *argv[])
   string filename(arguments.inputfile);
   cpu *c;
   mem *m;
-  lcd *l;
   c = new cpu;
   if (arguments.dumpmemory) {
     string memorydumpfile(arguments.memorydumpfile);
@@ -67,10 +66,8 @@ int main(int argc, char *argv[])
   else {
     m = new mem(filename);
   }
-  l = new lcd;
-  c->emulate(*m, *l);
+  c->emulate(*m);
   delete c;
   delete m;
-  delete l;
   return 0;
 }

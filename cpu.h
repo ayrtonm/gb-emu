@@ -13,7 +13,7 @@ class cpu
     uint8 ei_delay;
     uint8 halt;
     bool repeat;
-    int emulate(mem &m, lcd &l);
+    int emulate(mem &m);
     void print_registers(mem &m);
 };
 

@@ -50,7 +50,7 @@ void lcd::step_lcd(int dt, mem &m)
       {
         m.write_byte_internal(O_IO+IO_LY, m.read_byte(O_IO+IO_LY)+1);
         compareLYtoLYC(m);
-        if (m.read_byte(O_IO+IO_LY) < 144)
+        if (m.read_byte(O_IO+IO_LY) < 143)
         {
           //if OAM interrupt enabled
           if (m.read_byte(O_IO+IO_LCDSTAT) & LCDSTAT_OAM_INT) {
@@ -290,7 +290,7 @@ void lcd::draw_line(mem &m)
   uint8 winx = m.read_byte(O_IO+IO_WX);
   if ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_ENABLE) && (winy <= curline))
   {
-    if ((winx <= 166) && ((winy - 7) <= 144)) {
+    if ((winx <= 166) && ((winy - 7) <= 143)) {
     uint8 w_offset = ((((curline - winy) >> 3) & 31) << 5);// + (((7 - winx) >> 3) & 31);
     uint8 w_map_number = ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) ? m.read_byte(O_VRAM + w_offset + V_MD_1) : m.read_byte(O_VRAM + w_offset + V_MD_0));
     //offsets within tile

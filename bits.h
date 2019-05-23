@@ -117,24 +117,30 @@ typedef union
 #define IO_TMA      0x06
 #define IO_TAC	    0x07
 
+//sound registers
 #define IO_NR10     0x10
 #define IO_NR11     0x11
 #define IO_NR12     0x12
+#define IO_NR13     0x13
 #define IO_NR14     0x14
-#define IO_NR21     0x21
-#define IO_NR22     0x22
-#define IO_NR24     0x24
-#define IO_NR30     0x30
-#define IO_NR31     0x31
-#define IO_NR32     0x32
-#define IO_NR33     0x33
-#define IO_NR41     0x41
-#define IO_NR42     0x42
-#define IO_NR43     0x43
-#define IO_NR44     0x44
-#define IO_NR50     0x50
-#define IO_NR51     0x51
-#define IO_NR52     0x52
+//0xff15 is unused
+#define IO_NR21     0x16
+#define IO_NR22     0x17
+#define IO_NR23     0x18
+#define IO_NR24     0x19
+#define IO_NR30     0x1a
+#define IO_NR31     0x1b
+#define IO_NR32     0x1c
+#define IO_NR33     0x1d
+#define IO_NR34     0x1e
+//0xff1f is unused
+#define IO_NR41     0x20
+#define IO_NR42     0x21
+#define IO_NR43     0x22
+#define IO_NR44     0x23
+#define IO_NR50     0x24
+#define IO_NR51     0x25
+#define IO_NR52     0x26
 
 #define IO_IR	      0x0F
 #define IO_LCDC		  0x40

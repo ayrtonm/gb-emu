@@ -51,8 +51,7 @@ static char doc[] = "Gameboy Emulator";
 
 static struct argp argp = {options, parse_opt, args_doc, doc};
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   struct arguments arguments;
   argp_parse(&argp, argc, argv, 0, 0, &arguments);
   string filename(arguments.inputfile);

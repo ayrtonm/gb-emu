@@ -22,11 +22,9 @@
 
 typedef unsigned char uint8;
 typedef unsigned short int uint16;
-typedef union
-{
+typedef union {
   uint16 w;
-  struct
-  {
+  struct {
     #ifdef HIGH_ENDIAN
     uint8 h,l;
     #else

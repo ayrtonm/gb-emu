@@ -1,7 +1,6 @@
 #ifndef MEM_H
 #define MEM_H
 #include "bits.h"
-#include <vector>
 #include <array>
 #include <string>
 #include <iostream>
@@ -9,13 +8,15 @@
 
 using namespace std;
 
-const static int tacvals[4] = {256, 4, 16, 64};
-
 typedef struct color {
   uint8 a,r,g,b;
 } color;
 
-class mem 
+enum keys {direction, special};
+
+const static int tacvals[4] = {256, 4, 16, 64};
+
+class mem
 {
   public:
     mem(string filename, string memorydump = "");
@@ -37,17 +38,21 @@ class mem
       write_byte(address+1,data >> 8);
     };
 
+    //used in lcd.cpp
     void update_palette(uint8 palette, uint8 value);
     array<color,4> get_palette(uint8 palette_num);
+
+    //used in keypad.cpp
     void dump_memory();
-    bool check_memory_dump() {
+    bool get_dumpmemory() {
       return dumpmemory; 
     }
+    void update_keys(keys k, uint8 bit, bool down);
+    uint8 get_keys(keys k);
+    keys get_keys_loaded();
+
+    //used in cpu.cpp
     void update_timers(int dt);
-    void update_keys(bool special, uint8 bit, bool down);
-    uint8 get_keys(bool special);
-    bool direction_loaded();
-    bool dma_running();
 
   private:
     //addressable memory
@@ -57,7 +62,11 @@ class mem
     bool dumpmemory = false;
     string memorydumpfile;
 
-    int lcdmode;
+    //need two bytes to store the joypad data since only one is available in addressable memory at any time
+    bool loadeddirection;
+    uint8 joydirection;
+    uint8 joyspecial;
+
     //divtimer counts every 256 CPU clicks
     //making it int to prevent having to cast dt and since it is likely to overflow
     int divtimer;
@@ -65,11 +74,6 @@ class mem
     int tacthreshold;
     int dmatimer;
     bool dmatransfering;
-    uint8 dmasrc;
-    //need two bytes to store the joypad data since only one is available in addressable memory at any time
-    bool loadeddirection;
-    uint8 joydirection;
-    uint8 joyspecial;
 };
 
 #endif

@@ -45,7 +45,6 @@ mem::mem(string filename, string memorydump) {
   memory[O_IO + IO_WX] = 0x00;
   memory[O_IE] = 0x00;
   
-  lcdmode = 1;
   memory[O_IO + IO_LCDSTAT] = 0x91;
 
   divtimer = 0;
@@ -53,7 +52,6 @@ mem::mem(string filename, string memorydump) {
   tacthreshold = tacvals[0];
   dmatimer = 0;
   dmatransfering = false;
-  dmasrc = 0x00;
   //0x0f is no keys pressed
   joydirection = 0x0f;
   joyspecial = 0x0f;
@@ -69,12 +67,10 @@ void mem::write_byte_internal(uint16 address, uint8 data) {
 #endif
   //this can only take values between 0 and 153 but step_lcd takes care of that
   if (address == O_IO+IO_LY) {
-    //assert(data < 154);
     memory[O_IO+IO_LY] = data;
   }
   else if (address == O_IO+IO_LCDSTAT) {
     memory[O_IO+IO_LCDSTAT] = data;
-    lcdmode = data & 0x03;
   }
   else {
     memory[address] = data;
@@ -94,6 +90,7 @@ void mem::write_byte(uint16 address, uint8 data) {
   }
   //writing to OAM and VRAM is restricted during certain LCD modes
   //this doesn't give good results yet
+  //lcdmode is memory[O_IO + IO_LCDSTAT] & 0x03
   //else if (((address < O_UNUSED) && (address >= O_OAM)) && ((lcdmode == 2) || (lcdmode == 3))) {
   //  //can't access OAM during lcd modes 2 and 3
   //  return;
@@ -104,7 +101,6 @@ void mem::write_byte(uint16 address, uint8 data) {
   //}
   if (address == O_IO+IO_LCDSTAT) {
     //lower 3 bits of LCD STAT are read only
-    //also since we can't change lcd mode directly, lcdmode doesn't have to be updated here
     memory[O_IO+IO_LCDSTAT] = (memory[O_IO+IO_LCDSTAT] & 0x07) | (data & 0xf8);
     return;
   }
@@ -284,7 +280,8 @@ void mem::write_byte(uint16 address, uint8 data) {
     if (data <= 0xF1) {
       dmatimer = 160;
       dmatransfering = true;
-      dmasrc = data;
+      //all data is written immediately after the DMA is executed which very likely does not match the hardware's behavior
+      //this should not matter since accessable memory is limited during DMA transfer
       for (int i = 0; i < 160; i++) {
         memory[0xFE00 + i] = memory[(data << 8) + i];
       }
@@ -299,40 +296,42 @@ void mem::write_byte(uint16 address, uint8 data) {
   }
 };
 
-void mem::load_cart(string filename)
-{
+void mem::load_cart(string filename) {
   streampos size;
   ifstream cart;
-  //open file with pointer positioned at the end
-  //file is a binary and set the initial position at the end of the file to get its size
-  cart.open(filename, ios::binary|ios::ate);
-  //if we can't manage to open the file
-  //I should signal to main() to return with an error code from here
-  if (!cart.is_open()) {
-    cout << "unable to open " << filename << ": no cartridge loaded" << endl;
-    //execute halt instruction if no file is loaded (temporary)
-    memory[0x0100] = 0x76;
-    return;
+  cart.exceptions(ifstream::failbit | ifstream::badbit);
+  try {
+    //open file with pointer positioned at the end
+    //file is a binary and set the initial position at the end of the file to get its size
+    cart.open(filename, ios::binary|ios::ate);
+    //if we can't manage to open the file
+    //I should signal to main() to return with an error code from here
+    //if (!cart.is_open()) {
+    //  cout << "unable to open " << filename << ": no cartridge loaded" << endl;
+    //  //execute halt instruction if no file is loaded (temporary)
+    //  //memory[0x0100] = 0x76;
+    //  return;
+    //}
+    size = cart.tellg();
+    //rombn.resize((int)size - (int)O_ROMBN);
+    cart.seekg(0,ios::beg);
+    cart.read((char *) &memory[0],0x8000);
+    //cart.read((char *) &romb0[0],O_ROMBN);
+    //cart.read((char *) &rombn[0],(int)size-(int)O_ROMBN);
   }
-  size = cart.tellg();
-  //rombn.resize((int)size - (int)O_ROMBN);
-  cart.seekg(0,ios::beg);
-  cart.read((char *) &memory[0],0x8000);
-  //cart.read((char *) &romb0[0],O_ROMBN);
-  //cart.read((char *) &rombn[0],(int)size-(int)O_ROMBN);
+  catch (const ifstream::failure &e) {
+    cout << "exception opening ROM\n";
+  }
   cart.close();
   for (int i =0x0134; i < 0x0144; i++) cout << read_byte(i);//print title
   cout << (read_byte(0x014A) ? "\nNon-Japanese" : "\nJapanese");
   cout << (read_byte(0x0147) == 0x00 ? "\ncartridge is ROM only" : "\ncartridge includes MBC (not implemented)");
   cout << "\n";
 }
-void mem::update_palette(uint8 palette, uint8 value)
-{
+void mem::update_palette(uint8 palette, uint8 value) {
   int j = 0;
-  for (int i = 0x03; i < 0xff; i = i << 2)
-  {
-    switch ((value & i) >> (2*j))
-    {
+  for (int i = 0x03; i < 0xff; i = i << 2) {
+    switch ((value & i) >> (2*j)) {
       case 0: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0xcc,0xcc,0xcc};break;}
       case 1: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0x88,0x88,0x88};break;}
       case 2: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0x66,0x66,0x66};break;}
@@ -342,15 +341,12 @@ void mem::update_palette(uint8 palette, uint8 value)
   }
 }
 
-array<color,4> mem::get_palette(uint8 palette_num)
-{
+array<color,4> mem::get_palette(uint8 palette_num) {
   return palettes[palette_num];
 }
-void mem::dump_memory()
-{
+void mem::dump_memory() {
   ofstream dump;
   dump.open(memorydumpfile);
-  //assert(dump.is_open());
   for (uint16 i = 0; i < 0xffff; i++) {
     if (read_byte(i) != 0) {
       dump << "[0x" << hex << i << "]  0x" << hex << (int)read_byte(i) << endl;
@@ -381,9 +377,6 @@ void mem::update_timers(int dt) {
     }
   }
   if (dmatimer != 0) {
-    //for (int i = 160-dmatimer; i < MIN(160-dmatimer+dt,160); i++) {
-    //  memory[0xFE00 + i] = memory[(dmasrc << 8) + i];
-    //}
     dmatimer -= dt;
     if (dmatimer <= 0) {
       dmatimer = 0;
@@ -392,9 +385,9 @@ void mem::update_timers(int dt) {
   }
 }
 
-void mem::update_keys(bool special, uint8 bit, bool down) {
+void mem::update_keys(keys k, uint8 bit, bool down) {
   //cout << hex << (int)memory[O_IO+IO_JOYP] << " " << hex << (int)joyspecial << " " << hex << (int)joydirection << "  to  ";
-  if (special) {
+  if (k == special) {
     if (down) {
       //if the key for a special button is pressed, clear that bit in joyspecial
       joyspecial &= ~bit;
@@ -424,30 +417,19 @@ void mem::update_keys(bool special, uint8 bit, bool down) {
   }
   //cout << hex << (int)memory[O_IO+IO_JOYP] << " " << hex << (int)joyspecial << " " << hex << (int)joydirection << endl;
 }
-uint8 mem::get_keys(bool special) {
-  if (special) {
+uint8 mem::get_keys(keys k) {
+  if (k == special) {
     return joyspecial;
   }
   else {
     return joydirection;
   }
 }
-bool mem::direction_loaded() {
-  return loadeddirection;
+keys mem::get_keys_loaded() {
+  if (loadeddirection) {
+    return direction;
+  }
+  else {
+    return special;
+  }
 }
-
-bool mem::dma_running() {
-  return dmatransfering;
-}
-
-#ifdef TEST
-#include <cassert>
-
-int main(int argc, char *argv[]) {
-  mem *m = new mem(argv[1]);
-  assert(m->read_byte(0x0100) == 0x00);
-  assert(m->read_byte(0x0101) == 0xc3);
-  delete m;
-}
-
-#endif

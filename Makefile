@@ -2,7 +2,7 @@ CXX = g++
 CXXFLAGS = -g -std=c++11 -Wall
 LIBS = -lSDL2
 BIN = main
-SRC = main.cpp cpu.cpp mem.cpp lcd.cpp
+SRC = main.cpp cpu.cpp mem.cpp lcd.cpp keypad.cpp snd.cpp
 TESTS = mem.t
 OBJ = $(SRC:%.cpp=%.o) 
 

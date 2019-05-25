@@ -3,9 +3,10 @@
 #include "bits.h"
 #include "mem.h"
 #include "lcd.h"
+#include "keypad.h"
+#include "snd.h"
 
-class cpu 
-{
+class cpu {
   public:
     cpu();
     word16 af, bc, de, hl, sp, pc;
@@ -13,16 +14,17 @@ class cpu
     uint8 ei_delay;
     uint8 halt;
     bool repeat;
+    int cputhrottleclk;
     int emulate(mem &m);
     void print_registers(mem &m);
+    void throttle(int dt);
 };
 
 //using lookup table to avoid having to do log2
 //not totally sure there is a performance improvement but it is easier to implement for now
 const static uint16 interrupt_table[16] = {0,0x08,0,0x10,0,0,0,0x18,0,0,0,0,0,0,0,0x20};
 
-const static uint16 length[0x0100] = 
-{
+const static uint16 length[0x0100] = {
 /*0 1 2 3 4 5 6 7 8 9 A B C D E F*/
   1,3,1,1,1,1,2,1,3,1,1,1,1,1,2,1, /*0x*/
   2,3,1,1,1,1,2,1,2,1,1,1,1,1,2,1, /*1x*/
@@ -44,8 +46,7 @@ const static uint16 length[0x0100] =
 
 const static int cb_cycles[0x08] = {2,2,2,2,2,2,4,2};
 
-const static int cycles[0x0100] =
-{
+const static int cycles[0x0100] = {
 /*0 1 2 3 4 5 6 7 8 9 A B C D E F*/
   1,3,2,2,1,1,2,1,5,2,2,2,1,1,2,1, /*0x*/
   1,3,2,2,1,1,2,1,3,2,2,2,1,1,2,1, /*1x*/

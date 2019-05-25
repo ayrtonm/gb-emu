@@ -4,6 +4,7 @@
 #include "mem.h"
 #include <SDL2/SDL.h>
 #include <array>
+#include <vector>
 
 using namespace std;
 
@@ -17,14 +18,12 @@ class lcd
     void compareLYtoLYC(mem &m);
     void draw_line(mem &m);
     void draw_sprites(mem &m);
-    int parse_events(mem &m);
 
   private:
     SDL_Window *window;
     SDL_Renderer *renderer;
     SDL_Texture *screen;
     SDL_Rect offset;
-    SDL_Event event;
 
     float scale;
     array<uint8,160> linebuffer;

@@ -5,9 +5,11 @@
 
 using namespace std;
 
+enum request {none, resize, quit};
+
 class keypad {
   public:
-    int handle_events(mem &m);
+    request handle_events(mem &m);
   private:
     SDL_Event event;
 };

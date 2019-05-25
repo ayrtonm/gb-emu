@@ -105,11 +105,21 @@ int cpu::emulate(mem &m) {
     if (repeat) {repeat = false; pc.w -= length[op]-1;}
     m.update_timers(dt);
     l->step_lcd(dt,m);
-    if(!k->handle_events(m)) {
-      delete l;
-      delete k;
-      return 0;
-    };
+    switch (k->handle_events(m)) {
+      case none: {
+        break;
+      }
+      case resize: {
+        l->resize();
+        break;
+      }
+      case quit: {
+        delete l;
+        delete k;
+        delete s;
+        return 0;
+      }
+    }
     throttle(dt);
   }
   delete l;

@@ -18,6 +18,7 @@ class lcd
     void compareLYtoLYC(mem &m);
     void draw_line(mem &m);
     void draw_sprites(mem &m);
+    void resize();
 
   private:
     SDL_Window *window;

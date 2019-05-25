@@ -30,6 +30,20 @@ lcd::~lcd() {
   SDL_Quit();
 }
 
+void lcd::resize() {
+  int w, h;
+  SDL_GetWindowSize(window, &w, &h);
+  scale = MIN((float)w/160.0,(float)h/144.0);
+  offset.x = (w - (160*scale))/2;
+  offset.y = (h - (144*scale))/2;
+  offset.w = 160*scale;
+  offset.h = 144*scale;
+  SDL_RenderClear(renderer);
+  SDL_UpdateTexture(screen, NULL, &pixels[0], 160*4);
+  SDL_RenderCopy(renderer, screen, NULL, &offset);
+  SDL_RenderPresent(renderer);
+}
+
 void lcd::step_lcd(int dt, mem &m) {
 #ifdef DEBUG
   cout << hex << (int) (m.read_byte(O_IO+IO_LCDSTAT) & 0x03) << "\n";

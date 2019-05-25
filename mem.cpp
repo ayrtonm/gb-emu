@@ -385,10 +385,10 @@ void mem::update_timers(int dt) {
   }
 }
 
-void mem::update_keys(keys k, uint8 bit, bool down) {
+void mem::update_keys(keys k, uint8 bit, keypress kp) {
   //cout << hex << (int)memory[O_IO+IO_JOYP] << " " << hex << (int)joyspecial << " " << hex << (int)joydirection << "  to  ";
   if (k == special) {
-    if (down) {
+    if (kp == down) {
       //if the key for a special button is pressed, clear that bit in joyspecial
       joyspecial &= ~bit;
     }
@@ -402,7 +402,7 @@ void mem::update_keys(keys k, uint8 bit, bool down) {
     }
   }
   else {
-    if (down) {
+    if (kp == down) {
       //if the key for a direction button is pressed, clear that bit in joydirection
       joydirection &= ~bit;
     }

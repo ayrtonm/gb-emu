@@ -13,6 +13,7 @@ typedef struct color {
 } color;
 
 enum keys {direction, special};
+enum keypress {up, down};
 
 const static int tacvals[4] = {256, 4, 16, 64};
 
@@ -47,7 +48,7 @@ class mem
     bool get_dumpmemory() {
       return dumpmemory; 
     }
-    void update_keys(keys k, uint8 bit, bool down);
+    void update_keys(keys k, uint8 bit, keypress kp);
     uint8 get_keys(keys k);
     keys get_keys_loaded();
 

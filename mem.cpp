@@ -59,7 +59,6 @@ mem::mem(string filename, string memorydump) {
   loadeddirection = true;
   //direction is actually selected since setting the bit disables it
   memory[O_IO + IO_JOYP] = (JOYP_SPECIAL_SELECTED|0x0f);
-  cout << "memory initialized\n";
 }
 void mem::write_byte_internal(uint16 address, uint8 data) {
 #ifdef DEBUG_INTERNAL
@@ -128,102 +127,144 @@ void mem::write_byte(uint16 address, uint8 data) {
     //memory[O_IO+IO_LY] = 0;
     return;
   }
+  //writing to sound registers is only allowed if sound is enabled in NR52
+  //this restriction doesn't apply to NR52
   //only implementing appropriate read/write permissions and side effects for now (i.e. reading/writing won't actually produce sound)
   else if (address == O_IO + IO_NR10) {
-    memory[address] = data;
+    if (memory[O_IO + IO_NR52] & 0x80) {
+      memory[address] = data;
+    }
   }
   //bits 6-7 are read/write, other bits are write only and produce side effects
   else if (address == O_IO + IO_NR11) {
-    memory[address] = data & 0xc0;
+    if (memory[O_IO + IO_NR52] & 0x80) {
+      memory[address] = data & 0xc0;
+    }
   }
   //read/write with side effects
   else if (address == O_IO + IO_NR12) {
-    memory[address] = data;
+    if (memory[O_IO + IO_NR52] & 0x80) {
+      memory[address] = data;
+    }
   }
   //write only with side effects
   else if (address == O_IO + IO_NR13) {
-    memory[address] = 0;
+    if (memory[O_IO + IO_NR52] & 0x80) {
+      memory[address] = 0;
+    }
   }
   //can only read from bit 6, bits 0-2 and bit 7 are write only with side effects
   else if (address == O_IO + IO_NR14) {
-    //if writing to bit 7, set flag in NR52
-    if (data & 0x80) {
-      memory[O_IO+IO_NR52] |= 0x01;
+    if (memory[O_IO + IO_NR52] & 0x80) {
+      //if writing to bit 7, set flag in NR52
+      if (data & 0x80) {
+        memory[O_IO+IO_NR52] |= 0x01;
+      }
+      memory[address] = data & 0x40;
     }
-    memory[address] = data & 0x40;
   }
   //bits 6-7 are read/write, bits 0-5 are write only with side effects
   else if (address == O_IO + IO_NR21) {
-    memory[address] = data & 0xc0;
+    if (memory[O_IO + IO_NR52] & 0x80) {
+      memory[address] = data & 0xc0;
+    }
   }
   //read/write with side effects
   else if (address == O_IO + IO_NR22) {
-    memory[address] = data;
+    if (memory[O_IO + IO_NR52] & 0x80) {
+      memory[address] = data;
+    }
   }
   //write only with side effects
   else if (address == O_IO + IO_NR23) {
-    memory[address] = 0;
+    if (memory[O_IO + IO_NR52] & 0x80) {
+      memory[address] = 0;
+    }
   }
   //can only read from bit 6, bits 0-2 and bit 7 are write only with side effects
   else if (address == O_IO + IO_NR24) {
-    //if writing to bit 7, set flag in NR52
-    if (data & 0x80) {
-      memory[O_IO+IO_NR52] |= 0x02;
+    if (memory[O_IO + IO_NR52] & 0x80) {
+      //if writing to bit 7, set flag in NR52
+      if (data & 0x80) {
+        memory[O_IO+IO_NR52] |= 0x02;
+      }
+      memory[address] = data & 0x40;
     }
-    memory[address] = data & 0x40;
   }
   //bit 7 is read/write with side effects
   else if (address == O_IO + IO_NR30) {
-    memory[address] = data & 0x80;
+    if (memory[O_IO + IO_NR52] & 0x80) {
+      memory[address] = data & 0x80;
+    }
   }
   //permissions not specified in pandocs
   //possibly a timer/counter
   else if (address == O_IO + IO_NR31) {
-    memory[address] = data;
+    if (memory[O_IO + IO_NR52] & 0x80) {
+      memory[address] = data;
+    }
   }
   //bits 5-6 are read/write with side effects
   else if (address == O_IO + IO_NR32) {
-    memory[address] = data & 0x60;
+    if (memory[O_IO + IO_NR52] & 0x80) {
+      memory[address] = data & 0x60;
+    }
   }
   //write only with side effects
   else if (address == O_IO + IO_NR33) {
-    memory[address] = 0;
+    if (memory[O_IO + IO_NR52] & 0x80) {
+      memory[address] = 0;
+    }
   }
   //can only read from bit 6, bits 0-2 and bit 7 are write only with side effects
   else if (address == O_IO + IO_NR34) {
-    //if writing to bit 7, set flag in NR52
-    if (data & 0x80) {
-      memory[O_IO+IO_NR52] |= 0x04;
+    if (memory[O_IO + IO_NR52] & 0x80) {
+      //if writing to bit 7, set flag in NR52
+      if (data & 0x80) {
+        memory[O_IO+IO_NR52] |= 0x04;
+      }
+      memory[address] = data & 0x40;
     }
-    memory[address] = data & 0x40;
   }
   //bits 0-5 are read/write with side effects
   else if (address == O_IO + IO_NR41) {
-    memory[address] = data & 0x3f;
+    if (memory[O_IO + IO_NR52] & 0x80) {
+      memory[address] = data & 0x3f;
+    }
   }
   //read/write with side effects
   else if (address == O_IO + IO_NR42) {
-    memory[address] = data;
+    if (memory[O_IO + IO_NR52] & 0x80) {
+      memory[address] = data;
+    }
   }
   //read/write with side effects
   else if (address == O_IO + IO_NR43) {
-    memory[address] = data;
+    if (memory[O_IO + IO_NR52] & 0x80) {
+      memory[address] = data;
+    }
   }
   //bit 6 is read/write, bit 7 is write only with side effects
   else if (address == O_IO + IO_NR44) {
-    //if writing to bit 7, set flag in NR52
-    if (data & 0x80) {
-      memory[O_IO+IO_NR52] |= 0x08;
+    if (memory[O_IO + IO_NR52] & 0x80) {
+      //if writing to bit 7, set flag in NR52
+      if (data & 0x80) {
+        memory[O_IO+IO_NR52] |= 0x08;
+      }
+      memory[address] = data & 0x40;
     }
-    memory[address] = data & 0x40;
   }
   //read/write with side effects
   else if (address == O_IO + IO_NR50) {
-    memory[address] = data;
+    if (memory[O_IO + IO_NR52] & 0x80) {
+      memory[address] = data;
+    }
   }
   //read/write with side effects
   else if (address == O_IO + IO_NR51) {
-    memory[address] = data;
+    if (memory[O_IO + IO_NR52] & 0x80) {
+      memory[address] = data;
+    }
   }
   //bit 7 is read/write, bits 0-3 are read only
   else if (address == O_IO + IO_NR52) {

@@ -28,7 +28,6 @@ cpu::cpu() {
   ei_delay = 0;
   repeat = false;
   cputhrottleclk = 0;
-  cout << "cpu initialized\n";
 }
 
 //one cpu click is approximately 0.953674 microseconds

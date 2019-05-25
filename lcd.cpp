@@ -20,7 +20,6 @@ lcd::lcd() {
   offset.w = 160*scale;
   offset.h = 144*scale;
 #endif
-  cout << "lcd initialized\n";
 }
 lcd::~lcd() {
 #ifdef RENDERING

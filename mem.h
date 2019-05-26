@@ -75,6 +75,15 @@ class mem
     int tacthreshold;
     int dmatimer;
     bool dmatransfering;
+    //sound channel timers
+    uint8 ch1t;
+    uint8 ch2t;
+    uint8 ch3t;
+    uint8 ch4t;
+    long int ch1timer;
+    long int ch2timer;
+    long int ch3timer;
+    long int ch4timer;
 };
 
 #endif

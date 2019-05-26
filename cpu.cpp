@@ -121,8 +121,6 @@ int cpu::emulate(mem &m) {
     }
     throttle(dt);
   }
-  delete l;
-  delete k;
   return 1;
 }
 

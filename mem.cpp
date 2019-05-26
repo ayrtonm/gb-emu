@@ -79,8 +79,7 @@ void mem::write_byte(uint16 address, uint8 data) {
 #ifdef DEBUG
   cout << "called mem::write_byte(0x" << hex << (int)address << ", 0x" << hex << (int)data << ")" << endl;
 #endif
-  //writing to anything by HRAM is restricted during DMA transfer
-  //this seems to work ok
+  //writing to anything but HRAM is restricted during DMA transfer
   if (dmatransfering) {
     if ((address >= O_HRAM) && (address != O_IE)) {
       memory[address] = data;
@@ -134,24 +133,30 @@ void mem::write_byte(uint16 address, uint8 data) {
     if (memory[O_IO + IO_NR52] & 0x80) {
       memory[address] = data;
     }
+    return;
   }
   //bits 6-7 are read/write, other bits are write only and produce side effects
   else if (address == O_IO + IO_NR11) {
     if (memory[O_IO + IO_NR52] & 0x80) {
+      //since lower 6 bits are write only, store the data somewhere else so read_byte() will return 0 for these bits
+      ch1t = data & 0x3f;
       memory[address] = data & 0xc0;
     }
+    return;
   }
   //read/write with side effects
   else if (address == O_IO + IO_NR12) {
     if (memory[O_IO + IO_NR52] & 0x80) {
       memory[address] = data;
     }
+    return;
   }
   //write only with side effects
   else if (address == O_IO + IO_NR13) {
     if (memory[O_IO + IO_NR52] & 0x80) {
       memory[address] = 0;
     }
+    return;
   }
   //can only read from bit 6, bits 0-2 and bit 7 are write only with side effects
   else if (address == O_IO + IO_NR14) {
@@ -159,27 +164,34 @@ void mem::write_byte(uint16 address, uint8 data) {
       //if writing to bit 7, set flag in NR52
       if (data & 0x80) {
         memory[O_IO+IO_NR52] |= 0x01;
+        ch1timer = (64 - ch1t)*3906;
       }
       memory[address] = data & 0x40;
     }
+    return;
   }
   //bits 6-7 are read/write, bits 0-5 are write only with side effects
   else if (address == O_IO + IO_NR21) {
     if (memory[O_IO + IO_NR52] & 0x80) {
+      //since lower 6 bits are write only, store the data somewhere else so read_byte() will return 0 for these bits
+      ch2t = data & 0x3f;
       memory[address] = data & 0xc0;
     }
+    return;
   }
   //read/write with side effects
   else if (address == O_IO + IO_NR22) {
     if (memory[O_IO + IO_NR52] & 0x80) {
       memory[address] = data;
     }
+    return;
   }
   //write only with side effects
   else if (address == O_IO + IO_NR23) {
     if (memory[O_IO + IO_NR52] & 0x80) {
       memory[address] = 0;
     }
+    return;
   }
   //can only read from bit 6, bits 0-2 and bit 7 are write only with side effects
   else if (address == O_IO + IO_NR24) {
@@ -187,34 +199,43 @@ void mem::write_byte(uint16 address, uint8 data) {
       //if writing to bit 7, set flag in NR52
       if (data & 0x80) {
         memory[O_IO+IO_NR52] |= 0x02;
+        ch2timer = (64 - ch2t)*3906;
       }
       memory[address] = data & 0x40;
     }
+    return;
   }
   //bit 7 is read/write with side effects
   else if (address == O_IO + IO_NR30) {
     if (memory[O_IO + IO_NR52] & 0x80) {
       memory[address] = data & 0x80;
     }
+    return;
   }
   //permissions not specified in pandocs
   //possibly a timer/counter
   else if (address == O_IO + IO_NR31) {
     if (memory[O_IO + IO_NR52] & 0x80) {
-      memory[address] = data;
+      //since lower 6 bits are write only, store the data somewhere else so read_byte() will return 0 for these bits
+      ch3t = data;
+      //pandocs doesn't specify behavior of writing to NR31 so I'm following same pattern in NR11 and NR21
+      //memory[address] = data;
     }
+    return;
   }
   //bits 5-6 are read/write with side effects
   else if (address == O_IO + IO_NR32) {
     if (memory[O_IO + IO_NR52] & 0x80) {
       memory[address] = data & 0x60;
     }
+    return;
   }
   //write only with side effects
   else if (address == O_IO + IO_NR33) {
     if (memory[O_IO + IO_NR52] & 0x80) {
       memory[address] = 0;
     }
+    return;
   }
   //can only read from bit 6, bits 0-2 and bit 7 are write only with side effects
   else if (address == O_IO + IO_NR34) {
@@ -222,54 +243,66 @@ void mem::write_byte(uint16 address, uint8 data) {
       //if writing to bit 7, set flag in NR52
       if (data & 0x80) {
         memory[O_IO+IO_NR52] |= 0x04;
+        ch3timer = (256 - ch3t)*3906;
       }
       memory[address] = data & 0x40;
     }
+    return;
   }
   //bits 0-5 are read/write with side effects
   else if (address == O_IO + IO_NR41) {
     if (memory[O_IO + IO_NR52] & 0x80) {
-      memory[address] = data & 0x3f;
+      //since lower 6 bits are write only, store the data somewhere else so read_byte() will return 0 for these bits
+      ch4t = data & 0x3f;
+      //pandocs doesn't specify behavior of writing to NR31 so I'm following same pattern in NR11 and NR21
+      memory[address] = data & 0xc0;
     }
+    return;
   }
   //read/write with side effects
   else if (address == O_IO + IO_NR42) {
     if (memory[O_IO + IO_NR52] & 0x80) {
       memory[address] = data;
     }
+    return;
   }
   //read/write with side effects
   else if (address == O_IO + IO_NR43) {
     if (memory[O_IO + IO_NR52] & 0x80) {
       memory[address] = data;
     }
+    return;
   }
   //bit 6 is read/write, bit 7 is write only with side effects
   else if (address == O_IO + IO_NR44) {
     if (memory[O_IO + IO_NR52] & 0x80) {
       //if writing to bit 7, set flag in NR52
       if (data & 0x80) {
+        ch4timer = (64 - ch4t)*3906;
         memory[O_IO+IO_NR52] |= 0x08;
       }
       memory[address] = data & 0x40;
     }
+    return;
   }
   //read/write with side effects
   else if (address == O_IO + IO_NR50) {
     if (memory[O_IO + IO_NR52] & 0x80) {
       memory[address] = data;
     }
+    return;
   }
   //read/write with side effects
   else if (address == O_IO + IO_NR51) {
     if (memory[O_IO + IO_NR52] & 0x80) {
       memory[address] = data;
     }
+    return;
   }
   //bit 7 is read/write, bits 0-3 are read only
   else if (address == O_IO + IO_NR52) {
-    //writing to bit 7 destroys the contents of all sound registers
-    if (data & 0x80) {
+    //writing zero to bit 7 destroys the contents of all sound registers
+    if ((data & 0x80) == 0x00) {
       for (uint8 i = IO_NR10; i <= IO_NR52; i++) {
         //sound registers are contiguous memory from NR10 to NR52 except 0xFF15 and 0xFF1F
         if (i != 0x15 && i != 0x1f) {
@@ -278,6 +311,7 @@ void mem::write_byte(uint16 address, uint8 data) {
       }
     }
     memory[address] = data & 0x80;
+    return;
   }
   else if (address == O_IO+IO_DIV) {
     memory[O_IO+IO_DIV] = 0x00;
@@ -327,6 +361,7 @@ void mem::write_byte(uint16 address, uint8 data) {
         memory[0xFE00 + i] = memory[(data << 8) + i];
       }
     }
+    return;
   }
   else if (address < 0x8000) {
     cout << hex <<(int)address << " " << hex << (int)data<< " tried writing to ROM\n";
@@ -334,6 +369,7 @@ void mem::write_byte(uint16 address, uint8 data) {
   }
   else {
     memory[address] = data;
+    return;
   }
 };
 
@@ -366,8 +402,15 @@ void mem::load_cart(string filename) {
   cart.close();
   for (int i =0x0134; i < 0x0144; i++) cout << read_byte(i);//print title
   cout << (read_byte(0x014A) ? "\nNon-Japanese" : "\nJapanese");
-  cout << (read_byte(0x0147) == 0x00 ? "\ncartridge is ROM only" : "\ncartridge includes MBC (not implemented)");
   cout << "\n";
+  try {
+    if (read_byte(0x0147) != 0x00) {
+      throw runtime_error("cartridge includes MBC (not implemented)");
+    }
+  }
+  catch (const runtime_error &e) {
+    cout << e.what();
+  }
 }
 void mem::update_palette(uint8 palette, uint8 value) {
   int j = 0;
@@ -424,6 +467,46 @@ void mem::update_timers(int dt) {
       dmatransfering = false;
     }
   }
+  if (ch1timer > 0) {
+    ch1timer -= dt;
+    if (ch1timer <= 0) {
+      ch1timer = 0;
+      //if 6th bit is set stop output when length in NR11 expires
+      if (memory[O_IO + IO_NR14] & 0x40) {
+        memory[O_IO + IO_NR52] &= 0x01;
+      }
+    }
+  }
+  if (ch2timer > 0) {
+    ch2timer -= dt;
+    if (ch2timer <= 0) {
+      ch2timer = 0;
+      //if 6th bit is set stop output when length in NR21 expires
+      if (memory[O_IO + IO_NR24] & 0x40) {
+        memory[O_IO + IO_NR52] &= 0x02;
+      }
+    }
+  }
+  if (ch3timer > 0) {
+    ch3timer -= dt;
+    if (ch3timer <= 0) {
+      ch3timer = 0;
+      //if 6th bit is set stop output when length in NR31 expires
+      if (memory[O_IO + IO_NR34] & 0x40) {
+        memory[O_IO + IO_NR52] &= 0x04;
+      }
+    }
+  }
+  if (ch4timer > 0) {
+    ch4timer -= dt;
+    if (ch4timer <= 0) {
+      ch4timer = 0;
+      //if 6th bit is set stop output when length in NR41 expires
+      if (memory[O_IO + IO_NR44] & 0x40) {
+        memory[O_IO + IO_NR52] &= 0x08;
+      }
+    }
+  }
 }
 
 void mem::update_keys(keys k, uint8 bit, keypress kp) {
@@ -459,18 +542,8 @@ void mem::update_keys(keys k, uint8 bit, keypress kp) {
   //cout << hex << (int)memory[O_IO+IO_JOYP] << " " << hex << (int)joyspecial << " " << hex << (int)joydirection << endl;
 }
 uint8 mem::get_keys(keys k) {
-  if (k == special) {
-    return joyspecial;
-  }
-  else {
-    return joydirection;
-  }
+  return (k == special ? joyspecial : joydirection);
 }
 keys mem::get_keys_loaded() {
-  if (loadeddirection) {
-    return direction;
-  }
-  else {
-    return special;
-  }
+  return (loadeddirection ? direction : special);
 }

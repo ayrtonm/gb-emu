@@ -2,6 +2,7 @@
 #define MEM_H
 #include "bits.h"
 #include <array>
+#include <vector>
 #include <string>
 #include <iostream>
 #include <SDL2/SDL.h>
@@ -13,7 +14,11 @@ typedef struct color {
 } color;
 
 enum keys {direction, special};
-enum keypress {up, down};
+enum keypress {up, down}; 
+enum mbc {romonly, mbc1, mbc2, mbc3, mbc4, mbc5, huc3, huc1, mm01};
+//if mode is mbc1 then mbcmode can be rom or ram
+//if mode is mbc3 then mbcmode can be ram or rtc
+enum cartmode {rom, ram, rtc};
 
 const static int tacvals[4] = {256, 4, 16, 64};
 
@@ -21,9 +26,6 @@ class mem
 {
   public:
     mem(string filename, string memorydump = "");
-    //!Sets @c rombn and @c eram sizes
-    void load_cart(string filename);
-    //!Adds offset to address if trying to access ROM Bank N or External RAM
     inline uint8 read_byte(uint16 address) const {
       return memory[address];
     };
@@ -40,7 +42,6 @@ class mem
     };
 
     //used in lcd.cpp
-    void update_palette(uint8 palette, uint8 value);
     array<color,4> get_palette(uint8 palette_num);
 
     //used in keypad.cpp
@@ -56,8 +57,32 @@ class mem
     void update_timers(int dt);
 
   private:
+    void load_cart(string filename);
+    //this pointer is set to one of the following handle_x functions during load_cart
+    void (mem::*handle_mbc)(uint16 address, uint8 data);
+    void handle_romonly(uint16 address, uint8 data);
+    void handle_mbc1(uint16 address, uint8 data);
+    void handle_mbc2(uint16 address, uint8 data);
+    void handle_mbc3(uint16 address, uint8 data);
+
+    void switch_rombanks(int newbank);
+    void switch_rambanks(int newbank);
+    void update_palette(uint8 palette, uint8 value);
+
     //addressable memory
     array<uint8,0x10000> memory = {};
+    vector<array<uint8,0x4000>> rombanks;
+    vector<array<uint8,0x2000>> rambanks;
+    array<uint8,5> rtc_registers;
+    int current_rtc;
+    mbc mbctype;
+    int current_rombank;
+    int current_rambank;
+    int num_rombanks;
+    int num_rambanks;
+    bool ramenabled;
+    cartmode mbcmode;
+
     //!First palette is obp0, then obp1, then bgp
     array<color,4> palettes[3];
     bool dumpmemory = false;

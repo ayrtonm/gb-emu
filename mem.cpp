@@ -4,6 +4,8 @@
 #include <fstream>
 #undef DEBUG_INTERNAL
 #undef DEBUG
+#undef DEBUG_ROMBANK
+#undef DEBUG_RAMBANK
 
 using namespace std;
 
@@ -46,6 +48,11 @@ mem::mem(string filename, string memorydump) {
   memory[O_IE] = 0x00;
   
   memory[O_IO + IO_LCDSTAT] = 0x91;
+
+  ramenabled = false;
+  mbcmode = rom;
+  current_rombank = 1;
+  current_rambank = 0;
 
   divtimer = 0;
   timatimer = 0;
@@ -97,7 +104,7 @@ void mem::write_byte(uint16 address, uint8 data) {
   //  //can't access VRAM during lcd mode 3
   //  return;
   //}
-  if (address == O_IO+IO_LCDSTAT) {
+  else if (address == O_IO+IO_LCDSTAT) {
     //lower 3 bits of LCD STAT are read only
     memory[O_IO+IO_LCDSTAT] = (memory[O_IO+IO_LCDSTAT] & 0x07) | (data & 0xf8);
     return;
@@ -363,14 +370,136 @@ void mem::write_byte(uint16 address, uint8 data) {
     }
     return;
   }
-  else if (address < 0x8000) {
-    cout << hex <<(int)address << " " << hex << (int)data<< " tried writing to ROM\n";
+  else if (address < 0xC000) {
+    //explicitly dereferencing handle_mbc to highlight that this is a pointer
+    (*this.*handle_mbc)(address, data);
     return;
   }
   else {
     memory[address] = data;
     return;
   }
+};
+
+//the handle MBC functions need to access and modify the memory model so they should be members of the mem class
+//the ROM only handle function should take care of writing to RAM
+void mem::handle_romonly(uint16 address, uint8 data) {
+};
+void mem::handle_mbc2(uint16 address, uint8 data) {
+};
+void mem::handle_mbc3(uint16 address, uint8 data) {
+};
+void mem::handle_mbc1(uint16 address, uint8 data) {
+  //writing to this part of ROM enables RAM if an MBC-type circuit is present
+  if (address < 0x2000) {
+    if (num_rambanks != 0) {
+      if (data & 0x0A) {
+        ramenabled = true;
+      }
+      else {
+        ramenabled = false;
+      }
+    }
+    return;
+  }
+  //writing to this part of ROM selects the ROM bank number if an MBC is present
+  else if (address < 0x4000) {
+    if (mbctype == mbc1 && num_rombanks != 0) {
+      data &= 0x1f;
+      if (data == 0x00) {
+        data = 0x01;
+      }
+      //combine new data with current rombank and update addressable memory
+      switch_rombanks(data|(current_rombank & 0x60));
+    }
+    else if (mbctype == mbc3 && num_rombanks != 0) {
+      data &= 0x7f;
+      if (data == 0x00) {
+        data = 0x01;
+      }
+      //combine new data with current rombank and update addressable memory
+      switch_rombanks(data);
+    }
+    return;
+  }
+  //writing to this part of ROM selects the RAM bank number or the upper bits of ROM bank number if an MBC is present
+  else if (address < 0x6000) {
+    if (mbctype == mbc1) {
+      if (mbcmode == rom) {
+        data &= 0x03;
+        //combine new data with current rombank and update addressable memory
+        switch_rombanks(data|(current_rombank & 0x1f));
+      }
+      else if (mbcmode == ram && ramenabled) {
+      }
+    }
+    else if (mbctype == mbc3) {
+      if (ramenabled) {
+        if (data < 0x04) {
+          mbcmode = ram;
+          switch_rambanks(data);
+        }
+        else if (data > 0x07 && data < 0x0d) {
+          mbcmode = rtc;
+          current_rtc =  data - 0x08;
+        }
+      }
+    }
+    return;
+  }
+  //writing to this part of ROM selects between ROM and RAM mode if an MBC is present
+  else if (address < 0x8000) {
+    if (mbctype == mbc1) {
+      mbcmode = (data == 0x01 ? ram : rom);
+    }
+    return;
+  }
+  else if (address < 0xA000) {
+    memory[address] = data;
+    return;
+  }
+  else if (address < 0xC000) {
+    if (mbctype == mbc1) {
+    }
+    else if (mbctype == mbc3) {
+      if (mbcmode == ram) {
+        memory[address] = data;
+        return;
+      }
+      else if (mbcmode == rtc) {
+        rtc_registers[current_rtc] = data;
+      }
+    }
+    else {
+      memory[address] = data;
+      return;
+    }
+  }
+};
+
+void mem::switch_rombanks(int newbank) {
+#ifdef DEBUG_ROMBANK
+  cout << "switching to ROM bank " << newbank << endl;
+#endif
+  uint8 temp;
+  for (int i = 0; i < 0x4000; i++) {
+    temp = memory[0x4000 + i];
+    memory[0x4000 + i] = rombanks[newbank][i];
+    rombanks[current_rombank][i] = temp;
+  }
+  current_rombank = newbank;
+};
+void mem::switch_rambanks(int newbank) {
+#ifdef DEBUG_RAMBANK
+  cout << "switching to RAM bank " << newbank << endl;
+#endif
+  uint8 temp;
+  for (int i = 0; i < 0x2000; i++) {
+    temp = memory[0xA000 + i];
+    memory[0xA000 + i] = rambanks[newbank][i];
+    rambanks[current_rambank][i] = temp;
+  }
+  current_rambank = newbank;
 };
 
 void mem::load_cart(string filename) {
@@ -404,12 +533,101 @@ void mem::load_cart(string filename) {
   cout << (read_byte(0x014A) ? "\nNon-Japanese" : "\nJapanese");
   cout << "\n";
   try {
-    if (read_byte(0x0147) != 0x00) {
-      throw runtime_error("cartridge includes MBC (not implemented)");
+    switch(read_byte(0x0147)) {
+      case 0x00: {mbctype = romonly;break;}
+
+      case 0x01: {mbctype = mbc1;break;}
+      case 0x02: {mbctype = mbc1;break;}
+      case 0x03: {mbctype = mbc1;break;}
+
+      case 0x05: {mbctype = mbc2;break;}
+      case 0x06: {mbctype = mbc2;break;}
+      //0x07 undefined
+      case 0x08: {mbctype = romonly;break;}
+      case 0x09: {mbctype = romonly;break;}
+
+      case 0x0b: {mbctype = mm01;break;}
+      case 0x0c: {mbctype = mm01;break;}
+      case 0x0d: {mbctype = mm01;break;}
+
+      case 0x0f: {mbctype = mbc3;break;}
+      case 0x10: {mbctype = mbc3;break;}
+      case 0x11: {mbctype = mbc3;break;}
+      case 0x12: {mbctype = mbc3;break;}
+      case 0x13: {mbctype = mbc3;break;}
+      //0x14 undefined
+      case 0x15: {mbctype = mbc4;break;}
+      case 0x16: {mbctype = mbc4;break;}
+      case 0x17: {mbctype = mbc4;break;}
+      //0x18 undefined
+      case 0x19: {mbctype = mbc5;break;}
+      case 0x1a: {mbctype = mbc5;break;}
+      case 0x1b: {mbctype = mbc5;break;}
+      case 0x1c: {mbctype = mbc5;break;}
+      case 0x1d: {mbctype = mbc5;break;}
+      case 0x1e: {mbctype = mbc5;break;}
+
+      case 0xfe: {mbctype = huc3;break;}
+      case 0xff: {mbctype = huc1;break;}
+      default: {
+        throw runtime_error("cartridge includes unknown MBC");
+        break;
+      }
+    }
+    switch(read_byte(0x0148)) {
+      case 0x00: {num_rombanks = 0;break;}
+      case 0x01: {num_rombanks = 4;break;}
+      case 0x02: {num_rombanks = 8;break;}
+      case 0x03: {num_rombanks = 16;break;}
+      case 0x04: {num_rombanks = 32;break;}
+      case 0x05: {num_rombanks = 64;break;} //MBC1 only uses 63 banks, but let's allocate 64 to simplify addressing
+      case 0x06: {num_rombanks = 128;break;} //MBC1 only uses 125 banks, but let's allocate 128 to simplify addressing
+      case 0x07: {num_rombanks = 256;break;}
+      case 0x52: {num_rombanks = 72;break;}
+      case 0x53: {num_rombanks = 80;break;}
+      case 0x54: {num_rombanks = 96;break;}
+      default: {
+        throw runtime_error("cartridge includes unknown ROM size");
+      }
+    }
+    switch(read_byte(0x0149)) {
+      case 0x00: {num_rambanks = 0;break;}
+      case 0x01: {num_rambanks = 1;break;} //only the first 2 kBytes are accessible in this case
+      case 0x02: {num_rambanks = 1;break;}
+      case 0x03: {num_rambanks = 4;break;}
+      default: {
+        throw runtime_error("cartridge includes unknown RAM size");
+      }
+    }
+    uint8 checksum = 0;
+    for (int i = 0x0134; i < 0x014d; i++) {
+      checksum = checksum - memory[i] - 1;
+    }
+    if (checksum != memory[0x014d]) {
+      throw runtime_error("header checksum failed");
     }
   }
   catch (const runtime_error &e) {
     cout << e.what();
+  }
+  //given what we just read, let's initialize the memory model as needed
+  switch (mbctype) {
+    case romonly: {handle_mbc = &mem::handle_romonly;break;}
+    case mbc1: {handle_mbc = &mem::handle_mbc1;break;}
+    case mbc2: {handle_mbc = &mem::handle_mbc2;break;}
+    case mbc3: {handle_mbc = &mem::handle_mbc3;break;}
+    //case mbc4: {handle_mbc = &mem::handle_mbc4;break;}
+    //case mbc5: {handle_mbc = &mem::handle_mbc5;break;}
+    //case huc3: {handle_mbc = &mem::handle_huc3;break;}
+    //case huc1: {handle_mbc = &mem::handle_huc1;break;}
+    //case mm01: {handle_mbc = &mem::handle_mm01;break;}
+  }
+  //increase ROM bank vector as needed
+  if (mbctype != romonly && num_rombanks != 0) {
+    rombanks.resize(num_rombanks);
+  }
+  if (num_rambanks != 0) {
+    rambanks.resize(num_rambanks);
   }
 }
 void mem::update_palette(uint8 palette, uint8 value) {
@@ -510,7 +728,6 @@ void mem::update_timers(int dt) {
 }
 
 void mem::update_keys(keys k, uint8 bit, keypress kp) {
-  //cout << hex << (int)memory[O_IO+IO_JOYP] << " " << hex << (int)joyspecial << " " << hex << (int)joydirection << "  to  ";
   if (k == special) {
     if (kp == down) {
       //if the key for a special button is pressed, clear that bit in joyspecial
@@ -539,7 +756,6 @@ void mem::update_keys(keys k, uint8 bit, keypress kp) {
       write_byte_internal(O_IO+IO_JOYP,(joydirection & 0x0f) | (read_byte(O_IO+IO_JOYP) & 0xf0));
     }
   }
-  //cout << hex << (int)memory[O_IO+IO_JOYP] << " " << hex << (int)joyspecial << " " << hex << (int)joydirection << endl;
 }
 uint8 mem::get_keys(keys k) {
   return (k == special ? joyspecial : joydirection);

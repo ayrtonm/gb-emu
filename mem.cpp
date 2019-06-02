@@ -48,6 +48,9 @@ mem::mem(string filename, string memorydump) {
   memory[O_IE] = 0x00;
   
   memory[O_IO + IO_LCDSTAT] = 0x91;
+  update_palette(2, 0xfc);
+  update_palette(0, 0xff);
+  update_palette(1, 0xff);
 
   ramenabled = false;
   mbcmode = rom;
@@ -113,6 +116,21 @@ void mem::write_byte(uint16 address, uint8 data) {
   else if ((address < O_VRAM) || ((address >= O_ERAM) && (address < O_WRAM0))) {
     (*this.*handle_mbc)(address, data);
     return;
+  }
+  //ignore attempts to write to unusable section of memory
+  else if ((address >= O_UNUSED) && (address < O_IO)) {
+    return;
+  }
+  //handle writing to work ram section
+  else if ((address >= O_WRAM0) && (address < O_ECHO0)) {
+    memory[address] = data;
+    if ((address - O_WRAM0) < 0xe00) {
+      memory[address + 0x2000] = data;
+    }
+  }
+  else if ((address >= O_ECHO0) && (address < O_OAM)) {
+    memory[address] = data;
+    memory[address - 0x2000] = data;
   }
   else {
     memory[address] = data;
@@ -315,6 +333,7 @@ void mem::load_cart(string filename) {
   }
   cart.close();
   for (int i =0x0134; i < 0x0144; i++) cout << read_byte(i);//print title
+  cout << (read_byte(0x0143) == 0xc0 ? "\nColor Game Boy mode only" : "\nnon-Color Game Boy mode");
   cout << (read_byte(0x014A) ? "\nNon-Japanese" : "\nJapanese");
   cout << "\n";
   try {

@@ -257,3 +257,8 @@ case IO_NR52: {
   memory[address] = data & 0x80;
   break;
 }
+//when writing to unused portion of IO section of memory
+default: {
+  memory[address] = data;
+  return;
+}

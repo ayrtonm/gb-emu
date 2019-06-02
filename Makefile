@@ -24,4 +24,4 @@ asm: $(SRC)
 test: $(TESTS)
 	set -e; $(TESTS:%=./%;)
 check:
-	$(CXX) -E cpu.cpp
+	$(CXX) -E mem.cpp

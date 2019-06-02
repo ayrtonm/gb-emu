@@ -4,7 +4,7 @@
 #include "mem.h"
 #include "lcd.h"
 #include "keypad.h"
-#include "snd.h"
+#include "sound.h"
 
 class cpu {
   public:

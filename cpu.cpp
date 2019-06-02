@@ -37,12 +37,9 @@ int cpu::emulate(mem &m) {
   int dt = 0;
 
   //initialize subsystem classes
-  lcd *l;
-  l = new lcd;
-  keypad *k;
-  k = new keypad;
-  snd *s;
-  s = new snd;
+  lcd *l = new lcd;
+  keypad *k = new keypad;
+  sound *s = new sound;
 
   for(;;)
   {

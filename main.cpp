@@ -55,9 +55,8 @@ int main(int argc, char *argv[]) {
   struct arguments arguments;
   argp_parse(&argp, argc, argv, 0, 0, &arguments);
   string filename(arguments.inputfile);
-  cpu *c;
+  cpu *c = new cpu;
   mem *m;
-  c = new cpu;
   if (arguments.dumpmemory) {
     string memorydumpfile(arguments.memorydumpfile);
     m = new mem(filename, memorydumpfile);

@@ -427,7 +427,6 @@ void mem::update_palette(uint8 palette, uint8 value) {
     j++;
   }
 }
-
 array<color,4> mem::get_palette(uint8 palette_num) {
   return palettes[palette_num];
 }
@@ -511,7 +510,6 @@ void mem::update_timers(int dt) {
     }
   }
 }
-
 void mem::update_keys(keys k, uint8 bit, keypress kp) {
   if (k == special) {
     if (kp == down) {

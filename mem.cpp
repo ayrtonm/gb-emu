@@ -4,8 +4,8 @@
 #include <fstream>
 #undef DEBUG_INTERNAL
 #undef DEBUG
-#undef DEBUG_ROMBANK
-#undef DEBUG_RAMBANK
+#define DEBUG_ROMBANK
+#define DEBUG_RAMBANK
 
 using namespace std;
 
@@ -96,282 +96,21 @@ void mem::write_byte(uint16 address, uint8 data) {
   //writing to OAM and VRAM is restricted during certain LCD modes
   //this doesn't give good results yet
   //lcdmode is memory[O_IO + IO_LCDSTAT] & 0x03
-  //else if (((address < O_UNUSED) && (address >= O_OAM)) && ((lcdmode == 2) || (lcdmode == 3))) {
+  //else if (((address < O_UNUSED) && (address >= O_OAM)) && (((memory[O_IO + IO_LCDSTAT] & 0x03) == 2) || ((memory[O_IO + IO_LCDSTAT] & 0x03) == 3))) {
   //  //can't access OAM during lcd modes 2 and 3
   //  return;
   //}
-  //else if (((address < O_ERAM) && (address >= O_VRAM)) && (lcdmode == 3)) {
+  //else if (((address < O_ERAM) && (address >= O_VRAM)) && ((memory[O_IO + IO_LCDSTAT] & 0x03) == 3)) {
   //  //can't access VRAM during lcd mode 3
   //  return;
   //}
-  else if (address == O_IO+IO_LCDSTAT) {
-    //lower 3 bits of LCD STAT are read only
-    memory[O_IO+IO_LCDSTAT] = (memory[O_IO+IO_LCDSTAT] & 0x07) | (data & 0xf8);
-    return;
-  }
-  else if (address == O_IO+IO_LY) {
-    //this is read only
-    return;
-  }
-  else if (address == O_IO+IO_BGP) {
-    memory[address] = data;
-    update_palette(2, data);
-    return;
-  }
-  else if (address == O_IO+IO_OBP0) {
-    memory[address] = data;
-    update_palette(0, data);
-    return;
-  }
-  else if (address == O_IO+IO_OBP1) {
-    memory[address] = data;
-    update_palette(1, data);
-    return;
-  }
-  else if (address == O_IO+IO_LY) {
-    //this is read only, attempting to write to it "resets the counter"
-    //memory[O_IO+IO_LY] = 0;
-    return;
-  }
-  //writing to sound registers is only allowed if sound is enabled in NR52
-  //this restriction doesn't apply to NR52
-  //only implementing appropriate read/write permissions and side effects for now (i.e. reading/writing won't actually produce sound)
-  else if (address == O_IO + IO_NR10) {
-    if (memory[O_IO + IO_NR52] & 0x80) {
-      memory[address] = data;
+  else if ((address >= O_IO) && (address < O_HRAM)) {
+    switch(address - O_IO) {
+      #include "io.h"
     }
     return;
   }
-  //bits 6-7 are read/write, other bits are write only and produce side effects
-  else if (address == O_IO + IO_NR11) {
-    if (memory[O_IO + IO_NR52] & 0x80) {
-      //since lower 6 bits are write only, store the data somewhere else so read_byte() will return 0 for these bits
-      ch1t = data & 0x3f;
-      memory[address] = data & 0xc0;
-    }
-    return;
-  }
-  //read/write with side effects
-  else if (address == O_IO + IO_NR12) {
-    if (memory[O_IO + IO_NR52] & 0x80) {
-      memory[address] = data;
-    }
-    return;
-  }
-  //write only with side effects
-  else if (address == O_IO + IO_NR13) {
-    if (memory[O_IO + IO_NR52] & 0x80) {
-      memory[address] = 0;
-    }
-    return;
-  }
-  //can only read from bit 6, bits 0-2 and bit 7 are write only with side effects
-  else if (address == O_IO + IO_NR14) {
-    if (memory[O_IO + IO_NR52] & 0x80) {
-      //if writing to bit 7, set flag in NR52
-      if (data & 0x80) {
-        memory[O_IO+IO_NR52] |= 0x01;
-        ch1timer = (64 - ch1t)*3906;
-      }
-      memory[address] = data & 0x40;
-    }
-    return;
-  }
-  //bits 6-7 are read/write, bits 0-5 are write only with side effects
-  else if (address == O_IO + IO_NR21) {
-    if (memory[O_IO + IO_NR52] & 0x80) {
-      //since lower 6 bits are write only, store the data somewhere else so read_byte() will return 0 for these bits
-      ch2t = data & 0x3f;
-      memory[address] = data & 0xc0;
-    }
-    return;
-  }
-  //read/write with side effects
-  else if (address == O_IO + IO_NR22) {
-    if (memory[O_IO + IO_NR52] & 0x80) {
-      memory[address] = data;
-    }
-    return;
-  }
-  //write only with side effects
-  else if (address == O_IO + IO_NR23) {
-    if (memory[O_IO + IO_NR52] & 0x80) {
-      memory[address] = 0;
-    }
-    return;
-  }
-  //can only read from bit 6, bits 0-2 and bit 7 are write only with side effects
-  else if (address == O_IO + IO_NR24) {
-    if (memory[O_IO + IO_NR52] & 0x80) {
-      //if writing to bit 7, set flag in NR52
-      if (data & 0x80) {
-        memory[O_IO+IO_NR52] |= 0x02;
-        ch2timer = (64 - ch2t)*3906;
-      }
-      memory[address] = data & 0x40;
-    }
-    return;
-  }
-  //bit 7 is read/write with side effects
-  else if (address == O_IO + IO_NR30) {
-    if (memory[O_IO + IO_NR52] & 0x80) {
-      memory[address] = data & 0x80;
-    }
-    return;
-  }
-  //permissions not specified in pandocs
-  //possibly a timer/counter
-  else if (address == O_IO + IO_NR31) {
-    if (memory[O_IO + IO_NR52] & 0x80) {
-      //since lower 6 bits are write only, store the data somewhere else so read_byte() will return 0 for these bits
-      ch3t = data;
-      //pandocs doesn't specify behavior of writing to NR31 so I'm following same pattern in NR11 and NR21
-      //memory[address] = data;
-    }
-    return;
-  }
-  //bits 5-6 are read/write with side effects
-  else if (address == O_IO + IO_NR32) {
-    if (memory[O_IO + IO_NR52] & 0x80) {
-      memory[address] = data & 0x60;
-    }
-    return;
-  }
-  //write only with side effects
-  else if (address == O_IO + IO_NR33) {
-    if (memory[O_IO + IO_NR52] & 0x80) {
-      memory[address] = 0;
-    }
-    return;
-  }
-  //can only read from bit 6, bits 0-2 and bit 7 are write only with side effects
-  else if (address == O_IO + IO_NR34) {
-    if (memory[O_IO + IO_NR52] & 0x80) {
-      //if writing to bit 7, set flag in NR52
-      if (data & 0x80) {
-        memory[O_IO+IO_NR52] |= 0x04;
-        ch3timer = (256 - ch3t)*3906;
-      }
-      memory[address] = data & 0x40;
-    }
-    return;
-  }
-  //bits 0-5 are read/write with side effects
-  else if (address == O_IO + IO_NR41) {
-    if (memory[O_IO + IO_NR52] & 0x80) {
-      //since lower 6 bits are write only, store the data somewhere else so read_byte() will return 0 for these bits
-      ch4t = data & 0x3f;
-      //pandocs doesn't specify behavior of writing to NR31 so I'm following same pattern in NR11 and NR21
-      memory[address] = data & 0xc0;
-    }
-    return;
-  }
-  //read/write with side effects
-  else if (address == O_IO + IO_NR42) {
-    if (memory[O_IO + IO_NR52] & 0x80) {
-      memory[address] = data;
-    }
-    return;
-  }
-  //read/write with side effects
-  else if (address == O_IO + IO_NR43) {
-    if (memory[O_IO + IO_NR52] & 0x80) {
-      memory[address] = data;
-    }
-    return;
-  }
-  //bit 6 is read/write, bit 7 is write only with side effects
-  else if (address == O_IO + IO_NR44) {
-    if (memory[O_IO + IO_NR52] & 0x80) {
-      //if writing to bit 7, set flag in NR52
-      if (data & 0x80) {
-        ch4timer = (64 - ch4t)*3906;
-        memory[O_IO+IO_NR52] |= 0x08;
-      }
-      memory[address] = data & 0x40;
-    }
-    return;
-  }
-  //read/write with side effects
-  else if (address == O_IO + IO_NR50) {
-    if (memory[O_IO + IO_NR52] & 0x80) {
-      memory[address] = data;
-    }
-    return;
-  }
-  //read/write with side effects
-  else if (address == O_IO + IO_NR51) {
-    if (memory[O_IO + IO_NR52] & 0x80) {
-      memory[address] = data;
-    }
-    return;
-  }
-  //bit 7 is read/write, bits 0-3 are read only
-  else if (address == O_IO + IO_NR52) {
-    //writing zero to bit 7 destroys the contents of all sound registers
-    if ((data & 0x80) == 0x00) {
-      for (uint8 i = IO_NR10; i <= IO_NR52; i++) {
-        //sound registers are contiguous memory from NR10 to NR52 except 0xFF15 and 0xFF1F
-        if (i != 0x15 && i != 0x1f) {
-          memory[O_IO + i] = 0;
-        }
-      }
-    }
-    memory[address] = data & 0x80;
-    return;
-  }
-  else if (address == O_IO+IO_DIV) {
-    memory[O_IO+IO_DIV] = 0x00;
-    divtimer = 0;
-    return;
-  }
-  else if (address == O_IO+IO_TAC) {
-    tacthreshold = tacvals[data & 0x03];
-    timatimer = 0;
-    memory[O_IO+IO_TAC] = data;
-    return;
-  }
-  else if (address == O_IO+IO_JOYP) {
-    uint8 keysselected = data & 0x30;
-    //if special keys are selected
-    if (keysselected == JOYP_DIRECTION_SELECTED) {
-      loadeddirection = false;
-      memory[O_IO+IO_JOYP] = (joyspecial & 0x0f)|(data & 0xf0);
-      return;
-    }
-    //if direction keys are selected
-    else if (keysselected == JOYP_SPECIAL_SELECTED) {
-      loadeddirection = true;
-      memory[O_IO+IO_JOYP] = (joydirection & 0x0f)|(data & 0xf0);
-      return;
-    }
-    //if neither set is selected
-    else if (keysselected == (JOYP_DIRECTION_SELECTED|JOYP_SPECIAL_SELECTED)) {
-      //keep previous setting for loadeddirection
-      memory[O_IO+IO_JOYP] = (data & 0xf0);
-      return;
-    }
-    //if both sets are selected (undefined behavior)
-    else if (keysselected == 0x00) {
-      //ignore attempt to write to memory
-      memory[O_IO+IO_JOYP] = data;
-      return;
-    }
-  }
-  else if (address == O_IO+IO_DMA) {
-    if (data <= 0xF1) {
-      dmatimer = 160;
-      dmatransfering = true;
-      //all data is written immediately after the DMA is executed which very likely does not match the hardware's behavior
-      //this should not matter since accessable memory is limited during DMA transfer
-      for (int i = 0; i < 160; i++) {
-        memory[0xFE00 + i] = memory[(data << 8) + i];
-      }
-    }
-    return;
-  }
-  else if (address < 0xC000) {
-    //explicitly dereferencing handle_mbc to highlight that this is a pointer
+  else if ((address < O_VRAM) || ((address >= O_ERAM) && (address < O_WRAM0))) {
     (*this.*handle_mbc)(address, data);
     return;
   }
@@ -380,104 +119,143 @@ void mem::write_byte(uint16 address, uint8 data) {
     return;
   }
 };
-
 //the handle MBC functions need to access and modify the memory model so they should be members of the mem class
 //the ROM only handle function should take care of writing to RAM
 void mem::handle_romonly(uint16 address, uint8 data) {
-};
-void mem::handle_mbc2(uint16 address, uint8 data) {
-};
-void mem::handle_mbc3(uint16 address, uint8 data) {
-};
-void mem::handle_mbc1(uint16 address, uint8 data) {
-  //writing to this part of ROM enables RAM if an MBC-type circuit is present
-  if (address < 0x2000) {
-    if (num_rambanks != 0) {
-      if (data & 0x0A) {
-        ramenabled = true;
-      }
-      else {
-        ramenabled = false;
-      }
+  //ignore attempts to write to address < 0x8000
+  if (memory[0x0149] == 0x01) {
+    if (address < 0xa800) {
+      memory[address] = data;
     }
     return;
   }
-  //writing to this part of ROM selects the ROM bank number if an MBC is present
+  else if (memory[0x0149] == 0x02) {
+    memory[address] = data;
+    return;
+  }
+};
+//address can only be in 0x0000-0x7fff or 0xa000-0xbfff
+void mem::handle_mbc1(uint16 address, uint8 data) {
+  if (address < 0x2000) {
+    ramenabled = (data & 0x0a ? true : false);
+    return;
+  }
   else if (address < 0x4000) {
-    if (mbctype == mbc1 && num_rombanks != 0) {
+    if (num_rombanks > 1) {
       data &= 0x1f;
       if (data == 0x00) {
         data = 0x01;
       }
-      //combine new data with current rombank and update addressable memory
-      switch_rombanks(data|(current_rombank & 0x60));
+      switch_rombanks(data | (current_rombank & 0x60));
     }
-    else if (mbctype == mbc3 && num_rombanks != 0) {
-      data &= 0x7f;
+    return;
+  }
+  else if (address < 0x6000) {
+    if ((mbcmode == rom) && (num_rombanks > 1)) {
+      data &= 0x03;
+      switch_rombanks(data | (current_rombank & 0x1f));
+    }
+    else if ((mbcmode == ram) && (num_rambanks > 1)) {
+      data &= 0x03;
+      switch_rambanks(data);
+    }
+    return;
+  }
+  else if (address < 0x8000) {
+    mbcmode = (data == 0x01 ? ram : rom);
+    return;
+  }
+  else {
+    if (ramenabled && num_rambanks > 0) {
+      //if [0x0149] is 8kB or 32 kB we can write anywhere in the external RAM section
+      if (memory[0x0149] > 0x01) {
+        memory[address] = data;
+      }
+      //if [0x0149] is 2kB we can only write to the first 0x800 of the external RAM section
+      else if ((memory[0x0149] == 0x01) && (address < 0xa800)) {
+        memory[address] = data;
+      }
+    }
+    return;
+  }
+};
+void mem::handle_mbc2(uint16 address, uint8 data) {
+  if (address < 0x2000) {
+    if ((address & 0x0100) == 0x00) {
+      ramenabled = (data & 0x0a ? true : false);
+    }
+    return;
+  }
+  else if (address < 0x4000) {
+    if (address & 0x0100) {
+      data &= 0x0f;
       if (data == 0x00) {
         data = 0x01;
       }
-      //combine new data with current rombank and update addressable memory
       switch_rombanks(data);
     }
     return;
   }
-  //writing to this part of ROM selects the RAM bank number or the upper bits of ROM bank number if an MBC is present
+  //MBC2 has built-in RAM bank which consists of 0x200 addresses of 4 bit values
+  //since they are 4 bit registers, only the lower 4 bits of the data being written are used
+  else if ((address >= 0xa000) && (address < 0xa200)) {
+    if (ramenabled) {
+      memory[address] = data & 0x0f;
+    }
+    return;
+  }
+};
+void mem::handle_mbc3(uint16 address, uint8 data) {
+  if (address < 0x2000) {
+    ramenabled = (data & 0x0a ? true : false);
+    return;
+  }
+  else if (address < 0x4000) {
+    if (num_rombanks > 1) {
+      data &= 0x7f;
+      if (data == 0x00) {
+        data = 0x01;
+      }
+      switch_rombanks(data);
+    }
+    return;
+  }
   else if (address < 0x6000) {
-    if (mbctype == mbc1) {
-      if (mbcmode == rom) {
-        data &= 0x03;
-        //combine new data with current rombank and update addressable memory
-        switch_rombanks(data|(current_rombank & 0x1f));
+    //if (ramenabled) {
+      if (data < 0x04) {
+        mbcmode = ram;
+        switch_rambanks(data);
       }
-      else if (mbcmode == ram && ramenabled) {
+      else if (data > 0x07 && data < 0x0d) {
+        mbcmode = rtc;
+        current_rtc = data - 0x08;
       }
-    }
-    else if (mbctype == mbc3) {
-      if (ramenabled) {
-        if (data < 0x04) {
-          mbcmode = ram;
-          switch_rambanks(data);
-        }
-        else if (data > 0x07 && data < 0x0d) {
-          mbcmode = rtc;
-          current_rtc =  data - 0x08;
-        }
-      }
-    }
+    //}
     return;
   }
-  //writing to this part of ROM selects between ROM and RAM mode if an MBC is present
   else if (address < 0x8000) {
-    if (mbctype == mbc1) {
-      mbcmode = (data == 0x01 ? ram : rom);
-    }
     return;
   }
-  else if (address < 0xA000) {
-    memory[address] = data;
-    return;
-  }
-  else if (address < 0xC000) {
-    if (mbctype == mbc1) {
-    }
-    else if (mbctype == mbc3) {
-      if (mbcmode == ram) {
-        memory[address] = data;
-        return;
-      }
-      else if (mbcmode == rtc) {
-        rtc_registers[current_rtc] = data;
-      }
-    }
-    else {
+  else if (address < 0xc000) {
+    if ((mbcmode == ram) && ramenabled) {
       memory[address] = data;
+      return;
+    }
+    else if (mbcmode == rtc) {
+      rtc_registers[current_rtc] = data;
       return;
     }
   }
 };
 
 void mem::switch_rombanks(int newbank) {
+  if (newbank >= num_rombanks) {
+#ifdef DEBUG_ROMBANK
+  cout << "failed to switch to ROM bank " << newbank << endl;
+  cout << (newbank & 0x60) << " " << (newbank & 0x1f) << endl;
+#endif
+    return;
+  }
 #ifdef DEBUG_ROMBANK
   cout << "switching to ROM bank " << newbank << endl;
 #endif
@@ -489,7 +267,14 @@ void mem::switch_rombanks(int newbank) {
   }
   current_rombank = newbank;
 };
+
 void mem::switch_rambanks(int newbank) {
+  if (newbank >= num_rambanks) {
+#ifdef DEBUG_ROMBANK
+  cout << "failed to switch to ROM bank " << newbank << endl;
+#endif
+  return;
+  }
 #ifdef DEBUG_RAMBANK
   cout << "switching to RAM bank " << newbank << endl;
 #endif

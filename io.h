@@ -1,3 +1,11 @@
+case IO_SB: {
+  cout << hex << (int)data << "tried writing to SB\n";
+  break;
+}
+case IO_SC: {
+  cout << hex << (int)data << "tried writing to SC\n";
+  break;
+}
 case IO_LCDSTAT: {
   //lower 3 bits of LCD STAT are read only
   memory[O_IO+IO_LCDSTAT] = (memory[O_IO+IO_LCDSTAT] & 0x07) | (data & 0xf8);

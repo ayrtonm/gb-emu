@@ -110,6 +110,8 @@ typedef union {
 #define V_MD_1    0x1c00
 //!offsets for I/O ports
 #define IO_JOYP     0x00
+#define IO_SB       0x01
+#define IO_SC       0x02
 #define IO_DIV      0x04
 #define IO_TIMA     0x05
 #define IO_TMA      0x06

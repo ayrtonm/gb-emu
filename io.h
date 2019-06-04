@@ -1,9 +1,9 @@
 case IO_SB: {
-  cout << hex << (int)data << "tried writing to SB\n";
+  //cout << hex << (int)data << "tried writing to SB\n";
   break;
 }
 case IO_SC: {
-  cout << hex << (int)data << "tried writing to SC\n";
+  //cout << hex << (int)data << "tried writing to SC\n";
   break;
 }
 case IO_LCDSTAT: {

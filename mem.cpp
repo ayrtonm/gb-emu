@@ -4,8 +4,6 @@
 #include <fstream>
 #undef DEBUG_INTERNAL
 #undef DEBUG
-#undef DEBUG_ROMBANK
-#define DEBUG_RAMBANK
 
 using namespace std;
 
@@ -15,6 +13,7 @@ mem::mem(string filename, string memorydump) {
     memorydumpfile = memorydump;
   }
   load_cart(filename);
+  print_cart_info();
   memory[O_IO + IO_TIMA] = 0x00;
   memory[O_IO + IO_TMA] = 0x00;
   memory[O_IO + IO_TAC] = 0x00;
@@ -96,42 +95,51 @@ void mem::write_byte(uint16 address, uint8 data) {
     }
     return;
   }
-  //writing to OAM and VRAM is restricted during certain LCD modes
-  //this doesn't give good results yet
-  //lcdmode is memory[O_IO + IO_LCDSTAT] & 0x03
-  //else if (((address < O_UNUSED) && (address >= O_OAM)) && (((memory[O_IO + IO_LCDSTAT] & 0x03) == 2) || ((memory[O_IO + IO_LCDSTAT] & 0x03) == 3))) {
-  //  //can't access OAM during lcd modes 2 and 3
-  //  return;
-  //}
-  //else if (((address < O_ERAM) && (address >= O_VRAM)) && ((memory[O_IO + IO_LCDSTAT] & 0x03) == 3)) {
-  //  //can't access VRAM during lcd mode 3
-  //  return;
-  //}
-  else if ((address >= O_IO) && (address < O_HRAM)) {
-    switch(address - O_IO) {
-      #include "io.h"
-    }
-    return;
-  }
+  //writing to 0x0000 - 0x7fff and 0xa000 - 0xbfff
   else if ((address < O_VRAM) || ((address >= O_ERAM) && (address < O_WRAM0))) {
     (*this.*handle_mbc)(address, data);
     return;
   }
-  //ignore attempts to write to unusable section of memory
-  else if ((address >= O_UNUSED) && (address < O_IO)) {
+  //writing to 0x8000 - 0x9fff
+  else if ((address < O_ERAM) && (address >= O_VRAM)) {
+    //can't access VRAM during lcd mode 3
+    //if ((memory[O_IO + IO_LCDSTAT] & 0x03) != 3) {
+      memory[address] = data;
+    //}
     return;
   }
-  //handle writing to work ram section
+  //writing to 0xc000 - 0xdfff
   else if ((address >= O_WRAM0) && (address < O_ECHO0)) {
     memory[address] = data;
     if ((address - O_WRAM0) < 0xe00) {
       memory[address + 0x2000] = data;
     }
   }
+  //writing to 0xe000 - 0x0xfdff
   else if ((address >= O_ECHO0) && (address < O_OAM)) {
     memory[address] = data;
     memory[address - 0x2000] = data;
   }
+  //writing to 0xfe00 - 0xfea0
+  else if ((address < O_UNUSED) && (address >= O_OAM)) {
+    //can't access OAM during lcd modes 2 and 3
+    //if (((memory[O_IO + IO_LCDSTAT] & 0x03) != 2) && ((memory[O_IO + IO_LCDSTAT] & 0x03) != 3)) {
+      memory[address] = data;
+    //}
+    return;
+  }
+  //writing to 0xfea0 - 0xfeff
+  else if ((address >= O_UNUSED) && (address < O_IO)) {
+    return;
+  }
+  //writing to 0xff00 - 0xff7f
+  else if ((address >= O_IO) && (address < O_HRAM)) {
+    switch(address - O_IO) {
+      #include "io.h"
+    }
+    return;
+  }
+  //writing to 0xff80 - 0xffff
   else {
     memory[address] = data;
     return;

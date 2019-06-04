@@ -28,10 +28,12 @@ class mem
     mem(string filename, string memorydump = "");
     inline uint8 read_byte(uint16 address) const {
       if ((address < O_VRAM) && (address >= 0x4000)) {
-        return (*rombank_ptr)[address];
+        //return (*rombank_ptr)[address];
+        return *(rombank_ptr + address);
       }
       else if ((address < O_WRAM0) && (address >= O_ERAM)) {
-        return (*rambank_ptr)[address];
+      //  return (*rambank_ptr)[address];
+        return *(rambank_ptr + address);
       }
       else {
         return memory[address];
@@ -66,6 +68,7 @@ class mem
 
   private:
     void load_cart(string filename);
+    void print_cart_info();
     //this pointer is set to one of the following handle_x functions during load_cart
     void (mem::*handle_mbc)(uint16 address, uint8 data);
     void handle_romonly(uint16 address, uint8 data);
@@ -79,8 +82,8 @@ class mem
 
     //addressable memory
     array<uint8,0x10000> memory = {};
-    array<uint8,0x4000> *rombank_ptr;
-    array<uint8,0x2000> *rambank_ptr;
+    uint8 *rombank_ptr;
+    uint8 *rambank_ptr;
     vector<array<uint8,0x4000>> rombanks;
     vector<array<uint8,0x2000>> rambanks;
     array<uint8,5> rtc_registers;

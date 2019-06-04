@@ -2,8 +2,34 @@
 #include "bits.h"
 #include <fstream>
 #undef DEBUG_ROMBANK
-#define DEBUG_RAMBANK
+#undef DEBUG_RAMBANK
 
+//read contents of cartridge header
+void mem::print_cart_info() {
+  //print title
+  for (int i =0x0134; i < 0x0144; i++) {
+    cout << read_byte(i);
+  }
+  cout << endl;
+  cout << (read_byte(0x0143) == 0xc0 ? "Color Game Boy mode only" : "non-Color Game Boy mode") << endl;
+  cout << (read_byte(0x014A) ? "Non-Japanese" : "Japanese") << endl;
+  switch(mbctype) {
+    case romonly: {cout << "no MBC detected" << endl;break;}
+    case mbc1: {cout << "MBC1 detected" << endl;break;}
+    case mbc2: {cout << "MBC2 detected" << endl;break;}
+    case mbc3: {cout << "MBC3 detected" << endl;break;}
+    case mbc4: {cout << "MBC4 detected" << endl;break;}
+    case mbc5: {cout << "MBC5 detected" << endl;break;}
+    case huc1: {cout << "HUC1 detected" << endl;break;}
+    case huc3: {cout << "HUC3 detected" << endl;break;}
+    case mm01: {cout << "MM01 detected" << endl;break;}
+  }
+  cout << num_rombanks << " ROM banks detected" << endl;
+  cout << num_rambanks << " RAM banks detected" << endl;
+}
+
+//load contents of cartridge into memory and ROM/RAM banks
+//print cartridge info and return value based
 void mem::load_cart(string filename) {
   streampos size;
   ifstream cart;
@@ -14,67 +40,48 @@ void mem::load_cart(string filename) {
     cart.open(filename, ios::binary|ios::ate);
     //if we can't manage to open the file
     //I should signal to main() to return with an error code from here
-    //if (!cart.is_open()) {
-    //  cout << "unable to open " << filename << ": no cartridge loaded" << endl;
-    //  //execute halt instruction if no file is loaded (temporary)
-    //  //memory[0x0100] = 0x76;
-    //  return;
-    //}
+    if (!cart.is_open()) {
+      throw runtime_error("unable to open cartridge");
+      return;
+    }
     size = cart.tellg();
-    //rombn.resize((int)size - (int)O_ROMBN);
     cart.seekg(0,ios::beg);
     cart.read((char *) &memory[0],0x8000);
-    //cart.read((char *) &romb0[0],O_ROMBN);
-    //cart.read((char *) &rombn[0],(int)size-(int)O_ROMBN);
   }
   catch (const ifstream::failure &e) {
-    cout << "exception opening ROM\n";
+    cout << e.what() << endl;
+    exit(1);
   }
-  for (int i =0x0134; i < 0x0144; i++) cout << read_byte(i);//print title
-  cout << (read_byte(0x0143) == 0xc0 ? "\nColor Game Boy mode only" : "\nnon-Color Game Boy mode");
-  cout << (read_byte(0x014A) ? "\nNon-Japanese" : "\nJapanese");
-  cout << "\n";
   try {
     switch(read_byte(0x0147)) {
       case 0x00: {mbctype = romonly;break;}
-
       case 0x01: {mbctype = mbc1;break;}
       case 0x02: {mbctype = mbc1;break;}
       case 0x03: {mbctype = mbc1;break;}
-
       case 0x05: {mbctype = mbc2;break;}
       case 0x06: {mbctype = mbc2;break;}
-      //0x07 undefined
       case 0x08: {mbctype = romonly;break;}
       case 0x09: {mbctype = romonly;break;}
-
-      case 0x0b: {mbctype = mm01;break;}
-      case 0x0c: {mbctype = mm01;break;}
-      case 0x0d: {mbctype = mm01;break;}
-
+      //case 0x0b: {mbctype = mm01;break;}
+      //case 0x0c: {mbctype = mm01;break;}
+      //case 0x0d: {mbctype = mm01;break;}
       case 0x0f: {mbctype = mbc3;break;}
       case 0x10: {mbctype = mbc3;break;}
       case 0x11: {mbctype = mbc3;break;}
       case 0x12: {mbctype = mbc3;break;}
       case 0x13: {mbctype = mbc3;break;}
-      //0x14 undefined
-      case 0x15: {mbctype = mbc4;break;}
-      case 0x16: {mbctype = mbc4;break;}
-      case 0x17: {mbctype = mbc4;break;}
-      //0x18 undefined
-      case 0x19: {mbctype = mbc5;break;}
-      case 0x1a: {mbctype = mbc5;break;}
-      case 0x1b: {mbctype = mbc5;break;}
-      case 0x1c: {mbctype = mbc5;break;}
-      case 0x1d: {mbctype = mbc5;break;}
-      case 0x1e: {mbctype = mbc5;break;}
-
-      case 0xfe: {mbctype = huc3;break;}
-      case 0xff: {mbctype = huc1;break;}
-      default: {
-        throw runtime_error("cartridge includes unknown MBC");
-        break;
-      }
+      //case 0x15: {mbctype = mbc4;break;}
+      //case 0x16: {mbctype = mbc4;break;}
+      //case 0x17: {mbctype = mbc4;break;}
+      //case 0x19: {mbctype = mbc5;break;}
+      //case 0x1a: {mbctype = mbc5;break;}
+      //case 0x1b: {mbctype = mbc5;break;}
+      //case 0x1c: {mbctype = mbc5;break;}
+      //case 0x1d: {mbctype = mbc5;break;}
+      //case 0x1e: {mbctype = mbc5;break;}
+      //case 0xfe: {mbctype = huc3;break;}
+      //case 0xff: {mbctype = huc1;break;}
+      default: {throw runtime_error("unknown MBC detected");break;}
     }
     switch(read_byte(0x0148)) {
       case 0x00: {num_rombanks = 0;break;}
@@ -88,18 +95,14 @@ void mem::load_cart(string filename) {
       case 0x52: {num_rombanks = 72;break;}
       case 0x53: {num_rombanks = 80;break;}
       case 0x54: {num_rombanks = 96;break;}
-      default: {
-        throw runtime_error("cartridge includes unknown ROM size");
-      }
+      default: {throw runtime_error("unknown ROM size detected");break;}
     }
     switch(read_byte(0x0149)) {
       case 0x00: {num_rambanks = 0;break;}
       case 0x01: {num_rambanks = 1;break;} //only the first 2 kBytes are accessible in this case
       case 0x02: {num_rambanks = 1;break;}
       case 0x03: {num_rambanks = 4;break;}
-      default: {
-        throw runtime_error("cartridge includes unknown RAM size");
-      }
+      default: {throw runtime_error("unknown RAM size detected");break;}
     }
     uint8 checksum = 0;
     for (int i = 0x0134; i < 0x014d; i++) {
@@ -110,7 +113,8 @@ void mem::load_cart(string filename) {
     }
   }
   catch (const runtime_error &e) {
-    cout << e.what();
+    cout << e.what() << endl;
+    exit(1);
   }
   //given what we just read, let's initialize the memory model as needed
   switch (mbctype) {
@@ -126,27 +130,32 @@ void mem::load_cart(string filename) {
   }
   //increase ROM bank vector as needed
   if (mbctype != romonly && num_rombanks != 0) {
-    rombanks.resize(num_rombanks-1);
+    //first two banks are loaded into 0x0000 - 0x3fff and 0x4000 - 0x7fff
+    rombanks.resize(num_rombanks-2);
     try {
       cart.seekg(0x8000,ios::beg);
-      for (int i = 0; i < num_rombanks; i++) {
+      for (int i = 0; i < num_rombanks-2; i++) {
         cart.read((char *) &rombanks[i],0x4000);
       }
-      rombank_ptr = &rombanks[0];
     }
     catch (const ifstream::failure &e) {
     }
   }
+  rombank_ptr = &memory[0x4000];
   cart.close();
   if (num_rambanks != 0) {
-    rambanks.resize(num_rambanks);
+    rambanks.resize(num_rambanks-1);
   }
+  rambank_ptr = &memory[O_ERAM];
 }
 //the handle MBC functions need to access and modify the memory model so they should be members of the mem class
 //the ROM only handle function should take care of writing to RAM
 void mem::handle_romonly(uint16 address, uint8 data) {
   //ignore attempts to write to address < 0x8000
-  if (memory[0x0149] == 0x01) {
+  if (address < 0x8000) {
+    return;
+  }
+  else if (memory[0x0149] == 0x01) {
     if (address < 0xa800) {
       memory[address] = data;
     }
@@ -282,17 +291,12 @@ void mem::switch_rombanks(int newbank) {
 #ifdef DEBUG_ROMBANK
   cout << "switching to ROM bank " << newbank << endl;
 #endif
-  //copy(memory+0x4000, memory+0x8000, temp);
-  //copy(rombanks[newbank], rombanks[newbank]+0x4000, memory+0x4000);
-  //copy(temp, temp+0x4000, rombanks[current_rombank]);
-
-  //uint8 temp;
-  //for (int i = 0; i < 0x4000; i++) {
-  //  temp = memory[0x4000 + i];
-  //  memory[0x4000 + i] = rombanks[newbank][i];
-  //  rombanks[current_rombank][i] = temp;
-  //}
-  rombank_ptr = &rombanks[newbank-1];
+  if (newbank == 1) {
+    rombank_ptr = &memory[0x4000];
+  }
+  else {
+    rombank_ptr = &rombanks[newbank-2][0];
+  }
   current_rombank = newbank;
 };
 
@@ -306,17 +310,12 @@ void mem::switch_rambanks(int newbank) {
 #ifdef DEBUG_RAMBANK
   cout << "switching to RAM bank " << newbank << endl;
 #endif
-  //copy(memory+0xa000, memory+0xc000, temp);
-  //copy(rambanks[newbank], rambanks[newbank]+0x2000, memory+0xa000);
-  //copy(temp, temp+0x2000, rambanks[current_rambank]);
-
-  //uint8 temp;
-  //for (int i = 0; i < 0x2000; i++) {
-  //  temp = memory[0xA000 + i];
-  //  memory[0xA000 + i] = rambanks[newbank][i];
-  //  rambanks[current_rambank][i] = temp;
-  //}
-  rambank_ptr = &rambanks[newbank-1];
+  if (newbank == 0) {
+    rambank_ptr = &memory[O_ERAM];
+  }
+  else {
+    rambank_ptr = &rambanks[newbank-1][0];
+  }
   current_rambank = newbank;
 };
 

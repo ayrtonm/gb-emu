@@ -127,6 +127,11 @@ void mem::load_cart(string filename) {
     //case huc3: {handle_mbc = &mem::handle_huc3;break;}
     //case huc1: {handle_mbc = &mem::handle_huc1;break;}
     //case mm01: {handle_mbc = &mem::handle_mm01;break;}
+    /*
+      default case is only used to suppress warnings when compiling
+      if mbctype detected above is not one of the ones uncommented here, we throw a runtime_error so we should never get to this point
+   */
+    default: {break;}
   }
   //increase ROM bank vector as needed
   if (mbctype != romonly && num_rombanks != 0) {

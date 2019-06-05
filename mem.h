@@ -29,11 +29,11 @@ class mem
     inline uint8 read_byte(uint16 address) const {
       if ((address < O_VRAM) && (address >= 0x4000)) {
         //return (*rombank_ptr)[address];
-        return *(rombank_ptr + address);
+        return *(rombank_ptr + address - O_ROMBN);
       }
       else if ((address < O_WRAM0) && (address >= O_ERAM)) {
       //  return (*rambank_ptr)[address];
-        return *(rambank_ptr + address);
+        return *(rambank_ptr + address - O_ERAM);
       }
       else {
         return memory[address];

@@ -275,7 +275,8 @@ void mem::handle_mbc3(uint16 address, uint8 data) {
   }
   else if (address < 0xc000) {
     if ((mbcmode == ram) && ramenabled) {
-      memory[address] = data;
+      //memory[address] = data;
+      *(rambank_ptr + address - O_ERAM) = data;
       return;
     }
     else if (mbcmode == rtc) {

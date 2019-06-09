@@ -27,26 +27,9 @@ class mem
 {
   public:
     mem(string filename, string memorydump = "");
-    inline uint8 read_byte(uint16 address) const {
-      if ((address < O_VRAM) && (address >= 0x4000)) {
-        return *(rombank_ptr + address - O_ROMBN);
-      }
-      else if ((address < O_WRAM0) && (address >= O_ERAM)) {
-        if (mbcmode == rtc) {
-          return latched_rtc_registers[current_rtc];
-        }
-        else {
-          return *(rambank_ptr + address - O_ERAM);
-        }
-      }
-      else {
-        return memory[address];
-      }
-    };
-    inline uint16 read_word(uint16 address) const {
-      return (read_byte(address))+(read_byte(address + 1) << 8);
-    };
 
+    uint8 read_byte(uint16 address);
+    uint16 read_word(uint16 address);
     void write_byte_internal(uint16 address, uint8 data);
     void write_byte(uint16 address, uint8 data);
     inline void write_word(uint16 address, uint16 data)
@@ -79,6 +62,7 @@ class mem
     void handle_mbc1(uint16 address, uint8 data);
     void handle_mbc2(uint16 address, uint8 data);
     void handle_mbc3(uint16 address, uint8 data);
+    void handle_mbc5(uint16 address, uint8 data);
     time_t get_time(void);
     void increment_clock(uint8 *reg, const uint8 *maxval);
 

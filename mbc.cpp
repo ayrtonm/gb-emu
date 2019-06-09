@@ -1,8 +1,6 @@
 #include "mem.h"
 #include "bits.h"
 #include <fstream>
-#undef DEBUG_ROMBANK
-#undef DEBUG_RAMBANK
 
 //read contents of cartridge header
 void mem::print_cart_info() {
@@ -73,12 +71,12 @@ void mem::load_cart(string filename) {
       //case 0x15: {mbctype = mbc4;break;}
       //case 0x16: {mbctype = mbc4;break;}
       //case 0x17: {mbctype = mbc4;break;}
-      //case 0x19: {mbctype = mbc5;break;}
-      //case 0x1a: {mbctype = mbc5;break;}
-      //case 0x1b: {mbctype = mbc5;break;}
-      //case 0x1c: {mbctype = mbc5;break;}
-      //case 0x1d: {mbctype = mbc5;break;}
-      //case 0x1e: {mbctype = mbc5;break;}
+      case 0x19: {mbctype = mbc5;break;}
+      case 0x1a: {mbctype = mbc5;break;}
+      case 0x1b: {mbctype = mbc5;break;}
+      case 0x1c: {mbctype = mbc5;break;}
+      case 0x1d: {mbctype = mbc5;break;}
+      case 0x1e: {mbctype = mbc5;break;}
       //case 0xfe: {mbctype = huc3;break;}
       //case 0xff: {mbctype = huc1;break;}
       default: {throw runtime_error("unknown MBC detected");break;}
@@ -123,7 +121,7 @@ void mem::load_cart(string filename) {
     case mbc2: {handle_mbc = &mem::handle_mbc2;break;}
     case mbc3: {handle_mbc = &mem::handle_mbc3;break;}
     //case mbc4: {handle_mbc = &mem::handle_mbc4;break;}
-    //case mbc5: {handle_mbc = &mem::handle_mbc5;break;}
+    case mbc5: {handle_mbc = &mem::handle_mbc5;break;}
     //case huc3: {handle_mbc = &mem::handle_huc3;break;}
     //case huc1: {handle_mbc = &mem::handle_huc1;break;}
     //case mm01: {handle_mbc = &mem::handle_mm01;break;}
@@ -294,17 +292,14 @@ void mem::handle_mbc3(uint16 address, uint8 data) {
   }
 };
 
+void mem::handle_mbc5(uint16 address, uint8 data) {
+  handle_mbc3(address, data);
+};
+
 void mem::switch_rombanks(int newbank) {
   if (newbank >= num_rombanks) {
-#ifdef DEBUG_ROMBANK
-  cout << "failed to switch to ROM bank " << newbank << endl;
-  cout << (newbank & 0x60) << " " << (newbank & 0x1f) << endl;
-#endif
     return;
   }
-#ifdef DEBUG_ROMBANK
-  cout << "switching to ROM bank " << newbank << endl;
-#endif
   if (newbank == 1) {
     rombank_ptr = &memory[0x4000];
   }
@@ -316,14 +311,8 @@ void mem::switch_rombanks(int newbank) {
 
 void mem::switch_rambanks(int newbank) {
   if (newbank >= num_rambanks) {
-#ifdef DEBUG_ROMBANK
-  cout << "failed to switch to ROM bank " << newbank << endl;
-#endif
   return;
   }
-#ifdef DEBUG_RAMBANK
-  cout << "switching to RAM bank " << newbank << endl;
-#endif
   if (newbank == 0) {
     rambank_ptr = &memory[O_ERAM];
   }

@@ -14,9 +14,9 @@ class cpu {
     uint8 ei_delay;
     uint8 halt;
     bool repeat;
+    clock_t begin, end;
     int cputhrottleclk;
     int emulate(mem &m);
-    void print_registers(mem &m);
     void throttle(int dt);
 };
 

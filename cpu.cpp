@@ -1,17 +1,13 @@
 #include <iostream>
 #include <unistd.h> //usleep
+#include <ctime>
 #include "cpu.h"
 //ideally the CPU should run at 4 MHz meaning CPU_CLKS/CPU_SLEEP = 4
 //realistically the ratio should be such that each call to usleep isn't noticeable (CPU_SLEEP isn't too long)
 //and real cpu usage is low
 //the screenupdateclk threshold can then be set based on CPU_SLEEP time so that the screen refreshes at approximately 60 Hz
 //I should add a function to automatically set this ratio to minimize cpu usage
-#define CPU_CLKS 1000
-//in nanoseconds
-//#define CPU_SLEEP 2
-//#define DEBUG
-//#define PRINT_REGISTERS
-//#define PRINT_INTERRUPTS
+#define CPU_CLKS 10000
 
 using namespace std;
 
@@ -41,12 +37,9 @@ int cpu::emulate(mem &m) {
   keypad *k = new keypad;
   sound *s = new sound;
 
+  begin = clock();
   for(;;)
   {
-#ifdef PRINT_REGISTERS
-    cin.get();
-    print_registers(m);
-#endif
     if ((INT_VBL|INT_LCD|INT_TIM|INT_SER|INT_JOY) & m.read_byte(O_IO+IO_IR) & m.read_byte(O_IE)) {
       halt = false;
     }
@@ -64,9 +57,6 @@ int cpu::emulate(mem &m) {
           //push the program counter onto the stack
           PUSH(pc.b.h,pc.b.l);
           pc.w = 0x40 + interrupt_table[i-1];
-#ifdef PRINT_INTERRUPTS
-          cout << "executed interrupt 0x" << hex << (int)i << endl;
-#endif
         }
       }
     }
@@ -74,14 +64,6 @@ int cpu::emulate(mem &m) {
     if (halt) {dt = 1;}
     if (!halt) {
       op = (int)m.read_byte(pc.w);
-#ifdef DEBUG
-      cout << "[0x" << hex << (int) pc.w << "]  " << "0x" << hex << (int) op; 
-      for (int i = length[op]; i > 1; i--) {
-        cout << " 0x" << hex << (int) m.read_byte(pc.w+length[op]-i+1);
-      }
-      cout << endl;
-      cout << "stack is pointing at 0x" << hex <<(int)sp.w << endl;
-#endif
       if (op == 0xcb) {
         pc.w++;
         op = (int)m.read_byte(pc.w++);
@@ -116,34 +98,18 @@ int cpu::emulate(mem &m) {
         return 0;
       }
     }
-    throttle(dt);
+    throttle(dt*4);
   }
   return 1;
-}
-
-void cpu::print_registers(mem &m) {
-  cout << "AF: 0x" << hex <<  (int) af.w << endl;
-  cout << "BC: 0x" << hex <<  (int) bc.w << endl;
-  cout << "DE 0x" << hex <<  (int) de.w << endl;
-  cout << "HL 0x" << hex <<  (int) hl.w << endl;
-  cout << "SP 0x" << hex <<  (int) sp.w << endl;
-  cout << "PC 0x" << hex <<  (int) pc.w << endl;
-  cout << "[PC] 0x" << hex << (int) m.read_byte(pc.w);
-  for (int i = length[m.read_byte(pc.w)]; i > 1; i--) {
-    cout << " 0x" << hex << (int) m.read_byte(pc.w+length[m.read_byte(pc.w)]-i+1);
-  }
-  cout << endl;
-  cout << "Zero flag is " << (af.b.l & F_Z ? "set" : "clear") << endl;
-  cout << "N flag is " << (af.b.l & F_N ? "set" : "clear") << endl;
-  cout << "H flag is " << (af.b.l & F_H ? "set" : "clear") << endl;
-  cout << "Carry flag is " << (af.b.l & F_C ? "set" : "clear") << endl;
-  return;
 }
 
 void cpu::throttle(int dt) {
   cputhrottleclk += dt;
   if(cputhrottleclk >= CPU_CLKS) {
     cputhrottleclk -= CPU_CLKS;
-    usleep(1000);
+    end = clock();
+    double elapsed_time = double(end - begin) / CLOCKS_PER_SEC;
+    usleep(1000-(elapsed_time*10000));
+    begin = clock();
   }
 }

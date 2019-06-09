@@ -2,8 +2,6 @@
 #include "bits.h"
 #include <iostream>
 #include <fstream>
-#undef DEBUG_INTERNAL
-#undef DEBUG
 
 using namespace std;
 
@@ -76,10 +74,29 @@ mem::mem(string filename, string memorydump) {
   //direction is actually selected since setting the bit disables it
   memory[O_IO + IO_JOYP] = (JOYP_SPECIAL_SELECTED|0x0f);
 }
+
+inline uint8 mem::read_byte(uint16 address) {
+  if ((address < O_VRAM) && (address >= 0x4000)) {
+    return *(rombank_ptr + address - O_ROMBN);
+  }
+  else if ((address < O_WRAM0) && (address >= O_ERAM)) {
+    if (mbcmode == rtc) {
+      return latched_rtc_registers[current_rtc];
+    }
+    else {
+      return *(rambank_ptr + address - O_ERAM);
+    }
+  }
+  else {
+    return memory[address];
+  }
+}
+
+uint16 mem::read_word(uint16 address) {
+  return (read_byte(address))+(read_byte(address + 1) << 8);
+}
+
 void mem::write_byte_internal(uint16 address, uint8 data) {
-#ifdef DEBUG_INTERNAL
-  cout << "called mem::write_byte_internal(0x" << hex << (int)address << ", 0x" << hex << (int)data << ")" << endl;
-#endif
   //this can only take values between 0 and 153 but step_lcd takes care of that
   if (address == O_IO+IO_LY) {
     memory[O_IO+IO_LY] = data;
@@ -91,10 +108,8 @@ void mem::write_byte_internal(uint16 address, uint8 data) {
     memory[address] = data;
   }
 }
+
 void mem::write_byte(uint16 address, uint8 data) {
-#ifdef DEBUG
-  cout << "called mem::write_byte(0x" << hex << (int)address << ", 0x" << hex << (int)data << ")" << endl;
-#endif
   //writing to anything but HRAM is restricted during DMA transfer
   if (dmatransfering) {
     if ((address >= O_HRAM) && (address != O_IE)) {
@@ -151,7 +166,8 @@ void mem::write_byte(uint16 address, uint8 data) {
     memory[address] = data;
     return;
   }
-};
+}
+
 void mem::update_palette(uint8 palette, uint8 value) {
   int j = 0;
   for (int i = 0x03; i < 0xff; i = i << 2) {
@@ -164,9 +180,11 @@ void mem::update_palette(uint8 palette, uint8 value) {
     j++;
   }
 }
+
 array<color,4> mem::get_palette(uint8 palette_num) {
   return palettes[palette_num];
 }
+
 void mem::dump_memory() {
   ofstream dump;
   dump.open(memorydumpfile);
@@ -177,6 +195,7 @@ void mem::dump_memory() {
   }
   dump.close();
 }
+
 void mem::update_timers(int dt) {
   //compute increment based on time opcode takes to give a 16.384 kHz increment rate
   //increment every 256 CPU clicks
@@ -260,6 +279,7 @@ void mem::update_timers(int dt) {
     }
   }
 }
+
 //using recursion to update clock for simplicity since this is cleaner than using 5 nested register updates
 void mem::increment_clock(uint8 *reg, const uint8 *maxval) {
   *reg += 1;
@@ -267,7 +287,8 @@ void mem::increment_clock(uint8 *reg, const uint8 *maxval) {
   if ((*reg == 0) && (*maxval != 1)) {
     increment_clock(reg + 1, maxval + 1);
   }
-};
+}
+
 void mem::update_keys(keys k, uint8 bit, keypress kp) {
   if (k == special) {
     if (kp == down) {
@@ -298,9 +319,11 @@ void mem::update_keys(keys k, uint8 bit, keypress kp) {
     }
   }
 }
+
 uint8 mem::get_keys(keys k) {
   return (k == special ? joyspecial : joydirection);
 }
+
 keys mem::get_keys_loaded() {
   return (loadeddirection ? direction : special);
 }

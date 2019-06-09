@@ -4,6 +4,7 @@
 #include <utility> //array
 #include "traverse.h"
 #include "cache.h"
+#include "cpu.h"
 #include "mem.h"
 #include "bits.h"
 

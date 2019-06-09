@@ -4,7 +4,6 @@
 #include "dynarec.h"
 #include "cpu.h"
 #include "mem.h"
-#include "lcd.h"
 
 struct arguments {
   char *args[2];
@@ -76,10 +75,8 @@ int main(int argc, char *argv[]) {
   //if we are not dynamically recompiling, make a pointer to an instance of the cpu class and start emulator
   if (!arguments.recompiled) {
     cpu *c = new cpu;
-    lcd *l = new lcd;
-    c->emulate(*m, *l);
+    c->emulate(*m);
     delete c;
-    delete l;
   }
   //otherwise pass control to dynarec loop
   else {

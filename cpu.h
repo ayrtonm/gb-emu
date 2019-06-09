@@ -91,9 +91,9 @@ const static int cycles[0x0100] = {
 
 #define COND_CALL(cond,n) do {if (cond) {CALL(n);dt += 3;};} while(0)
 
-#define POP(a,b) do {b = m.read_byte(++sp.w); a = m.read_byte(++sp.w);} while(0)
+#define POP(a,b) do {b = m.read_byte(sp.w++); a = m.read_byte(sp.w++);} while(0)
 
-#define PUSH(a,b) do {m.write_byte(sp.w--,a); m.write_byte(sp.w--,b);} while(0)
+#define PUSH(a,b) do {m.write_byte(--sp.w,a); m.write_byte(--sp.w,b);} while(0)
 
 #define RST(n) do {PUSH(pc.b.h,pc.b.l); pc.w = n;} while(0)
 

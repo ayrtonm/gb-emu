@@ -270,7 +270,8 @@ case 0xee:  {EOR(m.read_byte(pc.w-1));break;}
 case 0xef:  {RST(0x28);break;}
 
 case 0xf0:  {uint16 temp=m.read_byte(pc.w-1)+0xFF00;LD_MR(af.b.h,temp);break;}
-case 0xf1:  {POP(af.b.h,af.b.l);break;}
+//need to "and" flag register with 0xf0 since lower 4 bits are unused
+case 0xf1:  {POP(af.b.h,af.b.l);af.b.l &= 0xf0;break;}
 case 0xf2:  {uint16 temp=bc.b.l+0xFF00;LD_MR(af.b.h,temp);break;}
 case 0xf3:  {ime=0;ei_delay = 0;break;}
 case 0xf4:  {break;}//no opcode

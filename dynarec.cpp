@@ -1,6 +1,6 @@
 #include <iostream>
 #include "dynarec.h"
-#include "traverse.h"
+#include "translate.h"
 #include "mem.h"
 
 using namespace std;
@@ -15,8 +15,8 @@ int dynamic_recompile_loop(mem &m) {
     pair<bool, int> test = in_cache(pc, cache);
     //if block not found
     if (!test.first) {
-      //traverse memory to update the cache
-      cache[i] = traverse(pc, m);
+      //go through memory and translate opcodes into a cache block to store in the cache
+      cache[i] = translate(pc, m);
       //emit IR from cache[i].sequence
     }
     //execute IR from cache[i]
@@ -30,11 +30,11 @@ int dynamic_recompile_loop(mem &m) {
 
 int test_dynamic_recompile_loop(mem &m) {
   cache_block cache[MAX_BLOCKS];
-  cache[0] = traverse(0x0100, m);
+  cache[0] = translate(0x0100, m);
   print_cache_block(cache[0]);
 
-  cache[1] = traverse(cache[0].if_true, m);
-  cache[2] = traverse(cache[0].if_false, m);
+  cache[1] = translate(cache[0].if_true, m);
+  cache[2] = translate(cache[0].if_false, m);
   print_cache_block(cache[1]);
   print_cache_block(cache[2]);
   cout << (in_cache(0x0100, cache).first ? "address 0x0100 is in cache" : "address 0x0100 is not in cache") << endl;

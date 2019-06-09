@@ -99,7 +99,7 @@ int cpu::emulate(mem &m) {
       }
     }
     if (repeat) {repeat = false; pc.w -= length[op]-1;}
-    m.update_timers(dt);
+    m.update_timers(dt*4);
     l->step_lcd(dt,m);
     switch (k->handle_events(m)) {
       case none: {

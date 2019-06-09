@@ -1,5 +1,5 @@
-#ifndef TRAVERSE_H
-#define TRAVERSE_H
+#ifndef TRANSLATE_H
+#define TRANSLATE_H
 #include <vector>
 #include "cache.h"
 #include "mem.h"
@@ -9,7 +9,7 @@ using namespace std;
 const static array<uint8, 16> cond_branches {0x20, 0x28, 0x30, 0x38, 0xc0, 0xc2, 0xc4, 0xc8, 0xca, 0xcc, 0xd0, 0xd2, 0xd4, 0xd8, 0xda, 0xdc};
 const static array<uint8, 14> jumps {0x18, 0xc3, 0xc7, 0xc9, 0xcd, 0xcf, 0xd7, 0xd9, 0xdf, 0xe7, 0xe9, 0xef, 0xf7, 0xff};
 
-extern cache_block traverse(uint16 start_address, mem &m);
+extern cache_block translate(uint16 start_address, mem &m);
 extern void print_cache_block(cache_block block);
 
 #endif

@@ -2,7 +2,7 @@
 #include <algorithm> //find()
 #include <vector>
 #include <utility> //array
-#include "traverse.h"
+#include "translate.h"
 #include "cache.h"
 #include "cpu.h"
 #include "mem.h"
@@ -18,7 +18,7 @@ bool is_jump(uint8 opcode) {
   return find(begin(jumps), end(jumps), opcode) != end(jumps);
 }
 
-cache_block traverse(uint16 start_address, mem &m) {
+cache_block translate(uint16 start_address, mem &m) {
   cache_block block;
   block.start_address = start_address;
   uint16 pc = start_address;

@@ -2,7 +2,7 @@ CXX = clang++
 CXXFLAGS = -O0 -g -std=c++11 -Wall
 LIBS = -lSDL2
 DYREC = `llvm-config --cxxflags --ldflags --system-libs --libs core`
-BIN = emulator
+BIN = main
 SRC = main.cpp cpu.cpp mem.cpp mbc.cpp lcd.cpp keypad.cpp sound.cpp dynarec.cpp traverse.cpp emit.cpp cache.cpp
 TESTS = mem.t
 OBJ = $(SRC:%.cpp=%.o) 

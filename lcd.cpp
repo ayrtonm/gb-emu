@@ -240,7 +240,7 @@ void lcd::draw_line(mem &m) {
       x++;
       if (x == 8) {
         x = 0;
-        mapoffset = ((((curline + scrolly) >> 3) & 31) << 5) + (((scrollx + i) >> 3) & 31);
+        mapoffset = ((((curline + scrolly) >> 3) & 31) << 5) + (((scrollx + i + 1) >> 3) & 31);
         if (m.read_byte(O_IO+IO_LCDC) & LCDC_BG_MAP) {
           t_map_number = m.read_byte(O_VRAM + mapoffset + V_MD_1);
         }
@@ -288,7 +288,7 @@ void lcd::draw_line(mem &m) {
       x++;
       if (x == 8) {
         x = 0;
-        w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((i - winx + 7) >> 3) & 31);
+        w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((i + 1 - winx + 7) >> 3) & 31);
         w_map_number = ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) ? m.read_byte(O_VRAM + w_offset + V_MD_1) : m.read_byte(O_VRAM + w_offset + V_MD_0));
         w_data = m.read_word(O_VRAM + 16*w_map_number + (y << 1) + V_TD_1);
       }

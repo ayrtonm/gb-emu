@@ -2,7 +2,11 @@
 #include "lcd.h"
 #include "mem.h"
 #define RENDERING
-#define LCDUPDATECLK 1000
+#undef FIXEDSIZE
+#define DRAWSPRITES
+#define DRAWBG
+#define DRAWWIN
+#define LCDUPDATECLK 10000
 
 lcd::lcd() {
   fill(begin(linebuffer),end(linebuffer),0);
@@ -12,7 +16,11 @@ lcd::lcd() {
   SDL_Init(SDL_INIT_EVERYTHING);
   pixels.resize(160*144*4);
 #ifdef RENDERING
+#ifdef FIXEDSIZE
+  window = SDL_CreateWindow("Game Boy Emulator",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,160,144,SDL_WINDOW_SHOWN);
+#else
   window = SDL_CreateWindow("Game Boy Emulator",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,160,144,SDL_WINDOW_RESIZABLE|SDL_WINDOW_SHOWN);
+#endif
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
   screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 160, 144);
   offset.x = 0;
@@ -91,12 +99,14 @@ void lcd::step_lcd(int dt, mem &m) {
           screenupdateclk -= LCDUPDATECLK;
         }
 #endif
-        if (m.read_byte(O_IO+IO_LY) < 153) {
+        if (m.read_byte(O_IO+IO_LY) < 154) {
           m.write_byte_internal(O_IO+IO_LY, m.read_byte(O_IO+IO_LY)+1);
+          compareLYtoLYC(m);
           clk += TIO_LY_INC;
         }
         else {
           m.write_byte_internal(O_IO+IO_LY, 0);
+          compareLYtoLYC(m);
           //if OAM interrupt enabled
           if (m.read_byte(O_IO+IO_LCDSTAT) & LCDSTAT_OAM_INT) {
             //request OAM interrupt
@@ -106,7 +116,6 @@ void lcd::step_lcd(int dt, mem &m) {
           m.write_byte_internal(O_IO+IO_LCDSTAT, (m.read_byte(O_IO+IO_LCDSTAT) | 0x02) & ~(0x01));
           clk += T_OAM;
         }
-        compareLYtoLYC(m);
         break;
       }
       //OAM
@@ -145,7 +154,9 @@ void lcd::step_lcd(int dt, mem &m) {
             pixels[(m.read_byte(O_IO+IO_LY)*160 + i)*4 + 3] = pal.a;
           }
         }
+#ifdef DRAWSPRITES
         draw_sprites(m);
+#endif
         //if hblank interrupt enabled
           if (m.read_byte(O_IO+IO_LCDSTAT) & LCDSTAT_HBL_INT) {
             //request HBL interrupt
@@ -191,18 +202,33 @@ void lcd::compareLYtoLYC(mem &m) {
 **/
 void lcd::draw_line(mem &m) {
   uint8 curline = m.read_byte(O_IO+IO_LY);
+#ifdef DRAWBG
   if (m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE) {
-    uint8 scrollx = m.read_byte(O_IO+IO_SCY);
-    uint8 scrolly = m.read_byte(O_IO+IO_SCX);
+    uint8 scrolly = m.read_byte(O_IO+IO_SCY);
+    uint8 scrollx = m.read_byte(O_IO+IO_SCX);
     uint16 mapoffset = ((((curline + scrolly) >> 3) & 31) << 5) + ((scrollx >> 3) & 31);
-    uint8 t_map_number = ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_MAP) ? m.read_byte(O_VRAM + mapoffset + V_MD_1) : m.read_byte(O_VRAM + mapoffset + V_MD_0));
+    uint8 t_map_number;
+    if (m.read_byte(O_IO+IO_LCDC) & LCDC_BG_MAP) {
+      t_map_number = m.read_byte(O_VRAM + mapoffset + V_MD_1);
+    }
+    else {
+      t_map_number = m.read_byte(O_VRAM + mapoffset + V_MD_0);
+    }
     if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_BG_DATA)) {
       if (t_map_number > 127) {t_map_number -= 128;}
       else {t_map_number += 128;}
     }
     uint8 x = scrollx & 7;
     uint8 y = (curline + scrolly) & 7;
-    uint16 t_data = ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_DATA) ? m.read_word(O_VRAM + 16*t_map_number + (y << 1)) : m.read_word(O_VRAM + 16*t_map_number + (y << 1) + V_TD_1));
+    uint16 t_data;
+    //each tile is 16 bytes
+    //each line in a tile is 2 bytes
+    if (m.read_byte(O_IO+IO_LCDC) & LCDC_BG_DATA) {
+      t_data = m.read_word(O_VRAM + 16*t_map_number + 2*y);
+    }
+    else {
+      t_data = m.read_word(O_VRAM + 16*t_map_number + 2*y + V_TD_1);
+    }
     for (int i = 0; i < 160; i++) {
       //see comment on counting backwards in draw_sprite
       //here we count up since x is a uint8 (return type of read_byte)
@@ -214,29 +240,46 @@ void lcd::draw_line(mem &m) {
       x++;
       if (x == 8) {
         x = 0;
-        mapoffset = ((((curline + scrolly) >> 3) & 31) << 5) + (((scrollx + i + 1) >> 3) & 31);
-        t_map_number = ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_MAP) ? m.read_byte(O_VRAM + mapoffset + V_MD_1) : m.read_byte(O_VRAM + mapoffset + V_MD_0));
+        mapoffset = ((((curline + scrolly) >> 3) & 31) << 5) + (((scrollx + i) >> 3) & 31);
+        if (m.read_byte(O_IO+IO_LCDC) & LCDC_BG_MAP) {
+          t_map_number = m.read_byte(O_VRAM + mapoffset + V_MD_1);
+        }
+        else {
+          t_map_number = m.read_byte(O_VRAM + mapoffset + V_MD_0);
+        }
         if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_BG_DATA)) {
           if (t_map_number > 127) {t_map_number -= 128;}
           else {t_map_number += 128;}
         }
-        t_data = ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_DATA) ? m.read_word(O_VRAM + 16*t_map_number + (y << 1)) : m.read_word(O_VRAM + 16*t_map_number + (y << 1) + V_TD_1));
+        if (m.read_byte(O_IO+IO_LCDC) & LCDC_BG_DATA) {
+          t_data = m.read_word(O_VRAM + 16*t_map_number + 2*y);
+        }
+        else {
+          t_data = m.read_word(O_VRAM + 16*t_map_number + 2*y + V_TD_1);
+        }
       }
     }
   }
   else {/*if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE)) {*/
     fill(begin(linebuffer),end(linebuffer),0);
   }
+#endif
+#ifdef DRAWWIN
   uint8 winy = m.read_byte(O_IO+IO_WY);
   uint8 winx = m.read_byte(O_IO+IO_WX);
   if ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_ENABLE) && (winy <= curline)) {
-    if ((winx <= 166) && ((winy - 7) <= 144)) {
-    uint8 w_offset = ((((curline - winy) >> 3) & 31) << 5);// + (((7 - winx) >> 3) & 31);
+    if ((winx <= 166) && ((winy - 7) <= 143)) {
+    uint8 w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((7 - winx) >> 3) & 31);
     uint8 w_map_number = ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) ? m.read_byte(O_VRAM + w_offset + V_MD_1) : m.read_byte(O_VRAM + w_offset + V_MD_0));
     //offsets within tile
     uint8 x = 0;
     uint8 y = (curline - winy) & 7;
     uint16 w_data = m.read_word(O_VRAM + 16*w_map_number + (y << 1) + V_TD_1);
+    if (winx < 7) {
+      for (int i = 0; i < winx; i++) {
+        linebuffer[i] = 0;
+      }
+    }
     for (int i = MAX(winx-7,0); i < 160; i++) {
       uint8 a = (LOW(w_data) & BIT(7-x)) >> (7-x);
       uint8 b = (HIGH(w_data) & BIT(7-x)) >> (7-x);
@@ -245,13 +288,14 @@ void lcd::draw_line(mem &m) {
       x++;
       if (x == 8) {
         x = 0;
-        w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((1 + i - winx + 7) >> 3) & 31);
+        w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((i - winx + 7) >> 3) & 31);
         w_map_number = ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) ? m.read_byte(O_VRAM + w_offset + V_MD_1) : m.read_byte(O_VRAM + w_offset + V_MD_0));
         w_data = m.read_word(O_VRAM + 16*w_map_number + (y << 1) + V_TD_1);
       }
     }
     }
   }
+#endif
 }
 
 void lcd::draw_sprites(mem &m) {
@@ -262,8 +306,8 @@ void lcd::draw_sprites(mem &m) {
     //loop through the 40 sprites in the OAM table
     uint8 curline = m.read_byte(O_IO + IO_LY);
     for (int i = 0; i < 40; i++) {
-      uint8 oam_y = m.read_byte(O_OAM + (i * 4)) - 16;
-      uint8 oam_x = m.read_byte(O_OAM + (i * 4) + 1) - 8;
+      int oam_y = m.read_byte(O_OAM + (i * 4)) - 16;
+      int oam_x = m.read_byte(O_OAM + (i * 4) + 1) - 8;
       //if part of the sprite is on the line we are current drawing LY
       if ((oam_y <= curline) && ((oam_y + (((m.read_byte(O_IO+IO_LCDC) & LCDC_OBJ_SIZE) ? 16 : 8))) > curline)) {
         //get y offset within the 8x8 or 8x16 tile from the OAM table

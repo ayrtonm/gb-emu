@@ -11,7 +11,7 @@ void mem::print_cart_info() {
     cout << read_byte(i);
   }
   cout << endl;
-  cout << (read_byte(0x0143) == 0xc0 ? "Color Game Boy mode only" : "non-Color Game Boy mode") << endl;
+  cout << (read_byte(0x0143) == 0xc0 ? "Color Game Boy mode only\n" : "");
   cout << (read_byte(0x014A) ? "Non-Japanese" : "Japanese") << endl;
   switch(mbctype) {
     case romonly: {cout << "no MBC detected" << endl;break;}
@@ -271,16 +271,24 @@ void mem::handle_mbc3(uint16 address, uint8 data) {
     return;
   }
   else if (address < 0x8000) {
+    if (data == 0x00) {
+      rtc_latched = false;
+    }
+    else if (data == 0x01) {
+      rtc_latched = true;
+      for (auto it = rtc_registers.begin(); it != rtc_registers.end(); it++) {
+        latched_rtc_registers[it - rtc_registers.begin()] = *it;
+      }
+    }
     return;
   }
   else if (address < 0xc000) {
     if ((mbcmode == ram) && ramenabled) {
-      //memory[address] = data;
       *(rambank_ptr + address - O_ERAM) = data;
       return;
     }
     else if (mbcmode == rtc) {
-      rtc_registers[current_rtc] = data;
+      //rtc_registers[current_rtc] = data;
       return;
     }
   }

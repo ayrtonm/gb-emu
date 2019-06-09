@@ -1,9 +1,10 @@
 case IO_SB: {
-  //cout << hex << (int)data << "tried writing to SB\n";
   break;
 }
 case IO_SC: {
-  //cout << hex << (int)data << "tried writing to SC\n";
+  if (data == 0x81) {
+    cout << hex << (int)memory[O_IO + IO_SB] << endl;
+  }
   break;
 }
 case IO_LCDSTAT: {

@@ -61,6 +61,13 @@ mem::mem(string filename, string memorydump) {
   tacthreshold = tacvals[0];
   dmatimer = 0;
   dmatransfering = false;
+  rtc_timer = 0;
+  for (auto it = rtc_registers.begin(); it != rtc_registers.end(); it++) {
+    *it = 0;
+  }
+  for (auto it = latched_rtc_registers.begin(); it != latched_rtc_registers.end(); it++) {
+    *it = 0;
+  }
   //0x0f is no keys pressed
   joydirection = 0x0f;
   joyspecial = 0x0f;
@@ -123,9 +130,9 @@ void mem::write_byte(uint16 address, uint8 data) {
   //writing to 0xfe00 - 0xfea0
   else if ((address < O_UNUSED) && (address >= O_OAM)) {
     //can't access OAM during lcd modes 2 and 3
-    //if (((memory[O_IO + IO_LCDSTAT] & 0x03) != 2) && ((memory[O_IO + IO_LCDSTAT] & 0x03) != 3)) {
+    if (((memory[O_IO + IO_LCDSTAT] & 0x03) != 2) && ((memory[O_IO + IO_LCDSTAT] & 0x03) != 3)) {
       memory[address] = data;
-    //}
+    }
     return;
   }
   //writing to 0xfea0 - 0xfeff
@@ -149,7 +156,7 @@ void mem::update_palette(uint8 palette, uint8 value) {
   int j = 0;
   for (int i = 0x03; i < 0xff; i = i << 2) {
     switch ((value & i) >> (2*j)) {
-      case 0: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0xcc,0xcc,0xcc};break;}
+      case 0: {palettes[palette][j] = {SDL_ALPHA_TRANSPARENT,0xcc,0xcc,0xcc};break;}
       case 1: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0x88,0x88,0x88};break;}
       case 2: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0x66,0x66,0x66};break;}
       case 3: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0x33,0x33,0x33};break;}
@@ -239,7 +246,28 @@ void mem::update_timers(int dt) {
       }
     }
   }
+  //update clock register in MBC3
+  //I should probably use a function pointer to choose an update_timer() function based on the MBC instead of checking mbctype after each opcode is executed, but this is fine for prototyping
+  if (mbctype == mbc3) {
+    rtc_timer += dt;
+    //check if one second has elapsed
+    //threshold isn't exactly 1e6 since 1 cpu cycle isn't exactly 1 us
+    if (rtc_timer >= 1048576) {
+      //cout << hex << (int)rtc_registers[0] << ", " << hex << (int)latched_rtc_registers[0] << endl;
+      rtc_timer -= 1048576;
+      //rtc increment implemented recursively for simplicity
+      increment_clock(&rtc_registers[0], &clock_maxvals[0]);
+    }
+  }
 }
+//using recursion to update clock for simplicity since this is cleaner than using 5 nested register updates
+void mem::increment_clock(uint8 *reg, const uint8 *maxval) {
+  *reg += 1;
+  *reg %= *maxval;
+  if ((*reg == 0) && (*maxval != 1)) {
+    increment_clock(reg + 1, maxval + 1);
+  }
+};
 void mem::update_keys(keys k, uint8 bit, keypress kp) {
   if (k == special) {
     if (kp == down) {

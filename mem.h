@@ -21,6 +21,7 @@ enum mbc {romonly, mbc1, mbc2, mbc3, mbc4, mbc5, huc3, huc1, mm01};
 enum cartmode {rom, ram, rtc};
 
 const static int tacvals[4] = {256, 4, 16, 64};
+const static uint8 clock_maxvals[5] = {60, 60, 24, 255, 1};
 
 class mem
 {
@@ -28,12 +29,15 @@ class mem
     mem(string filename, string memorydump = "");
     inline uint8 read_byte(uint16 address) const {
       if ((address < O_VRAM) && (address >= 0x4000)) {
-        //return (*rombank_ptr)[address];
         return *(rombank_ptr + address - O_ROMBN);
       }
       else if ((address < O_WRAM0) && (address >= O_ERAM)) {
-      //  return (*rambank_ptr)[address];
-        return *(rambank_ptr + address - O_ERAM);
+        if (mbcmode == rtc) {
+          return latched_rtc_registers[current_rtc];
+        }
+        else {
+          return *(rambank_ptr + address - O_ERAM);
+        }
       }
       else {
         return memory[address];
@@ -75,6 +79,8 @@ class mem
     void handle_mbc1(uint16 address, uint8 data);
     void handle_mbc2(uint16 address, uint8 data);
     void handle_mbc3(uint16 address, uint8 data);
+    time_t get_time(void);
+    void increment_clock(uint8 *reg, const uint8 *maxval);
 
     void switch_rombanks(int newbank);
     void switch_rambanks(int newbank);
@@ -82,15 +88,29 @@ class mem
 
     //addressable memory
     array<uint8,0x10000> memory = {};
+    //pointer to use when reading from 0x4000-0x7fff
     uint8 *rombank_ptr;
+    //pointer to use when reading from 0xa000-0xbfff
     uint8 *rambank_ptr;
+    //extra memory banks
     vector<array<uint8,0x4000>> rombanks;
     vector<array<uint8,0x2000>> rambanks;
+    //real-time clock registers used in MBC3
+    //rtc_registers tracks real time
     array<uint8,5> rtc_registers;
+    //latched_rtc_registers is the values that become latched when writing 0x00 followed by 0x01 to 0x6000-0x7fff
+    //these are the registers that are actually readable
+    array<uint8,5> latched_rtc_registers;
+    //index of selected rtc register
     int current_rtc;
+    //timer used to increment rtc registers in update_timers()
+    long unsigned int rtc_timer;
     mbc mbctype;
+    bool rtc_latched;
+    //index of selected rombank/rambank
     int current_rombank;
     int current_rambank;
+    //number of rombanks/rambanks
     int num_rombanks;
     int num_rambanks;
     bool ramenabled;

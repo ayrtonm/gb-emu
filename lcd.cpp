@@ -326,7 +326,7 @@ void lcd::draw_sprites(mem &m) {
         //if in 8x16 mode
         else {
           //get the 2 bytes for the sprite's current line
-          t_data = m.read_word(O_VRAM + 16*(((curline - oam_y) > 7) || !(yflip) ? (t_number | 0x01) : (t_number & 0xFE)) + ((oam_prop & OAM_F_YFLIP) ? yflip : y));
+          t_data = m.read_word(O_VRAM + 16*((((curline - oam_y) > 7) || (oam_prop & OAM_F_YFLIP)) ? (t_number | 0x01) : (t_number & 0xFE)) + ((oam_prop & OAM_F_YFLIP) ? yflip : y));
         }
         //if flipped in the x direction reverse the 2 bytes
         if (oam_prop & OAM_F_XFLIP) {REVERSE_WORD(t_data);}

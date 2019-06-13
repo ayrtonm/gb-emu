@@ -5,6 +5,7 @@
 
 using namespace std;
 
+//!\file
 mem::mem(string filename, string memorydump) {
   if (memorydump != "") {
     dumpmemory = true;

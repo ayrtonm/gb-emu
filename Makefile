@@ -25,7 +25,7 @@ bin: $(OBJ)
 %.o: %.c
 	$(CXX) $@ -c $<
 clean:
-	rm -rf src/*.o src/*.s $(BIN) src/*.t
+	rm -rf src/*.o src/interpreter/*.o src/recompiler/*.o src/*.s $(BIN) src/*.t
 asm: $(SRC)
 	$(CXX) $(LIBS) -S -g $^
 

@@ -3,8 +3,17 @@ CXXFLAGS = -g -std=c++11 -Wall
 LIBS = -lSDL2
 DYREC = `llvm-config --cxxflags --ldflags --system-libs --libs core`
 BIN = main
-SRC = main.cpp cpu.cpp mem.cpp mbc.cpp lcd.cpp keypad.cpp sound.cpp dynarec.cpp translate.cpp emit.cpp cache.cpp
-TESTS = mem.t
+SRC = src/main.cpp \
+      src/interpreter/cpu.cpp \
+      src/mem.cpp \
+      src/mbc.cpp \
+      src/lcd.cpp \
+      src/keypad.cpp \
+      src/sound.cpp \
+      src/recompiler/dynarec.cpp \
+      src/recompiler/translate.cpp \
+      src/recompiler/emit.cpp \
+      src/recompiler/cache.cpp
 OBJ = $(SRC:%.cpp=%.o) 
 
 .PHONY: clean asm check
@@ -16,7 +25,7 @@ bin: $(OBJ)
 %.o: %.c
 	$(CXX) $@ -c $<
 clean:
-	rm -rf *.o *.s $(BIN) *.t
+	rm -rf src/*.o src/*.s $(BIN) src/*.t
 asm: $(SRC)
 	$(CXX) $(LIBS) -S -g $^
 

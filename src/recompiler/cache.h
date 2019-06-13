@@ -3,7 +3,7 @@
 #define MAX_BLOCKS 32
 #include <vector>
 #include <utility>
-#include "bits.h"
+#include "../bits.h"
 
 using namespace std;
 

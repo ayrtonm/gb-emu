@@ -1,10 +1,10 @@
 #ifndef CPU_H
 #define CPU_H
-#include "bits.h"
-#include "mem.h"
-#include "lcd.h"
-#include "keypad.h"
-#include "sound.h"
+#include "../bits.h"
+#include "../mem.h"
+#include "../lcd.h"
+#include "../keypad.h"
+#include "../sound.h"
 
 class cpu {
   public:

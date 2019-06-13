@@ -1,7 +1,7 @@
 #include <iostream>
 #include "dynarec.h"
 #include "translate.h"
-#include "mem.h"
+#include "../mem.h"
 
 using namespace std;
 

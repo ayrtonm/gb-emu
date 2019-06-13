@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string>
 #include <argp.h>
-#include "dynarec.h"
-#include "cpu.h"
+#include "recompiler/dynarec.h"
+#include "interpreter/cpu.h"
 #include "mem.h"
 
 struct arguments {

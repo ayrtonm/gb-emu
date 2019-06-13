@@ -2,7 +2,7 @@
 #define TRANSLATE_H
 #include <vector>
 #include "cache.h"
-#include "mem.h"
+#include "../mem.h"
 
 using namespace std;
 

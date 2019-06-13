@@ -2,7 +2,7 @@ CXX = clang++
 CXXFLAGS = -g -std=c++11 -Wall
 LIBS = -lSDL2
 DYREC = `llvm-config --cxxflags --ldflags --system-libs --libs core`
-BIN = main
+BIN = gb-emu
 SRC = src/main.cpp \
       src/interpreter/cpu.cpp \
       src/mem.cpp \

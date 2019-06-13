@@ -34,8 +34,9 @@ only tested with g++ and clang++
 **TODO** fixed the text in the following links
 
 - [pandocs](http://bgb.bircd.org/pandocs.htm)
+- [big list of opcodes](http://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html)
 - [mednafen](https://mednafen.github.io/)
 - [test roms repo](https://github.com/retrio/gb-test-roms)
 - [statically recompiled NES emulator](https://andrewkelley.me/post/jamulator.html)
 - [dynamically recompiled NES emulator](https://bheisler.github.io/post/experiments-in-nes-jit-compilation/)
-
+- [dynamic recompiler guide](https://github.com/marco9999/Dynarec_Guide)

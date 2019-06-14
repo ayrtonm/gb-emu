@@ -145,6 +145,9 @@ request keypad::handle_events(mem &m) {
           }
           return quit;
         }
+        case SDLK_p: {
+          getchar();
+        }
       }
     }
   }

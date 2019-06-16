@@ -1,37 +1,14 @@
-CXX = clang++
+CXX = g++
 CXXFLAGS = -g -std=c++11 -Wall
 LIBS = -lSDL2
-DYREC = `llvm-config --cxxflags --ldflags --system-libs --libs core`
 BIN = gb-emu
-SRC = src/main.cpp \
-      src/interpreter/cpu.cpp \
-      src/mem.cpp \
-      src/mbc.cpp \
-      src/lcd.cpp \
-      src/keypad.cpp \
-      src/sound.cpp \
-      src/recompiler/dynarec.cpp \
-      src/recompiler/translate.cpp \
-      src/recompiler/emit.cpp \
-      src/recompiler/cache.cpp
-OBJ = $(SRC:%.cpp=%.o) 
+SRC = main.cpp mem.cpp mbc.cpp lcd.cpp keypad.cpp cpu.cpp
+OBJ = $(SRC:%.cpp=%.o)
+VPATH = src:src/interpreter
 
-.PHONY: clean asm check
-.SUFFIXES: .t
+.PHONY: clean
 
-all: bin
 bin: $(OBJ)
 	$(CXX) $(LIBS) -o $(BIN) $^
-%.o: %.c
-	$(CXX) $@ -c $<
 clean:
-	rm -rf src/*.o src/interpreter/*.o src/recompiler/*.o src/*.s $(BIN) src/*.t
-asm: $(SRC)
-	$(CXX) $(LIBS) -S -g $^
-
-.cpp.t:
-	$(CXX) $(CXXFLAGS) $(LIBS) -DTEST -o $@ $<
-test: $(TESTS)
-	set -e; $(TESTS:%=./%;)
-check:
-	$(CXX) -E mem.cpp
+	-rm $(OBJ) $(BIN)

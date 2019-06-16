@@ -310,30 +310,25 @@ void lcd::draw_sprites(mem &m) {
       int oam_x = m.read_byte(O_OAM + (i * 4) + 1) - 8;
       //if part of the sprite is on the line we are current drawing LY
       if ((oam_y <= curline) && ((oam_y + (((m.read_byte(O_IO+IO_LCDC) & LCDC_OBJ_SIZE) ? 16 : 8))) > curline)) {
-        //get y offset within the 8x8 or 8x16 tile from the OAM table
-        uint8 y = ((curline - oam_y) & 7) << 1;
-        uint8 yflip = (7 - ((curline - oam_y) & 7)) << 1;
-        //get the tile number from the OAM table
-        uint8 t_number = m.read_byte(O_OAM+((i * 4) + 2));
         //get sprite properties from OAM table
         uint8 oam_prop = m.read_byte(O_OAM + (i * 4) + 3);
-        uint16 t_data;
-        //if in 8x8 mode
-        if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_OBJ_SIZE)) {
-          //get the 2 bytes for the sprite's current line
-          t_data = m.read_word(O_VRAM + 16*t_number + ((oam_prop & OAM_F_YFLIP) ? yflip : y));
+        //get y offset within the 8x8 or 8x16 tile from the OAM table
+        uint8 y = ((curline - oam_y) & 7);
+        uint8 yflip = (7 - ((curline - oam_y) & 7));
+        //get the tile number from the OAM table
+        uint8 t_number = m.read_byte(O_OAM+((i * 4) + 2));
+        //if in 8x16 mode, offset the tile number
+        if ((m.read_byte(O_IO+IO_LCDC) & LCDC_OBJ_SIZE)) {
+          t_number = ((((curline - oam_y) > 7)  || (oam_prop & OAM_F_YFLIP)) ? (t_number | 0x01) : (t_number & 0xFE));
         }
-        //if in 8x16 mode
-        else {
-          //get the 2 bytes for the sprite's current line
-          t_data = m.read_word(O_VRAM + 16*((((curline - oam_y) > 7) || (oam_prop & OAM_F_YFLIP)) ? (t_number | 0x01) : (t_number & 0xFE)) + ((oam_prop & OAM_F_YFLIP) ? yflip : y));
-        }
+        //get the 2 bytes for the sprite's current line
+        uint16 t_data = m.read_word(O_VRAM + 16*t_number + 2*((oam_prop & OAM_F_YFLIP) ? yflip : y));
         //if flipped in the x direction reverse the 2 bytes
         if (oam_prop & OAM_F_XFLIP) {REVERSE_WORD(t_data);}
         count++;
         for (int x = 0; x < 8; x++) {
           //for each pixel if x coordinate is on screen (between 0 and 160) and (sprites have priority over the background or the backgroun is clear)
-          if (((oam_x + x >= 0) && (oam_x + x < 160)) && (!(oam_prop & OAM_F_BG) || ((linebuffer[oam_x + x] & 0x03) == 0))) {
+          if (((oam_x + x > 0) && (oam_x + x <= 168)) && (!(oam_prop & OAM_F_BG) || ((linebuffer[oam_x + x] & 0x03) == 0))) {
             //accessing bits backwards since bit 7 is leftmost pixel and bit 0 is rightmost
             uint8 a = (LOW(t_data) & BIT(7-x)) >> (7-x);
             uint8 b = (HIGH(t_data) & BIT(7-x)) >> (7-x);
@@ -349,8 +344,8 @@ void lcd::draw_sprites(mem &m) {
           }
         }
       }
-      if (count >= 10) {
-        return;//can't draw more than 10 sprites
+      if (count == 10) {
+        return;//can't draw more than 10 sprites per line
       }
     }
   }

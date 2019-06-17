@@ -160,7 +160,7 @@ func getNextline(rd *bufio.Reader) (line string, more bool) {
   return strings.TrimSuffix(line, "\n"), true
 }
 
-func readCode(line string) (byteCode []byte, codeLength uint16) {
+func readCode(line string) (byteCode []byte) {
   output := make([]byte,0)
   cmd := strings.Fields(line)
   instruction := cmd[0]
@@ -325,7 +325,7 @@ func readCode(line string) (byteCode []byte, codeLength uint16) {
           }
       }
   }
-  return output, uint16(len(output))
+  return output
 }
 
 func writeCode(file *os.File, data []byte) {
@@ -336,9 +336,9 @@ func writeCode(file *os.File, data []byte) {
 
 func readSection(outfile *os.File, rd *bufio.Reader) bool {
   for line, more := getNextline(rd); getSectionType(line) == srcCode; line, more = getNextline(rd) {
-    byteCode, codeLength := readCode(line)
+    byteCode := readCode(line)
     writeCode(outfile, byteCode)
-    updatePc(pc + codeLength, outfile)
+    updatePc(pc + uint16(len(byteCode)), outfile)
     if !more {
       return false
     }

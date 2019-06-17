@@ -114,39 +114,6 @@ def write_code(info,pc):
 					program[pc] = text_to_hex(op[2][0:2][::-1])
 					pc += 1
 					op[2] = op[2][2:]
-		elif op[0] == 'rst':
-			dictionary = {'0x00':0xc7,'0x08':0xcf,'0x10':0xc7,'0x18':0xdf,'0x20':0xe7,'0x28':0xef,'0x30':0xf7,'0x38':0xff}
-			program[pc] = dictionary[op[1]]
-			pc += 1
-		elif op[0] == 'nop':
-			program[pc] = 0x00
-			pc += 1
-		elif op[0] == 'stop':
-			program[pc] = 0x10
-			pc += 1
-		elif op[0] == 'halt':
-			program[pc] = 0x76
-			pc += 1
-		elif op[0] == 'ei':
-			program[pc] = 0xfb
-			pc += 1
-		elif op[0] == 'di':
-			program[pc] = 0xf3
-			pc += 1
-		elif op[0] == 'ret':
-			program[pc] = 0xc9
-			pc += 1
-		elif op[0] == 'retz':
-			program[pc] = 0xc8
-			pc += 1
-		elif op[0] == 'inc':
-			dictionary = {'$bc' : 0x03, '$de' : 0x13, '$hl' : 0x23, '$sp' : 0x33, '$b' : 0x04, '$d' : 0x14, '$h' : 0x24, '#hl' : 0x34, '$c' : 0x0c, '$e' : 0x1c, '$l' : 0x2c, '$a' : 0x3c}
-			program[pc] = dictionary[op[1]]
-			pc += 1
-		elif op[0] == 'dec':
-			dictionary = {'$bc' : 0x0b, '$de' : 0x1b, '$hl' : 0x2b, '$sp' : 0x3b, '$b' : 0x05, '$d' : 0x15, '$h' : 0x25, '#hl' : 0x35, '$c' : 0x0d, '$e' : 0x1d, '$l' : 0x2d, '$a' : 0x3d}
-			program[pc] = dictionary[op[1]]
-			pc += 1
 		elif op[0] == 'add':
 			dictionary = {'$b':0,'$c':1,'$d':2,'$e':3,'$h':4,'$l':5,'#hl':6,'$a':7}
 			program[pc] = 0x80+dictionary[op[1]]
@@ -187,96 +154,6 @@ def write_code(info,pc):
 			dictionary = {'$bc':0xc1,'$de':0xd1,'$hl':0xe1,'$af':0xf1}
 			program[pc] = dictionary[op[1]] + 5
 			pc += 1
-		elif op[0] == 'jp':
-			program[pc] = 0xc3
-			pc += 1
-			if op[1][0:2] == '0x':
-				op[1] = op[1][2:][::-1]
-			while op[1] != '':
-				program[pc] = text_to_hex(op[1][0:2][::-1])
-				pc += 1
-				op[1] = op[1][2:]
-		elif op[0] == 'jpz':
-			program[pc] = 0xca
-			pc += 1
-			if op[1][0:2] == '0x':
-				op[1] = op[1][2:][::-1]
-			while op[1] != '':
-				program[pc] = text_to_hex(op[1][0:2][::-1])
-				pc += 1
-				op[1] = op[1][2:]
-		elif op[0] == 'jpnz':
-			program[pc] = 0xc2
-			pc += 1
-			if op[1][0:2] == '0x':
-				op[1] = op[1][2:][::-1]
-			while op[1] != '':
-				program[pc] = text_to_hex(op[1][0:2][::-1])
-				pc += 1
-				op[1] = op[1][2:]
-		elif op[0] == 'jpc':
-			program[pc] = 0xda
-			pc += 1
-			if op[1][0:2] == '0x':
-				op[1] = op[1][2:][::-1]
-			while op[1] != '':
-				program[pc] = text_to_hex(op[1][0:2][::-1])
-				pc += 1
-				op[1] = op[1][2:]
-		elif op[0] == 'jpnc':
-			program[pc] = 0xd2
-			pc += 1
-			if op[1][0:2] == '0x':
-				op[1] = op[1][2:][::-1]
-			while op[1] != '':
-				program[pc] = text_to_hex(op[1][0:2][::-1])
-				pc += 1
-				op[1] = op[1][2:]
-		elif op[0] == 'call':
-			program[pc] = 0xcd
-			pc += 1
-			if op[1][0:2] == '0x':
-				op[1] = op[1][2:][::-1]
-			while op[1] != '':
-				program[pc] = text_to_hex(op[1][0:2][::-1])
-				pc += 1
-				op[1] = op[1][2:]
-		elif op[0] == 'callz':
-			program[pc] = 0xcc
-			pc += 1
-			if op[1][0:2] == '0x':
-				op[1] = op[1][2:][::-1]
-			while op[1] != '':
-				program[pc] = text_to_hex(op[1][0:2][::-1])
-				pc += 1
-				op[1] = op[1][2:]
-		elif op[0] == 'callnz':
-			program[pc] = 0xc4
-			pc += 1
-			if op[1][0:2] == '0x':
-				op[1] = op[1][2:][::-1]
-			while op[1] != '':
-				program[pc] = text_to_hex(op[1][0:2][::-1])
-				pc += 1
-				op[1] = op[1][2:]
-		elif op[0] == 'callc':
-			program[pc] = 0xdc
-			pc += 1
-			if op[1][0:2] == '0x':
-				op[1] = op[1][2:][::-1]
-			while op[1] != '':
-				program[pc] = text_to_hex(op[1][0:2][::-1])
-				pc += 1
-				op[1] = op[1][2:]
-		elif op[0] == 'callnc':
-			program[pc] = 0xd4
-			pc += 1
-			if op[1][0:2] == '0x':
-				op[1] = op[1][2:][::-1]
-			while op[1] != '':
-				program[pc] = text_to_hex(op[1][0:2][::-1])
-				pc += 1
-				op[1] = op[1][2:]
 		elif op[0] == 'jr':
 			program[pc] = 0x18
 			pc += 1

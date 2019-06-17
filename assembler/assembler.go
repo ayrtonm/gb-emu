@@ -32,6 +32,14 @@ const numTitleChars int = 16
 const titleAddress uint16 = 0x134
 const startAddress uint16 = 0x0100
 
+//offset pattern used in inc/dec for 16 bit registers
+var regOffsets1 = map[string]byte{"bc":0, "de":1, "hl":2, "sp":3}
+//offset pattern used in inc/dec for 8 bit registers
+//also used for ld between two 8 bit registers
+var regOffsets2 = map[string]byte{"b":0, "c":1, "d":2, "e":3, "h":4, "l":5, "a":7}
+//offset pattern used in push/pop
+var regOffsets3 = map[string]byte{"bc":0, "de":1, "hl":2, "af":3}
+
 var labels map[string]uint16 = make(map[string]uint16, 0)
 var pc uint16 = startAddress
 
@@ -99,6 +107,9 @@ func getSectionType(line string) section {
 }
 
 func parseHex(input string, numChars int) []byte {
+  if !isHex(input) {
+    os.Exit(2)
+  }
   output := make([]byte, numChars)
   const charsPerByte = 2
   input = input[2:]
@@ -167,29 +178,140 @@ func readCode(line string) (byteCode []byte, codeLength uint16) {
       output = append(output, 0xc8)
     //if instruction not found, read one argument then switch case with one-argument instructions
     default:
-      data := cmd[1]
+      if len(cmd) < 1 {
+        //instructions missing arguments
+        os.Exit(5)
+      }
+      dest := cmd[1]
       switch instruction {
         case "jp":
-          newAddress := parseWord(data)
+          newAddress := parseWord(dest)
           output = append(output, 0xc3)
           output = append(output, lowByte(newAddress))
           output = append(output, hiByte(newAddress))
         case "jpz":
-          newAddress := parseWord(data)
+          newAddress := parseWord(dest)
           output = append(output, 0xca)
           output = append(output, lowByte(newAddress))
           output = append(output, hiByte(newAddress))
         case "jpnz":
-          newAddress := parseWord(data)
+          newAddress := parseWord(dest)
           output = append(output, 0xc2)
           output = append(output, lowByte(newAddress))
           output = append(output, hiByte(newAddress))
+        case "jpc":
+          newAddress := parseWord(dest)
+          output = append(output, 0xda)
+          output = append(output, lowByte(newAddress))
+          output = append(output, hiByte(newAddress))
+        case "jpnc":
+          newAddress := parseWord(dest)
+          output = append(output, 0xd2)
+          output = append(output, lowByte(newAddress))
+          output = append(output, hiByte(newAddress))
+        case "call":
+          newAddress := parseWord(dest)
+          output = append(output, 0xcd)
+          output = append(output, lowByte(newAddress))
+          output = append(output, hiByte(newAddress))
+        case "callz":
+          newAddress := parseWord(dest)
+          output = append(output, 0xcc)
+          output = append(output, lowByte(newAddress))
+          output = append(output, hiByte(newAddress))
+        case "callnz":
+          newAddress := parseWord(dest)
+          output = append(output, 0xc4)
+          output = append(output, lowByte(newAddress))
+          output = append(output, hiByte(newAddress))
+        case "callc":
+          newAddress := parseWord(dest)
+          output = append(output, 0xdc)
+          output = append(output, lowByte(newAddress))
+          output = append(output, hiByte(newAddress))
+        case "callnc":
+          newAddress := parseWord(dest)
+          output = append(output, 0xd4)
+          output = append(output, lowByte(newAddress))
+          output = append(output, hiByte(newAddress))
+        case "rst":
+          newAddress := parseByte(dest)
+          output = append(output, 0xc7 + newAddress)
+        case "push":
+          if isReg(dest) {
+            reg := dest[len(regPrefix):]
+            output = append(output, 0xc5 + (regOffsets3[reg] * 0x10))
+          } else {
+            //argument to increment is not a register or pointer
+            os.Exit(3)
+          }
+        case "pop":
+          if isReg(dest) {
+            reg := dest[len(regPrefix):]
+            output = append(output, 0xc1 + (regOffsets3[reg] * 0x10))
+          } else {
+            //argument to increment is not a register or pointer
+            os.Exit(3)
+          }
         case "inc":
+          if isReg(dest) {
+            reg := dest[len(regPrefix):]
+            if len(dest)-len(regPrefix) == 2 {
+              output = append(output, 0x03 + (regOffsets1[reg] * 0x10))
+            } else if len(dest)-len(regPrefix) == 1 {
+              output = append(output, 0x04 + (regOffsets2[reg] * 0x08))
+            } else {
+              //reg is not a valid register
+              os.Exit(4)
+            }
+          } else if isPtr(dest) {
+            reg := dest[len(ptrPrefix):len(dest)-len(ptrSuffix)]
+            if reg != "hl" {
+              //reg is not a valid register
+              os.Exit(4)
+            }
+            output = append(output, 0x34)
+          } else {
+            //argument to increment is not a register or pointer
+            os.Exit(3)
+          }
         case "dec":
+          if isReg(dest) {
+            reg := dest[len(regPrefix):]
+            if len(dest)-len(regPrefix) == 2 {
+              output = append(output, 0x0b + (regOffsets1[reg] * 0x10))
+            } else if len(dest)-len(regPrefix) == 1 {
+              output = append(output, 0x05 + (regOffsets2[reg] * 0x08))
+            } else {
+              //reg is not a valid register
+              os.Exit(4)
+            }
+            output = append(output, 0x35)
+          } else if isPtr(dest) {
+            reg := dest[len(ptrPrefix):len(dest)-len(ptrSuffix)]
+            if reg != "hl" {
+              //reg is not a valid register
+              os.Exit(4)
+            }
+          } else {
+            //argument to increment is not a register or pointer
+            os.Exit(3)
+          }
         //instruction not found, read second argument the switch case with two-argument instructions
         default:
+          if len(cmd) < 2 {
+            os.Exit(5)
+          }
+          data := cmd[2]
           switch instruction {
             case "ld":
+              if isReg(dest) && isReg(data) {
+                destReg := dest[len(regPrefix):]
+                dataReg := data[len(regPrefix):]
+                output = append(output, 0x40 + (regOffsets1[destReg] * 0x08) + regOffsets2[dataReg])
+              } else {
+                output = append(output , 0xff, 0xfe)
+              }
             default:
               output = append(output , 0xff, 0xfe)
           }

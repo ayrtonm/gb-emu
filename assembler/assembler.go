@@ -61,6 +61,10 @@ func updatePc(newPc uint16, file *os.File) {
   pc = newPc
 }
 
+func isValidRst(rstVector uint8) bool {
+  return (rstVector & 0xc7) == 0
+}
+
 func isPtr(line string) bool {
   return strings.HasPrefix(line, ptrPrefix) && strings.HasSuffix(line, ptrSuffix)
 }
@@ -236,6 +240,10 @@ func readCode(line string) (byteCode []byte, codeLength uint16) {
           output = append(output, hiByte(newAddress))
         case "rst":
           newAddress := parseByte(dest)
+          if !isValidRst(newAddress) {
+            //reset vector is not valid
+            os.Exit(6)
+          }
           output = append(output, 0xc7 + newAddress)
         case "push":
           if isReg(dest) {
@@ -308,7 +316,7 @@ func readCode(line string) (byteCode []byte, codeLength uint16) {
               if isReg(dest) && isReg(data) {
                 destReg := dest[len(regPrefix):]
                 dataReg := data[len(regPrefix):]
-                output = append(output, 0x40 + (regOffsets1[destReg] * 0x08) + regOffsets2[dataReg])
+                output = append(output, 0x40 + (regOffsets2[destReg] * 0x08) + regOffsets2[dataReg])
               } else {
                 output = append(output , 0xff, 0xfe)
               }

@@ -16,7 +16,7 @@ func TestReadCode(t *testing.T) {
   for _,testName := range allTests {
     for _,i := range testMap[testName] {
       fmt.Println("testing", i)
-      bytes,_ := readCode(i)
+      bytes := readCode(i)
       if testName == "push" {
         if bytes[0] & 0x0F != 0x05 {
           t.Errorf(i+" wrote %x want x5",bytes)

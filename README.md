@@ -1,5 +1,4 @@
 # gb-emu
-------
 This is a gameboy emulator started in 2013 as a personal project to learn about computer architecture. After years of on and off (mostly off) development it now works well enough to run some games though it is still a work in progress. Currently the display and keypad are the only implemented I/O peripherals (no sound yet). Memory bank switching (required for ROMs larger than 32 kB) is implemented for a few common memory bank controllers. The processor is currently emulated like an interpreter that decodes opcodes one at a time. This works well, but I'm also working on a dynamic recompilation option using LLVM to learn about just-in-time (JIT) compilation.
 
 ## Features

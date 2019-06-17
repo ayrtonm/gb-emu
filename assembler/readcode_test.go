@@ -23,15 +23,15 @@ func TestReadCode(t *testing.T) {
         }
     } else if testName == "pop" {
         if bytes[0] & 0x0F != 0x01 {
-          t.Errorf(i+" wrote %x want x5",bytes)
+          t.Errorf(i+" wrote %x want x1",bytes)
         }
     } else if testName == "inc" {
         if bytes[0] & 0x0F != 0x03 {
-          t.Errorf(i+" wrote %x want x5",bytes)
+          t.Errorf(i+" wrote %x want x3",bytes)
         }
     } else if testName == "dec" {
         if bytes[0] & 0x0F != 0x0b {
-          t.Errorf(i+" wrote %x want x5",bytes)
+          t.Errorf(i+" wrote %x want xb",bytes)
         }
     }
     }

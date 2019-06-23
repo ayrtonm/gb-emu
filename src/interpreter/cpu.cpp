@@ -1,13 +1,15 @@
 #include <iostream>
 #include <unistd.h> //usleep
-#include <ctime>
+#include <time.h>
 #include "cpu.h"
 //ideally the CPU should run at 4 MHz meaning CPU_CLKS/CPU_SLEEP = 4
 //realistically the ratio should be such that each call to usleep isn't noticeable (CPU_SLEEP isn't too long)
 //and real cpu usage is low
 //the screenupdateclk threshold can then be set based on CPU_SLEEP time so that the screen refreshes at approximately 60 Hz
 //I should add a function to automatically set this ratio to minimize cpu usage
-#define CPU_CLKS 10000
+#define CPU_CLKS 5000
+#define NS_PER_CLK 953.674
+#define SLEEP_FACTOR 0.5
 
 using namespace std;
 
@@ -37,7 +39,7 @@ int cpu::emulate(mem &m) {
   keypad *k = new keypad;
   sound *s = new sound;
 
-  begin = clock();
+  wait.tv_sec = 0;
   for(;;)
   {
     if ((INT_VBL|INT_LCD|INT_TIM|INT_SER|INT_JOY) & m.read_byte(O_IO+IO_IR) & m.read_byte(O_IE)) {
@@ -98,7 +100,7 @@ int cpu::emulate(mem &m) {
         return 0;
       }
     }
-    throttle(dt*4);
+    throttle(dt);
   }
   return 1;
 }
@@ -107,9 +109,7 @@ void cpu::throttle(int dt) {
   cputhrottleclk += dt;
   if(cputhrottleclk >= CPU_CLKS) {
     cputhrottleclk -= CPU_CLKS;
-    end = clock();
-    double elapsed_time = double(end - begin) / CLOCKS_PER_SEC;
-    usleep(1000-(elapsed_time*10000));
-    begin = clock();
+    wait.tv_nsec = CPU_CLKS*NS_PER_CLK*SLEEP_FACTOR;
+    clock_nanosleep(CLOCK_MONOTONIC, 0, &wait, NULL);
   }
 }

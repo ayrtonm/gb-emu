@@ -4,8 +4,6 @@
 #include <utility> //array
 #include "translate.h"
 #include "cache.h"
-//figure out what parts of cpu.h need to be shared between the interpreter and recompiler then delete the following line
-#include "../interpreter/cpu.h"
 #include "../mem.h"
 #include "../bits.h"
 

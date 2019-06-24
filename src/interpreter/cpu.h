@@ -15,6 +15,7 @@ class cpu {
     uint8 halt;
     bool repeat;
     struct timespec wait;
+    double sleep_factor[4];
     int cputhrottleclk;
     int emulate(mem &m);
     void throttle(int dt);

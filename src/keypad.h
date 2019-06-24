@@ -9,7 +9,7 @@ enum request {none, resize, quit};
 
 class keypad {
   public:
-    request handle_events(mem &m);
+    request handle_events(mem &m, double *sleep_factor);
   private:
     SDL_Event event;
 };

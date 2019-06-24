@@ -9,7 +9,6 @@
 //I should add a function to automatically set this ratio to minimize cpu usage
 #define CPU_CLKS 5000
 #define NS_PER_CLK 953.674
-#define SLEEP_FACTOR 0.5
 
 using namespace std;
 
@@ -40,6 +39,10 @@ int cpu::emulate(mem &m) {
   sound *s = new sound;
 
   wait.tv_sec = 0;
+  sleep_factor[0] = 0.6;
+  sleep_factor[1] = 0.01;
+  sleep_factor[2] = 50;
+  sleep_factor[3] = 0.1;
   for(;;)
   {
     if ((INT_VBL|INT_LCD|INT_TIM|INT_SER|INT_JOY) & m.read_byte(O_IO+IO_IR) & m.read_byte(O_IE)) {
@@ -85,7 +88,7 @@ int cpu::emulate(mem &m) {
     if (repeat) {repeat = false; pc.w -= length[op]-1;}
     m.update_timers(dt*4);
     l->step_lcd(dt,m);
-    switch (k->handle_events(m)) {
+    switch (k->handle_events(m,sleep_factor)) {
       case none: {
         break;
       }
@@ -94,6 +97,7 @@ int cpu::emulate(mem &m) {
         break;
       }
       case quit: {
+        cout << sleep_factor[0];
         delete l;
         delete k;
         delete s;
@@ -109,7 +113,7 @@ void cpu::throttle(int dt) {
   cputhrottleclk += dt;
   if(cputhrottleclk >= CPU_CLKS) {
     cputhrottleclk -= CPU_CLKS;
-    wait.tv_nsec = CPU_CLKS*NS_PER_CLK*SLEEP_FACTOR;
+    wait.tv_nsec = CPU_CLKS*NS_PER_CLK*sleep_factor[0];
     clock_nanosleep(CLOCK_MONOTONIC, 0, &wait, NULL);
   }
 }

@@ -6,7 +6,7 @@
 #define DRAWSPRITES
 #define DRAWBG
 #define DRAWWIN
-#define LCDUPDATECLK 40000
+#define LCDUPDATECLK 30000
 
 lcd::lcd() {
   fill(begin(linebuffer),end(linebuffer),0);

@@ -1,6 +1,9 @@
+#include <iostream>
 #include "keypad.h"
 
-request keypad::handle_events(mem &m) {
+using namespace std;
+
+request keypad::handle_events(mem &m, double *sleep_factor) {
   while(SDL_PollEvent (&event)) {
     if (event.type == SDL_WINDOWEVENT) {
       switch (event.window.event) {
@@ -147,6 +150,39 @@ request keypad::handle_events(mem &m) {
         }
         case SDLK_p: {
           getchar();
+          break;
+        }
+        case SDLK_h: {
+          *(sleep_factor + 2) -= *(sleep_factor + 3);
+          if (*(sleep_factor + 2) <= *(sleep_factor + 3)) {
+            *(sleep_factor + 3) = *(sleep_factor + 2)/10.0;
+          }
+          cout << *sleep_factor << " " << *(sleep_factor + 1) << " " << *(sleep_factor + 2) << " " << *(sleep_factor + 3) <<  endl;
+          break;
+        }
+        case SDLK_l: {
+          *(sleep_factor + 2) += *(sleep_factor +3);
+          if (*(sleep_factor + 2) >= *(sleep_factor + 3) * 100.0) {
+            *(sleep_factor + 3) = *(sleep_factor + 2);
+          }
+          cout << *sleep_factor << " " << *(sleep_factor + 1) << " " << *(sleep_factor + 2) << " " << *(sleep_factor + 3) <<  endl;
+          break;
+        }
+        case SDLK_j: {
+          *sleep_factor -= *(sleep_factor + 1);
+          if (*sleep_factor <= *(sleep_factor + 1)) {
+            *(sleep_factor + 1) = *sleep_factor/10.0;
+          }
+          cout << *sleep_factor << " " << *(sleep_factor + 1) << " " << *(sleep_factor + 2) << " " << *(sleep_factor + 3) <<  endl;
+          break;
+        }
+        case SDLK_k: {
+          *sleep_factor += *(sleep_factor + 1);
+          if (*sleep_factor >= *(sleep_factor + 1) * 100.0) {
+            *(sleep_factor + 1) = *sleep_factor;
+          }
+          cout << *sleep_factor << " " << *(sleep_factor + 1) << " " << *(sleep_factor + 2) << " " << *(sleep_factor + 3) <<  endl;
+          break;
         }
       }
     }

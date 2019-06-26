@@ -6,7 +6,7 @@
 #define DRAWSPRITES
 #define DRAWBG
 #define DRAWWIN
-#define LCDUPDATECLK 30000
+#define LCDUPDATECLK 20000
 
 lcd::lcd() {
   fill(begin(linebuffer),end(linebuffer),0);
@@ -265,6 +265,8 @@ void lcd::draw_line(mem &m) {
   }
 #endif
 #ifdef DRAWWIN
+  //works well enough to render scenes from Kirby correctly
+  //there is still some bug related to scx and scy (see pkblue.gb)
   uint8 winy = m.read_byte(O_IO+IO_WY);
   uint8 winx = m.read_byte(O_IO+IO_WX);
   if ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_ENABLE) && (winy <= curline)) {
@@ -274,6 +276,11 @@ void lcd::draw_line(mem &m) {
     //offsets within tile
     uint8 x = 0;
     uint8 y = (curline - winy) & 7;
+
+//temporary fixed copied from draw bg section
+          if (w_map_number > 127) {w_map_number -= 128;}
+          else {w_map_number += 128;}
+
     uint16 w_data = m.read_word(O_VRAM + 16*w_map_number + (y << 1) + V_TD_1);
     if (winx < 7) {
       for (int i = 0; i < winx; i++) {
@@ -290,6 +297,11 @@ void lcd::draw_line(mem &m) {
         x = 0;
         w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((i + 1 - winx + 7) >> 3) & 31);
         w_map_number = ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) ? m.read_byte(O_VRAM + w_offset + V_MD_1) : m.read_byte(O_VRAM + w_offset + V_MD_0));
+
+//temporary fixed copied from draw bg section
+          if (w_map_number > 127) {w_map_number -= 128;}
+          else {w_map_number += 128;}
+
         w_data = m.read_word(O_VRAM + 16*w_map_number + (y << 1) + V_TD_1);
       }
     }

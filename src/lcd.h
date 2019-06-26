@@ -30,7 +30,6 @@ class lcd
     array<uint8,160> linebuffer;
     vector<uint8> pixels;
     int clk, screenupdateclk;
-
 };
 
 #endif

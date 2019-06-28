@@ -13,8 +13,8 @@ typedef struct color {
   uint8 a,r,g,b;
 } color;
 
-enum keys {direction, special};
-enum keypress {up, down}; 
+enum keyset {direction, special};
+enum keystate {release, press}; 
 enum mbc {romonly, mbc1, mbc2, mbc3, mbc4, mbc5, huc3, huc1, mm01};
 //if mode is mbc1 then mbcmode can be rom or ram
 //if mode is mbc3 then mbcmode can be ram or rtc
@@ -46,9 +46,9 @@ class mem
     bool get_dumpmemory() {
       return dumpmemory; 
     }
-    void update_keys(keys k, uint8 bit, keypress kp);
-    uint8 get_keys(keys k);
-    keys get_keys_loaded();
+    void update_keys(keyset k, uint8 bit, keystate kp);
+    uint8 get_keys(keyset k);
+    keyset get_keys_loaded();
 
     //used in cpu.cpp
     void update_timers(int dt);

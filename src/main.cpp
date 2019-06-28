@@ -8,14 +8,16 @@
 struct arguments {
   char *args[2];
   bool gameloaded = false;
+  bool configloaded = false;
   bool dumpmemory = false;
   bool recompiled = false;
-  char *inputfile, *memorydumpfile;
+  char *inputfile, *memorydumpfile, *configfile;
 };
 
 static struct argp_option options[] = {
-  {"inputfile", 'l', "FILENAME", 0, "load the given file and start the emulator"},
-  {"memorydump", 'd', "OUTFILE", 0, "print addresses and values of non-zero memory into OUTFILE at the end of emulation"},
+  {"inputfile", 'l', "INPUTFILE", 0, "load the given file and start the emulator"},
+  {"configfile", 'c',"CONFIGFILE", 0, "load the given configuration file"},
+  {"memorydump", 'd', "OUTPUTFILE", 0, "print addresses and values of non-zero memory into OUTFILE at the end of emulation"},
   {NULL, 'r', NULL, 0, "use dynamic recompilation"},
   {0}
 };
@@ -34,12 +36,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     case 'r':
       arguments->recompiled = true;
       break;
-    //case ARGP_KEY_ARG:
-    //  if(state->arg_num >= 2) {
-    //    argp_usage(state);
-    //  }
-    //  arguments->args[state->arg_num] = arg;
-    //  break;
+    case 'c':
+      arguments->configfile = arg;
+      arguments->configloaded = true;
+      break;
     case ARGP_KEY_END:
       if (!arguments->gameloaded) {
         argp_usage(state);
@@ -63,6 +63,7 @@ int main(int argc, char *argv[]) {
   string filename(arguments.inputfile);
   //pointers to classes for emulated subsystems
   mem *m;
+  keypad *k;
   //if were going to dump memory to a file on exit, store that files name in the mem class
   if (arguments.dumpmemory) {
     string memorydumpfile(arguments.memorydumpfile);
@@ -72,10 +73,17 @@ int main(int argc, char *argv[]) {
   else {
     m = new mem(filename);
   }
+  if (arguments.configloaded) {
+    string configfile(arguments.configfile);
+    k = new keypad(configfile);
+  }
+  else {
+    k = new keypad();
+  }
   //if we are not dynamically recompiling, make a pointer to an instance of the cpu class and start emulator
   if (!arguments.recompiled) {
     cpu *c = new cpu;
-    c->emulate(*m);
+    c->emulate(*m,*k);
     delete c;
   }
   //otherwise pass control to dynarec loop

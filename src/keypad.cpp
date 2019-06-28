@@ -1,7 +1,43 @@
 #include <iostream>
+#include <fstream>
+#include <algorithm>
 #include "keypad.h"
 
 using namespace std;
+
+keypad::keypad(string configfile) {
+  if (configfile != "") {
+    //read in configuration from file
+    ifstream config;
+    try {
+      config.open(configfile, ifstream::in);
+      if (!config.is_open()) {
+        throw runtime_error("unable to open config file");
+        return;
+      }
+      string option, value;
+      while (config >> option >> value) {
+        //check if config option is for setting a key
+        if (option.compare(0, keyoption.length(), keyoption) == 0) {
+          cout << "setting" << option << " to " << value << endl;
+          keymap.emplace(value_to_keycode[value], option_to_key[option]);
+          keyset.push_back(option_to_key[option]);
+        }
+      }
+      config.close();
+    }
+    catch (const ifstream::failure &e) {
+      cout << e.what() << endl;
+      exit(2);
+    }
+  }
+  for (vector<key>::iterator it = allkeys.begin(); it != allkeys.end(); it++) {
+    //if key was not set in config file, set to its default value
+    if (find(keyset.begin(), keyset.end(), *it) == keyset.end()) {
+      keymap.emplace(default_keymap[*it],*it);
+    }
+  }
+}
 
 request keypad::handle_events(mem &m, double *sleep_factor) {
   while(SDL_PollEvent (&event)) {
@@ -16,52 +52,52 @@ request keypad::handle_events(mem &m, double *sleep_factor) {
     }
     //update memory but don't trigger interrupt on release
     else if (event.type == SDL_KEYUP) {
-      switch(event.key.keysym.sym) {
-        case SDLK_z: {
+      switch(keymap[event.key.keysym.sym]) {
+        case A: {
           if ((m.get_keys(special) & JOYP_A_BIT) == 0x00) {
-            m.update_keys(special, JOYP_A_BIT, up);
+            m.update_keys(special, JOYP_A_BIT, release);
           }
           break;
         }
-        case SDLK_x: {
+        case B: {
           if ((m.get_keys(special) & JOYP_B_BIT) == 0x00) {
-            m.update_keys(special, JOYP_B_BIT, up);
+            m.update_keys(special, JOYP_B_BIT, release);
           }
           break;
         }
-        case SDLK_RETURN: {
+        case Start: {
           if ((m.get_keys(special) & JOYP_START_BIT) == 0x00) {
-            m.update_keys(special, JOYP_START_BIT, up);
+            m.update_keys(special, JOYP_START_BIT, release);
           }
           break;
         }
-        case SDLK_BACKSPACE: {
+        case Select: {
           if ((m.get_keys(special) & JOYP_SELECT_BIT) == 0x00) {
-            m.update_keys(special, JOYP_SELECT_BIT, up);
+            m.update_keys(special, JOYP_SELECT_BIT, release);
           }
           break;
         }
-        case SDLK_UP: {
+        case Up: {
           if ((m.get_keys(direction) & JOYP_U_BIT) == 0x00) {
-            m.update_keys(direction, JOYP_U_BIT, up);
+            m.update_keys(direction, JOYP_U_BIT, release);
           }
           break;
         }
-        case SDLK_DOWN: {
+        case Down: {
           if ((m.get_keys(direction) & JOYP_D_BIT) == 0x00) {
-            m.update_keys(direction, JOYP_D_BIT, up);
+            m.update_keys(direction, JOYP_D_BIT, release);
           }
           break;
         }
-        case SDLK_LEFT: {
+        case Left: {
           if ((m.get_keys(direction) & JOYP_L_BIT) == 0x00) {
-            m.update_keys(direction, JOYP_L_BIT, up);
+            m.update_keys(direction, JOYP_L_BIT, release);
           }
           break;
         }
-        case SDLK_RIGHT: {
+        case Right: {
           if ((m.get_keys(direction) & JOYP_R_BIT) == 0x00) {
-            m.update_keys(direction, JOYP_R_BIT, up);
+            m.update_keys(direction, JOYP_R_BIT, release);
           }
           break;
         }
@@ -69,85 +105,89 @@ request keypad::handle_events(mem &m, double *sleep_factor) {
     }
     //update memory and trigger on interrupt
     else if (event.type == SDL_KEYDOWN) {
-      switch(event.key.keysym.sym) {
-        case SDLK_z: {
+      switch(keymap[event.key.keysym.sym]) {
+        case A: {
           if (m.get_keys(special) & JOYP_A_BIT) {
-            m.update_keys(special, JOYP_A_BIT, down);
+            m.update_keys(special, JOYP_A_BIT, press);
           if (m.get_keys_loaded() == special) {
             m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
           }
           }
           break;
         }
-        case SDLK_x: {
+        case B: {
           if (m.get_keys(special) & JOYP_B_BIT) {
-            m.update_keys(special, JOYP_B_BIT, down);
+            m.update_keys(special, JOYP_B_BIT, press);
           if (m.get_keys_loaded() == special) {
             m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
           }
           }
           break;
         }
-        case SDLK_RETURN: {
+        case Start: {
           if (m.get_keys(special) & JOYP_START_BIT) {
-            m.update_keys(special, JOYP_START_BIT, down);
+            m.update_keys(special, JOYP_START_BIT, press);
           if (m.get_keys_loaded() == special) {
             m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
           }
           }
           break;
         }
-        case SDLK_BACKSPACE: {
+        case Select: {
           if (m.get_keys(special) & JOYP_SELECT_BIT) {
-            m.update_keys(special, JOYP_SELECT_BIT, down);
+            m.update_keys(special, JOYP_SELECT_BIT, press);
           if (m.get_keys_loaded() == special) {
             m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
           }
           }
           break;
         }
-        case SDLK_UP: {
+        case Up: {
           if (m.get_keys(direction) & JOYP_U_BIT) {
-            m.update_keys(direction, JOYP_U_BIT, down);
+            m.update_keys(direction, JOYP_U_BIT, press);
           if (m.get_keys_loaded() == direction) {
             m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
           }
           }
           break;
         }
-        case SDLK_DOWN: {
+        case Down: {
           if (m.get_keys(direction) & JOYP_D_BIT) {
-            m.update_keys(direction, JOYP_D_BIT, down);
+            m.update_keys(direction, JOYP_D_BIT, press);
           if (m.get_keys_loaded() == direction) {
             m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
           }
           }
           break;
         }
-        case SDLK_LEFT: {
+        case Left: {
           if (m.get_keys(direction) & JOYP_L_BIT) {
-            m.update_keys(direction, JOYP_L_BIT, down);
+            m.update_keys(direction, JOYP_L_BIT, press);
           if (m.get_keys_loaded() == direction) {
             m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
           }
           }
           break;
         }
-        case SDLK_RIGHT: {
+        case Right: {
           if (m.get_keys(direction) & JOYP_R_BIT) {
-            m.update_keys(direction, JOYP_R_BIT, down);
+            m.update_keys(direction, JOYP_R_BIT, press);
           if (m.get_keys_loaded() == direction) {
             m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
           }
           }
           break;
         }
-        case SDLK_q: {
+        case Quit: {
           if (m.get_dumpmemory()) {
             m.dump_memory();
           }
           return quit;
         }
+        default: {
+          break;
+        }
+#ifdef DEBUG
         case SDLK_p: {
           getchar();
           break;
@@ -184,6 +224,7 @@ request keypad::handle_events(mem &m, double *sleep_factor) {
           cout << *sleep_factor << " " << *(sleep_factor + 1) << " " << *(sleep_factor + 2) << " " << *(sleep_factor + 3) <<  endl;
           break;
         }
+#endif
       }
     }
   }

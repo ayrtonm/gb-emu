@@ -290,13 +290,13 @@ void mem::increment_clock(uint8 *reg, const uint8 *maxval) {
   }
 }
 
-void mem::update_keys(keys k, uint8 bit, keypress kp) {
+void mem::update_keys(keyset k, uint8 bit, keystate kp) {
   if (k == special) {
-    if (kp == down) {
+    if (kp == press) {
       //if the key for a special button is pressed, clear that bit in joyspecial
       joyspecial &= ~bit;
     }
-    else {
+    else { //kp == release
       //if the key for a special button is released, set that bit in joyspecial
       joyspecial |= bit;
     }
@@ -306,11 +306,11 @@ void mem::update_keys(keys k, uint8 bit, keypress kp) {
     }
   }
   else {
-    if (kp == down) {
+    if (kp == press) {
       //if the key for a direction button is pressed, clear that bit in joydirection
       joydirection &= ~bit;
     }
-    else {
+    else { //kp == release
       //if the key for a direction button is released, set that bit in joydirection
       joydirection |= bit;
     }
@@ -321,10 +321,10 @@ void mem::update_keys(keys k, uint8 bit, keypress kp) {
   }
 }
 
-uint8 mem::get_keys(keys k) {
+uint8 mem::get_keys(keyset k) {
   return (k == special ? joyspecial : joydirection);
 }
 
-keys mem::get_keys_loaded() {
+keyset mem::get_keys_loaded() {
   return (loadeddirection ? direction : special);
 }

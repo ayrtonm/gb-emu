@@ -52,10 +52,6 @@ void lcd::resize() {
 }
 
 void lcd::step_lcd(int dt, mem &m) {
-#ifdef DEBUG
-  cout << hex << (int) (m.read_byte(O_IO+IO_LCDSTAT) & 0x03) << "\n";
-  cout << "on line " << (int) m.read_byte(O_IO+IO_LY) << "\n";
-#endif
   screenupdateclk += dt;
   clk -= dt;
   if (clk <= 0) {

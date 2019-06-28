@@ -21,14 +21,13 @@ cpu::cpu() {
 }
 
 //one cpu click is approximately 0.953674 microseconds
-int cpu::emulate(mem &m) {
+int cpu::emulate(mem &m, keypad &k) {
   //local variables
   int op;
   int dt = 0;
 
   //initialize subsystem classes
   lcd *l = new lcd;
-  keypad *k = new keypad;
   sound *s = new sound;
 
   wait.tv_sec = 0;
@@ -81,7 +80,7 @@ int cpu::emulate(mem &m) {
     if (repeat) {repeat = false; pc.w -= length[op]-1;}
     m.update_timers(dt*4);
     l->step_lcd(dt,m);
-    switch (k->handle_events(m,sleep_factor)) {
+    switch (k.handle_events(m,sleep_factor)) {
       case none: {
         break;
       }
@@ -92,7 +91,6 @@ int cpu::emulate(mem &m) {
       case quit: {
         cout << sleep_factor[0];
         delete l;
-        delete k;
         delete s;
         return 0;
       }

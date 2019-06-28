@@ -4,5 +4,5 @@ key.start a
 key.select s
 lcd.x 320
 lcd.y 288
-lcd.resizable true
+lcd.resizable false
 lcd.fullscreen false

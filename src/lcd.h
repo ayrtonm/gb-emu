@@ -29,7 +29,7 @@ class lcd
     string lcdoption = "lcd";
     int xinit = 160;
     int yinit = 144;
-    bool resizable = false;
+    bool resizable = true;
     bool fullscreen = false;
 
     float scale;

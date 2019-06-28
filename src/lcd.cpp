@@ -23,11 +23,11 @@ lcd::lcd(string configfile) {
       while (config >> option >> value) {
         if (option == "lcd.x") {
           xinit = stoi(value);
-          cout << "setting " << option << " to " << resizable << endl;
+          cout << "setting " << option << " to " << xinit << endl;
         }
         else if (option == "lcd.y") {
           yinit = stoi(value);
-          cout << "setting " << option << " to " << resizable << endl;
+          cout << "setting " << option << " to " << yinit << endl;
         }
         else if (option == "lcd.resizable") {
           resizable = (value == "true" ? true : false);

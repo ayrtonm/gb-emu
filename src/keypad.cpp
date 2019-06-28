@@ -52,179 +52,180 @@ request keypad::handle_events(mem &m, double *sleep_factor) {
     }
     //update memory but don't trigger interrupt on release
     else if (event.type == SDL_KEYUP) {
-      switch(keymap[event.key.keysym.sym]) {
-        case A: {
-          if ((m.get_keys(special) & JOYP_A_BIT) == 0x00) {
-            m.update_keys(special, JOYP_A_BIT, release);
+      if (keymap.find(event.key.keysym.sym) != keymap.end()) {
+        switch(keymap[event.key.keysym.sym]) {
+          case A: {
+            if ((m.get_keys(special) & JOYP_A_BIT) == 0x00) {
+              m.update_keys(special, JOYP_A_BIT, release);
+            }
+            break;
           }
-          break;
-        }
-        case B: {
-          if ((m.get_keys(special) & JOYP_B_BIT) == 0x00) {
-            m.update_keys(special, JOYP_B_BIT, release);
+          case B: {
+            if ((m.get_keys(special) & JOYP_B_BIT) == 0x00) {
+              m.update_keys(special, JOYP_B_BIT, release);
+            }
+            break;
           }
-          break;
-        }
-        case Start: {
-          if ((m.get_keys(special) & JOYP_START_BIT) == 0x00) {
-            m.update_keys(special, JOYP_START_BIT, release);
+          case Start: {
+            if ((m.get_keys(special) & JOYP_START_BIT) == 0x00) {
+              m.update_keys(special, JOYP_START_BIT, release);
+            }
+            break;
           }
-          break;
-        }
-        case Select: {
-          if ((m.get_keys(special) & JOYP_SELECT_BIT) == 0x00) {
-            m.update_keys(special, JOYP_SELECT_BIT, release);
+          case Select: {
+            if ((m.get_keys(special) & JOYP_SELECT_BIT) == 0x00) {
+              m.update_keys(special, JOYP_SELECT_BIT, release);
+            }
+            break;
           }
-          break;
-        }
-        case Up: {
-          if ((m.get_keys(direction) & JOYP_U_BIT) == 0x00) {
-            m.update_keys(direction, JOYP_U_BIT, release);
+          case Up: {
+            if ((m.get_keys(direction) & JOYP_U_BIT) == 0x00) {
+              m.update_keys(direction, JOYP_U_BIT, release);
+            }
+            break;
           }
-          break;
-        }
-        case Down: {
-          if ((m.get_keys(direction) & JOYP_D_BIT) == 0x00) {
-            m.update_keys(direction, JOYP_D_BIT, release);
+          case Down: {
+            if ((m.get_keys(direction) & JOYP_D_BIT) == 0x00) {
+              m.update_keys(direction, JOYP_D_BIT, release);
+            }
+            break;
           }
-          break;
-        }
-        case Left: {
-          if ((m.get_keys(direction) & JOYP_L_BIT) == 0x00) {
-            m.update_keys(direction, JOYP_L_BIT, release);
+          case Left: {
+            if ((m.get_keys(direction) & JOYP_L_BIT) == 0x00) {
+              m.update_keys(direction, JOYP_L_BIT, release);
+            }
+            break;
           }
-          break;
-        }
-        case Right: {
-          if ((m.get_keys(direction) & JOYP_R_BIT) == 0x00) {
-            m.update_keys(direction, JOYP_R_BIT, release);
+          case Right: {
+            if ((m.get_keys(direction) & JOYP_R_BIT) == 0x00) {
+              m.update_keys(direction, JOYP_R_BIT, release);
+            }
+            break;
           }
-          break;
         }
       }
     }
     //update memory and trigger on interrupt
     else if (event.type == SDL_KEYDOWN) {
-      switch(keymap[event.key.keysym.sym]) {
-        case A: {
-          if (m.get_keys(special) & JOYP_A_BIT) {
-            m.update_keys(special, JOYP_A_BIT, press);
-          if (m.get_keys_loaded() == special) {
-            m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
+      if (keymap.find(event.key.keysym.sym) != keymap.end()) {
+        switch(keymap[event.key.keysym.sym]) {
+          case A: {
+            if (m.get_keys(special) & JOYP_A_BIT) {
+              m.update_keys(special, JOYP_A_BIT, press);
+            if (m.get_keys_loaded() == special) {
+              m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
+            }
+            }
+            break;
           }
+          case B: {
+            if (m.get_keys(special) & JOYP_B_BIT) {
+              m.update_keys(special, JOYP_B_BIT, press);
+            if (m.get_keys_loaded() == special) {
+              m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
+            }
+            }
+            break;
           }
-          break;
-        }
-        case B: {
-          if (m.get_keys(special) & JOYP_B_BIT) {
-            m.update_keys(special, JOYP_B_BIT, press);
-          if (m.get_keys_loaded() == special) {
-            m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
+          case Start: {
+            if (m.get_keys(special) & JOYP_START_BIT) {
+              m.update_keys(special, JOYP_START_BIT, press);
+            if (m.get_keys_loaded() == special) {
+              m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
+            }
+            }
+            break;
           }
+          case Select: {
+            if (m.get_keys(special) & JOYP_SELECT_BIT) {
+              m.update_keys(special, JOYP_SELECT_BIT, press);
+            if (m.get_keys_loaded() == special) {
+              m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
+            }
+            }
+            break;
           }
-          break;
-        }
-        case Start: {
-          if (m.get_keys(special) & JOYP_START_BIT) {
-            m.update_keys(special, JOYP_START_BIT, press);
-          if (m.get_keys_loaded() == special) {
-            m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
+          case Up: {
+            if (m.get_keys(direction) & JOYP_U_BIT) {
+              m.update_keys(direction, JOYP_U_BIT, press);
+            if (m.get_keys_loaded() == direction) {
+              m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
+            }
+            }
+            break;
           }
+          case Down: {
+            if (m.get_keys(direction) & JOYP_D_BIT) {
+              m.update_keys(direction, JOYP_D_BIT, press);
+            if (m.get_keys_loaded() == direction) {
+              m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
+            }
+            }
+            break;
           }
-          break;
-        }
-        case Select: {
-          if (m.get_keys(special) & JOYP_SELECT_BIT) {
-            m.update_keys(special, JOYP_SELECT_BIT, press);
-          if (m.get_keys_loaded() == special) {
-            m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
+          case Left: {
+            if (m.get_keys(direction) & JOYP_L_BIT) {
+              m.update_keys(direction, JOYP_L_BIT, press);
+            if (m.get_keys_loaded() == direction) {
+              m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
+            }
+            }
+            break;
           }
+          case Right: {
+            if (m.get_keys(direction) & JOYP_R_BIT) {
+              m.update_keys(direction, JOYP_R_BIT, press);
+            if (m.get_keys_loaded() == direction) {
+              m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
+            }
+            }
+            break;
           }
-          break;
-        }
-        case Up: {
-          if (m.get_keys(direction) & JOYP_U_BIT) {
-            m.update_keys(direction, JOYP_U_BIT, press);
-          if (m.get_keys_loaded() == direction) {
-            m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
+          case Quit: {
+            if (m.get_dumpmemory()) {
+              m.dump_memory();
+            }
+            return quit;
           }
-          }
-          break;
-        }
-        case Down: {
-          if (m.get_keys(direction) & JOYP_D_BIT) {
-            m.update_keys(direction, JOYP_D_BIT, press);
-          if (m.get_keys_loaded() == direction) {
-            m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
-          }
-          }
-          break;
-        }
-        case Left: {
-          if (m.get_keys(direction) & JOYP_L_BIT) {
-            m.update_keys(direction, JOYP_L_BIT, press);
-          if (m.get_keys_loaded() == direction) {
-            m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
-          }
-          }
-          break;
-        }
-        case Right: {
-          if (m.get_keys(direction) & JOYP_R_BIT) {
-            m.update_keys(direction, JOYP_R_BIT, press);
-          if (m.get_keys_loaded() == direction) {
-            m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_JOY);
-          }
-          }
-          break;
-        }
-        case Quit: {
-          if (m.get_dumpmemory()) {
-            m.dump_memory();
-          }
-          return quit;
-        }
-        default: {
-          break;
-        }
 #ifdef DEBUG
-        case SDLK_p: {
-          getchar();
-          break;
-        }
-        case SDLK_h: {
-          *(sleep_factor + 2) -= *(sleep_factor + 3);
-          if (*(sleep_factor + 2) <= *(sleep_factor + 3)) {
-            *(sleep_factor + 3) = *(sleep_factor + 2)/10.0;
+          case SDLK_p: {
+            getchar();
+            break;
           }
-          cout << *sleep_factor << " " << *(sleep_factor + 1) << " " << *(sleep_factor + 2) << " " << *(sleep_factor + 3) <<  endl;
-          break;
-        }
-        case SDLK_l: {
-          *(sleep_factor + 2) += *(sleep_factor +3);
-          if (*(sleep_factor + 2) >= *(sleep_factor + 3) * 100.0) {
-            *(sleep_factor + 3) = *(sleep_factor + 2);
+          case SDLK_h: {
+            *(sleep_factor + 2) -= *(sleep_factor + 3);
+            if (*(sleep_factor + 2) <= *(sleep_factor + 3)) {
+              *(sleep_factor + 3) = *(sleep_factor + 2)/10.0;
+            }
+            cout << *sleep_factor << " " << *(sleep_factor + 1) << " " << *(sleep_factor + 2) << " " << *(sleep_factor + 3) <<  endl;
+            break;
           }
-          cout << *sleep_factor << " " << *(sleep_factor + 1) << " " << *(sleep_factor + 2) << " " << *(sleep_factor + 3) <<  endl;
-          break;
-        }
-        case SDLK_j: {
-          *sleep_factor -= *(sleep_factor + 1);
-          if (*sleep_factor <= *(sleep_factor + 1)) {
-            *(sleep_factor + 1) = *sleep_factor/10.0;
+          case SDLK_l: {
+            *(sleep_factor + 2) += *(sleep_factor +3);
+            if (*(sleep_factor + 2) >= *(sleep_factor + 3) * 100.0) {
+              *(sleep_factor + 3) = *(sleep_factor + 2);
+            }
+            cout << *sleep_factor << " " << *(sleep_factor + 1) << " " << *(sleep_factor + 2) << " " << *(sleep_factor + 3) <<  endl;
+            break;
           }
-          cout << *sleep_factor << " " << *(sleep_factor + 1) << " " << *(sleep_factor + 2) << " " << *(sleep_factor + 3) <<  endl;
-          break;
-        }
-        case SDLK_k: {
-          *sleep_factor += *(sleep_factor + 1);
-          if (*sleep_factor >= *(sleep_factor + 1) * 100.0) {
-            *(sleep_factor + 1) = *sleep_factor;
+          case SDLK_j: {
+            *sleep_factor -= *(sleep_factor + 1);
+            if (*sleep_factor <= *(sleep_factor + 1)) {
+              *(sleep_factor + 1) = *sleep_factor/10.0;
+            }
+            cout << *sleep_factor << " " << *(sleep_factor + 1) << " " << *(sleep_factor + 2) << " " << *(sleep_factor + 3) <<  endl;
+            break;
           }
-          cout << *sleep_factor << " " << *(sleep_factor + 1) << " " << *(sleep_factor + 2) << " " << *(sleep_factor + 3) <<  endl;
-          break;
-        }
+          case SDLK_k: {
+            *sleep_factor += *(sleep_factor + 1);
+            if (*sleep_factor >= *(sleep_factor + 1) * 100.0) {
+              *(sleep_factor + 1) = *sleep_factor;
+            }
+            cout << *sleep_factor << " " << *(sleep_factor + 1) << " " << *(sleep_factor + 2) << " " << *(sleep_factor + 3) <<  endl;
+            break;
+          }
 #endif
+        }
       }
     }
   }

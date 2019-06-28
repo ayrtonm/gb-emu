@@ -17,7 +17,7 @@ class cpu {
     struct timespec wait;
     double sleep_factor[4];
     int cputhrottleclk;
-    int emulate(mem &m, keypad &k);
+    int emulate(mem &m, keypad &k, lcd &l, sound &s);
     void throttle(int dt);
 };
 

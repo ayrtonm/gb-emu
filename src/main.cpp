@@ -64,6 +64,8 @@ int main(int argc, char *argv[]) {
   //pointers to classes for emulated subsystems
   mem *m;
   keypad *k;
+  lcd *l;
+  sound *s;
   //if were going to dump memory to a file on exit, store that files name in the mem class
   if (arguments.dumpmemory) {
     string memorydumpfile(arguments.memorydumpfile);
@@ -76,14 +78,18 @@ int main(int argc, char *argv[]) {
   if (arguments.configloaded) {
     string configfile(arguments.configfile);
     k = new keypad(configfile);
+    l = new lcd(configfile);
+    s = new sound(configfile);
   }
   else {
     k = new keypad();
+    l = new lcd();
+    s = new sound();
   }
   //if we are not dynamically recompiling, make a pointer to an instance of the cpu class and start emulator
   if (!arguments.recompiled) {
     cpu *c = new cpu;
-    c->emulate(*m,*k);
+    c->emulate(*m,*k,*l,*s);
     delete c;
   }
   //otherwise pass control to dynarec loop

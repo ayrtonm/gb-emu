@@ -4,8 +4,11 @@
 #include "mem.h"
 #include "bits.h"
 
+using namespace std;
+
 class sound {
   public:
+    sound(string configfile = "");
   private:
 };
 

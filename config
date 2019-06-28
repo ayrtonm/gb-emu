@@ -2,3 +2,7 @@ key.a z
 key.b x
 key.start a
 key.select s
+lcd.x 320
+lcd.y 288
+lcd.resizable true
+lcd.fullscreen false

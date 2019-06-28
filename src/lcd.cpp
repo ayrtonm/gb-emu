@@ -1,14 +1,50 @@
 #include <iostream>
+#include <fstream>
 #include "lcd.h"
 #include "mem.h"
 #define RENDERING
-#undef FIXEDSIZE
 #define DRAWSPRITES
 #define DRAWBG
 #define DRAWWIN
 #define LCDUPDATECLK 20000
 
-lcd::lcd() {
+using namespace std;
+
+lcd::lcd(string configfile) {
+  if (configfile != "") {
+    ifstream config;
+    try {
+      config.open(configfile, ifstream::in);
+      if (!config.is_open()) {
+        throw runtime_error("unable to open config file");
+        return;
+      }
+      string option, value;
+      while (config >> option >> value) {
+        if (option == "lcd.x") {
+          xinit = stoi(value);
+          cout << "setting " << option << " to " << resizable << endl;
+        }
+        else if (option == "lcd.y") {
+          yinit = stoi(value);
+          cout << "setting " << option << " to " << resizable << endl;
+        }
+        else if (option == "lcd.resizable") {
+          resizable = (value == "true" ? true : false);
+          cout << "setting " << option << " to " << (resizable ? "true" : "false") << endl;
+        }
+        else if (option == "lcd.fullscreen") {
+          fullscreen = (value == "true" ? true : false);
+          cout << "setting " << option << " to " << (fullscreen ? "true" : "false") << endl;
+        }
+      }
+      config.close();
+    }
+    catch (const ifstream::failure &e) {
+      cout << e.what() << endl;
+      exit(3);
+    }
+  }
   fill(begin(linebuffer),end(linebuffer),0);
   scale = 1;
   clk = 0;
@@ -16,17 +52,24 @@ lcd::lcd() {
   SDL_Init(SDL_INIT_EVERYTHING);
   pixels.resize(160*144*4);
 #ifdef RENDERING
-#ifdef FIXEDSIZE
-  window = SDL_CreateWindow("Game Boy Emulator",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,160,144,SDL_WINDOW_SHOWN);
-#else
-  window = SDL_CreateWindow("Game Boy Emulator",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,160,144,SDL_WINDOW_RESIZABLE|SDL_WINDOW_SHOWN);
-#endif
+  if (resizable) {
+    window = SDL_CreateWindow("Game Boy Emulator",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,xinit,yinit,SDL_WINDOW_RESIZABLE|SDL_WINDOW_SHOWN);
+  }
+  else if (fullscreen) {
+    SDL_DisplayMode DM;
+    SDL_GetCurrentDisplayMode(0, &DM);
+    window = SDL_CreateWindow("Game Boy Emulator",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,DM.w,DM.h,SDL_WINDOW_SHOWN|SDL_WINDOW_FULLSCREEN_DESKTOP);
+  }
+  else {
+    window = SDL_CreateWindow("Game Boy Emulator",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,xinit,yinit,SDL_WINDOW_SHOWN);
+  }
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
   screen = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, 160, 144);
   offset.x = 0;
   offset.y = 0;
-  offset.w = 160*scale;
-  offset.h = 144*scale;
+  offset.w = xinit*scale;
+  offset.h = yinit*scale;
+  this->resize();
 #endif
 }
 lcd::~lcd() {

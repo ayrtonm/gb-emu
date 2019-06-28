@@ -11,7 +11,7 @@ using namespace std;
 class lcd
 {
   public:
-    lcd();
+    lcd(string configfile = "");
     ~lcd();
 
     void step_lcd(int dt, mem &m);
@@ -25,6 +25,12 @@ class lcd
     SDL_Renderer *renderer;
     SDL_Texture *screen;
     SDL_Rect offset;
+
+    string lcdoption = "lcd";
+    int xinit = 160;
+    int yinit = 144;
+    bool resizable = false;
+    bool fullscreen = false;
 
     float scale;
     array<uint8,160> linebuffer;

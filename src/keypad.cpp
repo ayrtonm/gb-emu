@@ -19,7 +19,7 @@ keypad::keypad(string configfile) {
       while (config >> option >> value) {
         //check if config option is for setting a key
         if (option.compare(0, keyoption.length(), keyoption) == 0) {
-          cout << "setting" << option << " to " << value << endl;
+          cout << "setting " << option << " to " << value << endl;
           keymap.emplace(value_to_keycode[value], option_to_key[option]);
           keyset.push_back(option_to_key[option]);
         }

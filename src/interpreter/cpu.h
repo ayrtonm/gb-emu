@@ -14,8 +14,10 @@ class cpu {
     uint8 ei_delay;
     uint8 halt;
     bool repeat;
-    struct timespec wait;
-    double sleep_factor[4];
+    struct timespec waitvshort;
+    struct timespec waitshort;
+    struct timespec waitlong;
+    struct timespec tstart, tend;
     int cputhrottleclk;
     int emulate(mem &m, keypad &k, lcd &l, sound &s);
     void throttle(int dt);

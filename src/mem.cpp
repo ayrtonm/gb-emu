@@ -1,5 +1,6 @@
 #include "mem.h"
 #include "bits.h"
+#include <time.h>
 #include <iostream>
 #include <fstream>
 
@@ -74,9 +75,12 @@ mem::mem(string filename, string memorydump) {
   loadeddirection = true;
   //direction is actually selected since setting the bit disables it
   memory[O_IO + IO_JOYP] = (JOYP_SPECIAL_SELECTED|0x0f);
+  wait.tv_sec = 0;
+  wait.tv_nsec = 1;
 }
 
 inline uint8 mem::read_byte(uint16 address) {
+  //clock_nanosleep(CLOCK_REALTIME, 0, &wait, NULL);
   if ((address < O_VRAM) && (address >= 0x4000)) {
     return *(rombank_ptr + address - O_ROMBN);
   }

@@ -22,11 +22,11 @@ cpu::cpu() {
 
 //one cpu click is approximately 0.953674 microseconds
 int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
-  waitlong.tv_nsec = 100000;
+  waitlong.tv_nsec = 1000000;
   waitlong.tv_sec = 0;
-  waitshort.tv_nsec = 1000000;
+  waitshort.tv_nsec = 10000;
   waitshort.tv_sec = 0;
-  waitvshort.tv_nsec =  100000000;
+  waitvshort.tv_nsec =  10000;
   waitvshort.tv_sec = 0;
   //local variables
   int op;
@@ -102,11 +102,12 @@ void cpu::throttle(int dt) {
     clock_gettime(CLOCK_MONOTONIC, &tend);
     double elapsed = (tend.tv_sec - tstart.tv_sec) * 1000000.0;
     elapsed += (tend.tv_nsec - tstart.tv_nsec) / 1000.0;
+    //elapsed /= dt;
     //cout << elapsed << endl;
-    if (elapsed < 3*RATE) {
+    if (elapsed < 1.1*RATE) {
       clock_nanosleep(CLOCK_MONOTONIC, 0, &waitlong, NULL);
     }
-    else if (elapsed < 25*RATE) {
+    else if (elapsed < 1.7*RATE) {
       clock_nanosleep(CLOCK_MONOTONIC, 0, &waitshort, NULL);
     }
     else {

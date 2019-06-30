@@ -102,6 +102,11 @@ request keypad::handle_events(mem &m, double *sleep_factor) {
             }
             break;
           }
+          case Quit: {
+            //this is only used to remove a warning when compiling
+            //this case is for releasing the key bound to Quit so it's unreachable since pressing Quit exits the game
+            break;
+          }
         }
       }
     }

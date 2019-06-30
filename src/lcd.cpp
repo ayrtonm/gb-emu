@@ -375,7 +375,7 @@ void lcd::draw_sprites(mem &m) {
         //get the 2 bytes for the sprite's current line
         uint16 t_data = m.read_word(O_VRAM + 16*t_number + 2*((oam_prop & OAM_F_YFLIP) ? yflip : y));
         //if flipped in the x direction reverse the 2 bytes
-        if (oam_prop & OAM_F_XFLIP) {REVERSE_WORD(t_data);}
+        if (oam_prop & OAM_F_XFLIP) {REVERSE_BYTES(t_data);}
         count++;
         for (int x = 0; x < 8; x++) {
           //for each pixel if x coordinate is on screen (between 0 and 160) and (sprites have priority over the background or the backgroun is clear)

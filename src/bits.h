@@ -13,8 +13,7 @@
 #define HIGH(x)    ((x) >> 8)
 #define MAX(a,b)    ((a) > (b) ? (a) : (b))
 #define MIN(a,b)    ((a) > (b) ? (b) : (a))
-#define REVERSE_WORD(x) do { \
-  x = ((x & 0xFF00) >> 8) | ((x & 0x00FF) << 8); \
+#define REVERSE_BYTES(x) do { \
   x = ((x & 0xF0F0) >> 4) | ((x & 0x0F0F) << 4); \
   x = ((x & 0xCCCC) >> 2) | ((x & 0x3333) << 2); \
   x = ((x & 0xAAAA) >> 1) | ((x & 0x5555) << 1); \

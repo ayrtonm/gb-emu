@@ -240,6 +240,7 @@ void lcd::compareLYtoLYC(mem &m) {
   basically the same thing for drawing the window except scy and scx are wy and wx and they're subtracted not added to the offset, so the window is always drawn starting at its top left corner but it may be drawn anywhere on the screen
 **/
 void lcd::draw_line(mem &m) {
+  fill(begin(linebuffer),end(linebuffer),0);
   uint8 curline = m.read_byte(O_IO+IO_LY);
 #ifdef DRAWBG
   if (m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE) {
@@ -299,18 +300,19 @@ void lcd::draw_line(mem &m) {
       }
     }
   }
-  else {/*if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE)) {*/
-    fill(begin(linebuffer),end(linebuffer),0);
-  }
+  //else {/*if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE)) {*/
+  //  fill(begin(linebuffer),end(linebuffer),0);
+  //}
 #endif
 #ifdef DRAWWIN
   //works well enough to render scenes from Kirby correctly
   //there is still some bug related to scx and scy (see pkblue.gb)
   uint8 winy = m.read_byte(O_IO+IO_WY);
   uint8 winx = m.read_byte(O_IO+IO_WX);
+  //cout << (int)winx << " " << (int)winy << " " << (int)curline << endl;
   if ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_ENABLE) && (winy <= curline)) {
     if ((winx < 167) && (winy < 144)) {
-    uint8 w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((max(7 - winx,0)) >> 3) & 31);
+    uint8 w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((max(winx - 7,0)) >> 3) & 31);
     uint8 w_map_number;
     if (m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) {
       w_map_number = m.read_byte(O_VRAM + w_offset + V_MD_1);
@@ -318,11 +320,14 @@ void lcd::draw_line(mem &m) {
     else {
       w_map_number = m.read_byte(O_VRAM + w_offset + V_MD_0);
     }
-    if (w_map_number > 127) {w_map_number -= 128;}
-    else {w_map_number += 128;}
+    if ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_DATA) == 0) {
+      if (w_map_number > 127) {w_map_number -= 128;}
+      else {w_map_number += 128;}
+    }
     //offsets within tile
     uint8 x = 0;
     uint8 y = (curline - winy) & 7;
+    //cout << (int)w_offset/32.0 << endl;
     uint16 w_data = m.read_word(O_VRAM + 16*w_map_number + 2*y + V_TD_1);
     for (int i = max(winx-7,0); i < 160; i++) {
       uint8 a = (LOW(w_data) & BIT(7-x)) >> (7-x);
@@ -332,15 +337,17 @@ void lcd::draw_line(mem &m) {
       x++;
       if (x == 8) {
         x = 0;
-        w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((i + 1 + max(7 - winx,0)) >> 3) & 31);
+        w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((i + 1 + max(winx - 7,0)) >> 3) & 31);
         if (m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) {
           w_map_number = m.read_byte(O_VRAM + w_offset + V_MD_1);
         }
         else {
           w_map_number = m.read_byte(O_VRAM + w_offset + V_MD_0);
         }
-        if (w_map_number > 127) {w_map_number -= 128;}
-        else {w_map_number += 128;}
+        if ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_DATA) == 0) {
+          if (w_map_number > 127) {w_map_number -= 128;}
+          else {w_map_number += 128;}
+        }
         w_data = m.read_word(O_VRAM + 16*w_map_number + 2*y + V_TD_1);
         }
       }

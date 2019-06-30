@@ -2,6 +2,7 @@
 #include "bits.h"
 #include <iostream>
 #include <fstream>
+#include <string>
 
 using namespace std;
 
@@ -13,6 +14,16 @@ mem::mem(string filename, string memorydump) {
   }
   load_cart(filename);
   print_cart_info();
+
+  ramenabled = false;
+  mbcmode = rom;
+  current_rombank = 1;
+  current_rambank = 0;
+  int delimiter_position = filename.rfind("/");
+  ramdumpfile = filename.substr(delimiter_position+1,filename.length()-1-delimiter_position);
+  ramdumpfile = "saves/" + ramdumpfile.substr(0,ramdumpfile.length()-3) + ".sav";
+  load_ram();
+
   memory[O_IO + IO_TIMA] = 0x00;
   memory[O_IO + IO_TMA] = 0x00;
   memory[O_IO + IO_TAC] = 0x00;
@@ -49,11 +60,6 @@ mem::mem(string filename, string memorydump) {
   update_palette(2, 0xfc);
   update_palette(0, 0xff);
   update_palette(1, 0xff);
-
-  ramenabled = false;
-  mbcmode = rom;
-  current_rombank = 1;
-  current_rambank = 0;
 
   divtimer = 0;
   timatimer = 0;
@@ -105,6 +111,12 @@ void mem::write_byte_internal(uint16 address, uint8 data) {
   else if (address == O_IO+IO_LCDSTAT) {
     memory[O_IO+IO_LCDSTAT] = data;
   }
+  //else if ((address < O_VRAM) && (address >= 0x4000)) {
+  //  *(rombank_ptr + address - O_ROMBN) = data;
+  //}
+  //else if ((address < O_WRAM0) && (address >= O_ERAM)) {
+  //  *(rambank_ptr + address - O_ERAM) = data;
+  //}
   else {
     memory[address] = data;
   }
@@ -195,6 +207,34 @@ void mem::dump_memory() {
     }
   }
   dump.close();
+}
+
+void mem::dump_ram() {
+  ofstream dump;
+  dump.open(ramdumpfile);
+  int original_rambank = current_rambank;
+  //for each ram bank
+  for (int i = 0; i < num_rombanks; i++) {
+    switch_rambanks(i);
+    //iterate through ram bank addresses
+    for (int j = O_ERAM; j < O_WRAM0; j++) {
+      //save each byte to file
+      dump << read_byte(j);
+    }
+  }
+  switch_rambanks(original_rambank);
+  dump.close();
+}
+
+void mem::load_ram() {
+  ifstream readram;
+  readram.open(ramdumpfile, ios::binary);
+  if (readram.good()) {
+    for (int i = 0; i <num_rombanks; i++) {
+      switch_rambanks(i);
+      readram.read((char *) rambank_ptr,0x2000);
+    }
+  }
 }
 
 void mem::update_timers(int dt) {

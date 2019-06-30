@@ -185,6 +185,7 @@ request keypad::handle_events(mem &m, double *sleep_factor) {
             if (m.get_dumpmemory()) {
               m.dump_memory();
             }
+            m.dump_ram();
             return quit;
           }
 #ifdef DEBUG

@@ -46,6 +46,8 @@ class mem
     bool get_dumpmemory() {
       return dumpmemory; 
     }
+    void dump_ram();
+    void load_ram();
     void update_keys(keyset k, uint8 bit, keystate kp);
     uint8 get_keys(keyset k);
     keyset get_keys_loaded();
@@ -103,7 +105,7 @@ class mem
     //!First palette is obp0, then obp1, then bgp
     array<color,4> palettes[3];
     bool dumpmemory = false;
-    string memorydumpfile;
+    string memorydumpfile, ramdumpfile;
 
     //need two bytes to store the joypad data since only one is available in addressable memory at any time
     bool loadeddirection;

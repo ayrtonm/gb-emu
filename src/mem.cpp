@@ -7,7 +7,7 @@
 using namespace std;
 
 //!\file
-mem::mem(string filename, string memorydump) {
+mem::mem(string filename, string memorydump, string savefile) {
   if (memorydump != "") {
     dumpmemory = true;
     memorydumpfile = memorydump;
@@ -19,9 +19,14 @@ mem::mem(string filename, string memorydump) {
   mbcmode = rom;
   current_rombank = 1;
   current_rambank = 0;
-  int delimiter_position = filename.rfind("/");
-  ramdumpfile = filename.substr(delimiter_position+1,filename.length()-1-delimiter_position);
-  ramdumpfile = "saves/" + ramdumpfile.substr(0,ramdumpfile.length()-3) + ".sav";
+  if (savefile != "") {
+    ramdumpfile = savefile;
+  }
+  else {
+    int delimiter_position = filename.rfind("/");
+    ramdumpfile = filename.substr(delimiter_position+1,filename.length()-1-delimiter_position);
+    ramdumpfile = "saves/" + ramdumpfile.substr(0,ramdumpfile.length()-3) + ".sav";
+  }
   load_ram();
 
   memory[O_IO + IO_TIMA] = 0x00;

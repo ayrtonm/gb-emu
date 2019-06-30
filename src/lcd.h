@@ -11,7 +11,7 @@ using namespace std;
 class lcd
 {
   public:
-    lcd(string configfile = "");
+    lcd(string configfile);
     ~lcd();
 
     void step_lcd(int dt, mem &m);

@@ -8,7 +8,7 @@ using namespace std;
 
 class sound {
   public:
-    sound(string configfile = "");
+    sound(string configfile);
   private:
 };
 

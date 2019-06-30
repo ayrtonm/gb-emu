@@ -26,7 +26,7 @@ const static uint8 clock_maxvals[5] = {60, 60, 24, 255, 1};
 class mem
 {
   public:
-    mem(string filename, string memorydump = "");
+    mem(string filename, string memorydump, string savefile);
 
     uint8 read_byte(uint16 address);
     uint16 read_word(uint16 address);

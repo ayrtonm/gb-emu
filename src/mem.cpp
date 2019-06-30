@@ -207,9 +207,7 @@ void mem::dump_memory() {
   ofstream dump;
   dump.open(memorydumpfile);
   for (uint16 i = 0; i < 0xffff; i++) {
-    if (read_byte(i) != 0) {
-      dump << "[0x" << hex << i << "]  0x" << hex << (int)read_byte(i) << endl;
-    }
+    dump << read_byte(i);
   }
   dump.close();
 }

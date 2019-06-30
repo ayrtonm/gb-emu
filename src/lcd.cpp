@@ -309,24 +309,22 @@ void lcd::draw_line(mem &m) {
   uint8 winy = m.read_byte(O_IO+IO_WY);
   uint8 winx = m.read_byte(O_IO+IO_WX);
   if ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_ENABLE) && (winy <= curline)) {
-    if ((winx <= 166) && ((winy - 7) <= 143)) {
-    uint8 w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((7 - winx) >> 3) & 31);
-    uint8 w_map_number = ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) ? m.read_byte(O_VRAM + w_offset + V_MD_1) : m.read_byte(O_VRAM + w_offset + V_MD_0));
+    if ((winx < 167) && (winy < 144)) {
+    uint8 w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((max(7 - winx,0)) >> 3) & 31);
+    uint8 w_map_number;
+    if (m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) {
+      w_map_number = m.read_byte(O_VRAM + w_offset + V_MD_1);
+    }
+    else {
+      w_map_number = m.read_byte(O_VRAM + w_offset + V_MD_0);
+    }
+    if (w_map_number > 127) {w_map_number -= 128;}
+    else {w_map_number += 128;}
     //offsets within tile
     uint8 x = 0;
     uint8 y = (curline - winy) & 7;
-
-//temporary fixed copied from draw bg section
-          if (w_map_number > 127) {w_map_number -= 128;}
-          else {w_map_number += 128;}
-
-    uint16 w_data = m.read_word(O_VRAM + 16*w_map_number + (y << 1) + V_TD_1);
-    if (winx < 7) {
-      for (int i = 0; i < winx; i++) {
-        linebuffer[i] = 0;
-      }
-    }
-    for (int i = MAX(winx-7,0); i < 160; i++) {
+    uint16 w_data = m.read_word(O_VRAM + 16*w_map_number + 2*y + V_TD_1);
+    for (int i = max(winx-7,0); i < 160; i++) {
       uint8 a = (LOW(w_data) & BIT(7-x)) >> (7-x);
       uint8 b = (HIGH(w_data) & BIT(7-x)) >> (7-x);
       uint8 c =  (a << 2) + (b << 3);
@@ -334,16 +332,18 @@ void lcd::draw_line(mem &m) {
       x++;
       if (x == 8) {
         x = 0;
-        w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((i + 1 - winx + 7) >> 3) & 31);
-        w_map_number = ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) ? m.read_byte(O_VRAM + w_offset + V_MD_1) : m.read_byte(O_VRAM + w_offset + V_MD_0));
-
-//temporary fixed copied from draw bg section
-          if (w_map_number > 127) {w_map_number -= 128;}
-          else {w_map_number += 128;}
-
-        w_data = m.read_word(O_VRAM + 16*w_map_number + (y << 1) + V_TD_1);
+        w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((i + 1 + max(7 - winx,0)) >> 3) & 31);
+        if (m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) {
+          w_map_number = m.read_byte(O_VRAM + w_offset + V_MD_1);
+        }
+        else {
+          w_map_number = m.read_byte(O_VRAM + w_offset + V_MD_0);
+        }
+        if (w_map_number > 127) {w_map_number -= 128;}
+        else {w_map_number += 128;}
+        w_data = m.read_word(O_VRAM + 16*w_map_number + 2*y + V_TD_1);
+        }
       }
-    }
     }
   }
 #endif

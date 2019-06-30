@@ -97,5 +97,8 @@ int main(int argc, char *argv[]) {
     //dynamic_recompile_loop(*m);
   }
   delete m;
+  delete k;
+  delete l;
+  delete s;
   return 0;
 }

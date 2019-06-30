@@ -14,9 +14,12 @@ Install SDL2. Run `make`.
 
 ## Usage
     Usage: gb-emu [OPTION...] -l FILENAME
-      -d, --memorydump=OUTFILE   print addresses and values of non-zero memory into
-                                 OUTFILE at the end of emulation
-      -l, --inputfile=FILENAME   load the given file and start the emulator
+      -c, --configfile=CONFIGFILE   load the given configuration file
+      -d, --memorydump=OUTPUTFILE   print addresses and values of non-zero memory
+                                 into OUTFILE at the end of emulation
+      -l, --inputfile=INPUTFILE  load the given file and start the emulator
+      -r                         use dynamic recompilation
+      -s, --savefile=SAVEFILE    load and save external RAM to the following file
       -?, --help                 Give this help list
           --usage                Give a short usage message
  

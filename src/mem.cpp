@@ -110,21 +110,21 @@ uint16 mem::read_word(uint16 address) {
 
 void mem::write_byte_internal(uint16 address, uint8 data) {
   //this can only take values between 0 and 153 but step_lcd takes care of that
-  if (address == O_IO+IO_LY) {
-    memory[O_IO+IO_LY] = data;
-  }
-  else if (address == O_IO+IO_LCDSTAT) {
-    memory[O_IO+IO_LCDSTAT] = data;
-  }
+  //if (address == O_IO+IO_LY) {
+  //  memory[O_IO+IO_LY] = data;
+  //}
+  //else if (address == O_IO+IO_LCDSTAT) {
+  //  memory[O_IO+IO_LCDSTAT] = data;
+  //}
   //else if ((address < O_VRAM) && (address >= 0x4000)) {
   //  *(rombank_ptr + address - O_ROMBN) = data;
   //}
   //else if ((address < O_WRAM0) && (address >= O_ERAM)) {
   //  *(rambank_ptr + address - O_ERAM) = data;
   //}
-  else {
+  //else {
     memory[address] = data;
-  }
+  //}
 }
 
 void mem::write_byte(uint16 address, uint8 data) {
@@ -249,18 +249,18 @@ void mem::update_timers(int dt) {
   divtimer += dt;
   if (divtimer > 64) {
     divtimer -= 64;
-    write_byte_internal(O_IO+IO_DIV, read_byte(O_IO+IO_DIV)+1);
+    write_byte_internal(O_IO+IO_DIV, memory[O_IO+IO_DIV]+1);
   }
-  if (read_byte(O_IO+IO_TAC) & TIMER_ENABLED) {
+  if (memory[O_IO+IO_TAC] & TIMER_ENABLED) {
     timatimer += dt;
     if (timatimer > tacthreshold) {
       timatimer -= tacthreshold;
-      write_byte_internal(O_IO+IO_TIMA, read_byte(O_IO+IO_TIMA)+1);
+      write_byte_internal(O_IO+IO_TIMA, memory[O_IO+IO_TIMA]+1);
       //if overflow load value in TMA register
-      if (read_byte(O_IO+IO_TIMA) == 0x00) {
-        write_byte_internal(O_IO+IO_TIMA, read_byte(O_IO+IO_TMA));
+      if (memory[O_IO+IO_TIMA] == 0x00) {
+        write_byte_internal(O_IO+IO_TIMA, memory[O_IO+IO_TMA]);
         //request a timer interrupt
-        write_byte_internal(O_IO+IO_IR, read_byte(O_IO+IO_IR) | INT_TIM);
+        write_byte_internal(O_IO+IO_IR, memory[O_IO+IO_IR] | INT_TIM);
       }
     }
   }
@@ -347,7 +347,7 @@ void mem::update_keys(keyset k, uint8 bit, keystate kp) {
     }
     //if joyspecial is currently loaded, update the lower 4 bits in memory
     if (!loadeddirection) {
-      write_byte_internal(O_IO+IO_JOYP,(joyspecial & 0x0f) | (read_byte(O_IO+IO_JOYP) & 0xf0));
+      write_byte_internal(O_IO+IO_JOYP,(joyspecial & 0x0f) | (memory[O_IO+IO_JOYP] & 0xf0));
     }
   }
   else {
@@ -361,7 +361,7 @@ void mem::update_keys(keyset k, uint8 bit, keystate kp) {
     }
     //if joydirection is currently loaded, update the lower 4 bits in memory
     if (loadeddirection) {
-      write_byte_internal(O_IO+IO_JOYP,(joydirection & 0x0f) | (read_byte(O_IO+IO_JOYP) & 0xf0));
+      write_byte_internal(O_IO+IO_JOYP,(joydirection & 0x0f) | (memory[O_IO+IO_JOYP] & 0xf0));
     }
   }
 }

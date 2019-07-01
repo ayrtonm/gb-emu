@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include "lcd.h"
 #include "mem.h"
 #define RENDERING
@@ -45,12 +46,11 @@ lcd::lcd(string configfile) {
       exit(3);
     }
   }
-  fill(begin(linebuffer),end(linebuffer),0);
+  linebuffer.fill(0);
   scale = 1;
   clk = 0;
   screenupdateclk = 0;
   SDL_Init(SDL_INIT_EVERYTHING);
-  pixels.resize(160*144*4);
 #ifdef RENDERING
   if (resizable) {
     window = SDL_CreateWindow("Game Boy Emulator",SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,xinit,yinit,SDL_WINDOW_RESIZABLE|SDL_WINDOW_SHOWN);
@@ -168,29 +168,31 @@ void lcd::step_lcd(int dt, mem &m) {
         compareLYtoLYC(m);
         draw_line(m);
         if (m.read_byte(O_IO+IO_LCDC) & LCDC_ENABLE) {
-          color pal;
-          for (int i = 0; i < 160; i++) {
-            if (!(m.read_byte(O_IO+IO_LCDC) & (LCDC_WIN_ENABLE|LCDC_BG_ENABLE))) {
-              pal = {SDL_ALPHA_OPAQUE,0xc0, 0xc0, 0xc0};
+          if (!(m.read_byte(O_IO+IO_LCDC) & (LCDC_WIN_ENABLE|LCDC_BG_ENABLE))) {
+            fill(pixels.begin()+m.read_byte(O_IO+IO_LY)*160,pixels.begin()+m.read_byte(O_IO+IO_LY)*160+160,(color){SDL_ALPHA_OPAQUE,0xc0,0xc0,0xc0});
+          }
+          else if ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE) && !(LCDC_WIN_ENABLE & m.read_byte(O_IO+IO_LCDC))) {
+            array<color,4> pal = m.get_palette(2);
+            for (int i = 0; i < 160; i++) {
+              pixels[m.read_byte(O_IO+IO_LY)*160 + i] = pal[linebuffer[i] & 0x03]; 
             }
-            else if ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE) && !(LCDC_WIN_ENABLE & m.read_byte(O_IO+IO_LCDC))) {
-              pal = m.get_palette(2)[linebuffer[i] & 0x03]; 
+          }
+          else if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE) && (LCDC_WIN_ENABLE & m.read_byte(O_IO+IO_LCDC))) {
+            array<color,4> pal = m.get_palette(2);
+            for (int i = 0; i < 160; i++) {
+              pixels[m.read_byte(O_IO+IO_LY)*160 + i] = pal[linebuffer[i] >> 2];
             }
-            else if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE) && (LCDC_WIN_ENABLE & m.read_byte(O_IO+IO_LCDC))) {
-              pal = m.get_palette(2)[linebuffer[i] >> 2];
-            }
-            else {
+          }
+          else {
+            array<color,4> pal = m.get_palette(2);
+            for (int i = 0; i < 160; i++) {
               if (!(linebuffer[i] >> 2)) {
-                pal = m.get_palette(2)[linebuffer[i] & 0x03];
+                pixels[m.read_byte(O_IO+IO_LY)*160 + i] = pal[linebuffer[i] & 0x03];
               }
               else {
-                pal = m.get_palette(2)[linebuffer[i] >> 2];
+                pixels[m.read_byte(O_IO+IO_LY)*160 + i] = pal[linebuffer[i] >> 2];
               }
             }
-            pixels[(m.read_byte(O_IO+IO_LY)*160 + i)*4] = pal.b;
-            pixels[(m.read_byte(O_IO+IO_LY)*160 + i)*4 + 1] = pal.g;
-            pixels[(m.read_byte(O_IO+IO_LY)*160 + i)*4 + 2] = pal.r;
-            pixels[(m.read_byte(O_IO+IO_LY)*160 + i)*4 + 3] = pal.a;
           }
         }
 #ifdef DRAWSPRITES
@@ -300,7 +302,7 @@ void lcd::draw_line(mem &m) {
     }
   }
   else {/*if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE)) {*/
-    fill(begin(linebuffer),end(linebuffer),0);
+    linebuffer.fill(0);
   }
 #endif
 #ifdef DRAWWIN
@@ -385,12 +387,7 @@ void lcd::draw_sprites(mem &m) {
             uint8 b = (HIGH(t_data) & BIT(7-x)) >> (7-x);
             uint8 c = a + (b << 1);
             if (c != 0) {
-              color pal;
-              pal = (oam_prop & OAM_F_PAL ? m.get_palette(1)[c] : m.get_palette(0)[c]);
-              pixels[((curline * 160) + oam_x + x)*4] = pal.b;
-              pixels[((curline * 160) + oam_x + x)*4 + 1] = pal.g;
-              pixels[((curline * 160) + oam_x + x)*4 + 2] = pal.r;
-              pixels[((curline * 160) + oam_x + x)*4 + 3] = pal.a;
+              pixels[(curline * 160) + oam_x + x] = (oam_prop & OAM_F_PAL ? m.get_palette(1)[c] : m.get_palette(0)[c]);
             }
           }
         }

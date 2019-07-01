@@ -34,7 +34,7 @@ class lcd
 
     float scale;
     array<uint8,160> linebuffer;
-    vector<uint8> pixels;
+    array<color,160*144> pixels;
     int clk, screenupdateclk;
 };
 

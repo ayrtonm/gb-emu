@@ -190,10 +190,10 @@ void mem::update_palette(uint8 palette, uint8 value) {
   int j = 0;
   for (int i = 0x03; i < 0xff; i = i << 2) {
     switch ((value & i) >> (2*j)) {
-      case 0: {palettes[palette][j] = {SDL_ALPHA_TRANSPARENT,0xcc,0xcc,0xcc};break;}
-      case 1: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0x88,0x88,0x88};break;}
-      case 2: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0x66,0x66,0x66};break;}
-      case 3: {palettes[palette][j] = {SDL_ALPHA_OPAQUE,0x33,0x33,0x33};break;}
+      case 0: {palettes[palette][j] = {0xcc,0xcc,0xcc,SDL_ALPHA_TRANSPARENT};break;}
+      case 1: {palettes[palette][j] = {0x88,0x88,0x88,SDL_ALPHA_OPAQUE};break;}
+      case 2: {palettes[palette][j] = {0x66,0x66,0x66,SDL_ALPHA_OPAQUE};break;}
+      case 3: {palettes[palette][j] = {0x33,0x33,0x33,SDL_ALPHA_OPAQUE};break;}
     }
     j++;
   }

@@ -10,7 +10,7 @@
 using namespace std;
 
 typedef struct color {
-  uint8 a,r,g,b;
+  uint8 b,g,r,a;
 } color;
 
 enum keyset {direction, special};

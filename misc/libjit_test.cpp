@@ -31,15 +31,22 @@ int main(int argc, char *argv[]) {
   func.compile();
   //context.build_end();
 
-  jit_int arg1, arg2, arg3;
+  //jit_int arg1, arg2, arg3;
+  int arg1, arg2, arg3;
   void *args[3];
-  jit_int result;
+  //jit_int result;
+  int result;
   arg1 = 3;
   arg2 = 5;
   arg3 = 2;
   args[0] = &arg1;
   args[1] = &arg2;
   args[2] = &arg3;
-  func.apply(args, &result);
-  std::cout << (int)result << std::endl;
+  typedef int (*FF)(int, int, int);
+  FF closure = (FF)func.closure();
+  for (int i = 0; i < 10000000; i++) {
+    //func.apply(args, &result);
+    result = closure(arg1, arg2, arg3);
+  }
+  std::cout << result << std::endl;
 }

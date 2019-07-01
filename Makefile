@@ -1,6 +1,6 @@
 CXX = g++
 override CXXFLAGS := -g -std=c++11 -Wall $(CXXFLAGS)
-LIBS = -lSDL2
+LIBS = -lSDL2 -ljitplus -ljit
 BIN = gb-emu
 SRC = main.cpp mem.cpp mbc.cpp lcd.cpp keypad.cpp cpu.cpp sound.cpp throttle.cpp states.cpp
 OBJ = $(SRC:%.cpp=%.o)

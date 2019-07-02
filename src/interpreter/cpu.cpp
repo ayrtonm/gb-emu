@@ -23,7 +23,7 @@ cpu::cpu() {
 //one cpu click is approximately 0.953674 microseconds
 int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
   //local variables
-  int op;
+  uint8 op;
   int dt = 0;
 
   wait.tv_sec = 0;
@@ -33,7 +33,7 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
   sleep_factor[3] = 1;
   for(;;)
   {
-    if ((INT_VBL|INT_LCD|INT_TIM|INT_SER|INT_JOY) & m.read_byte(O_IO+IO_IR) & m.read_byte(O_IE)) {
+    if ((INT_VBL|INT_LCD|INT_TIM|INT_SER|INT_JOY) & m.read_byte_internal(O_IO+IO_IR) & m.read_byte_internal(O_IE)) {
       halt = false;
     }
     if (ime) {
@@ -41,12 +41,12 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
       for (int i = 1; i <= 0x20; i <<= 1) {
         //if bit i is both requested and enabled break out of the for loop to execute that interrupt
         //lowest set bit of IO_IR and IE has priority
-        if ((m.read_byte(O_IO + IO_IR) & i) && (m.read_byte(O_IE) & i)) {
+        if ((m.read_byte_internal(O_IO + IO_IR) & i) && (m.read_byte_internal(O_IE) & i)) {
           //let's disable further interrupts
           ime = 0;
           ei_delay = 0;
           //clear the interrupt flag that was just triggered
-          m.write_byte_internal(O_IO + IO_IR, m.read_byte(O_IO + IO_IR) & ~i);
+          m.write_byte_internal(O_IO + IO_IR, m.read_byte_internal(O_IO + IO_IR) & ~i);
           //push the program counter onto the stack
           PUSH(pc.b.h,pc.b.l);
           pc.w = 0x40 + interrupt_table[i-1];
@@ -56,10 +56,10 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
     if (ei_delay) {ime = 1; ei_delay = 0;}
     if (halt) {dt = 1;}
     if (!halt) {
-      op = (int)m.read_byte(pc.w);
+      op = m.read_byte(pc.w);
       if (op == 0xcb) {
         pc.w++;
-        op = (int)m.read_byte(pc.w++);
+        op = m.read_byte(pc.w++);
         dt = cb_cycles[op & 0x07];
         switch(op) {
           #include "cb_opcodes.h"

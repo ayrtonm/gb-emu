@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -g -std=c++11 -Wall
+override CXXFLAGS := -g -std=c++11 -Wall $(CXXFLAGS)
 LIBS = -lSDL2
 BIN = gb-emu
 SRC = main.cpp mem.cpp mbc.cpp lcd.cpp keypad.cpp cpu.cpp sound.cpp

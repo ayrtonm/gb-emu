@@ -1,7 +1,7 @@
 #include <iostream>
-#include <unistd.h> //usleep
-#include <time.h>
+#include <time.h> //clock_nanosleep, clock_gettime
 #include "cpu.h"
+#define RATE 500
 
 using namespace std;
 
@@ -22,15 +22,17 @@ cpu::cpu() {
 
 //one cpu click is approximately 0.953674 microseconds
 int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
+  waitlong.tv_nsec = 1000000;
+  waitlong.tv_sec = 0;
+  waitshort.tv_nsec = 10000;
+  waitshort.tv_sec = 0;
+  waitvshort.tv_nsec =  10000;
+  waitvshort.tv_sec = 0;
   //local variables
   uint8 op;
   int dt = 0;
 
-  wait.tv_sec = 0;
-  sleep_factor[0] = 90;
-  sleep_factor[1] = 1;
-  sleep_factor[2] = 90;
-  sleep_factor[3] = 1;
+  clock_gettime(CLOCK_MONOTONIC, &tstart);
   for(;;)
   {
     if ((INT_VBL|INT_LCD|INT_TIM|INT_SER|INT_JOY) & m.read_byte_internal(O_IO+IO_IR) & m.read_byte_internal(O_IE)) {
@@ -76,7 +78,7 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
     if (repeat) {repeat = false; pc.w -= length[op]-1;}
     m.update_timers(dt*4);
     l.step_lcd(dt,m);
-    switch (k.handle_events(m,sleep_factor)) {
+    switch (k.handle_events(m)) {
       case none: {
         break;
       }
@@ -85,7 +87,6 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
         break;
       }
       case quit: {
-        cout << sleep_factor[0];
         return 0;
       }
     }
@@ -96,9 +97,22 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
 
 void cpu::throttle(int dt) {
   cputhrottleclk += dt;
-  if(cputhrottleclk >= sleep_factor[2]) {
-    cputhrottleclk -= sleep_factor[2];
-    wait.tv_nsec = sleep_factor[0];
-    clock_nanosleep(CLOCK_MONOTONIC, 0, &wait, NULL);
+  if(cputhrottleclk >= RATE) {
+    cputhrottleclk -= RATE;
+    clock_gettime(CLOCK_MONOTONIC, &tend);
+    double elapsed = (tend.tv_sec - tstart.tv_sec) * 1000000.0;
+    elapsed += (tend.tv_nsec - tstart.tv_nsec) / 1000.0;
+    //elapsed /= dt;
+    //cout << elapsed << endl;
+    if (elapsed < 1.1*RATE) {
+      clock_nanosleep(CLOCK_MONOTONIC, 0, &waitlong, NULL);
+    }
+    else if (elapsed < 1.7*RATE) {
+      clock_nanosleep(CLOCK_MONOTONIC, 0, &waitshort, NULL);
+    }
+    else {
+      clock_nanosleep(CLOCK_MONOTONIC, 0, &waitvshort, NULL);
+    }
+    tstart = tend;
   }
 }

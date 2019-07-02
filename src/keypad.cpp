@@ -39,7 +39,7 @@ keypad::keypad(string configfile) {
   }
 }
 
-request keypad::handle_events(mem &m, double *sleep_factor) {
+request keypad::handle_events(mem &m) {
   while(SDL_PollEvent (&event)) {
     if (event.type == SDL_WINDOWEVENT) {
       switch (event.window.event) {

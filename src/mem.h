@@ -130,6 +130,7 @@ class mem
     long int ch2timer;
     long int ch3timer;
     long int ch4timer;
+    struct timespec wait;
 };
 
 #endif

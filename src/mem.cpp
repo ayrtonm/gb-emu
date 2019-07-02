@@ -1,5 +1,6 @@
 #include "mem.h"
 #include "bits.h"
+#include <time.h>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -85,6 +86,8 @@ mem::mem(string filename, string memorydump, string savefile) {
   loadeddirection = true;
   //direction is actually selected since setting the bit disables it
   memory[O_IO + IO_JOYP] = (JOYP_SPECIAL_SELECTED|0x0f);
+  wait.tv_sec = 0;
+  wait.tv_nsec = 1;
 }
 
 uint8 mem::read_byte_internal(uint16 address) {

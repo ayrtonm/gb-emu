@@ -13,7 +13,7 @@ enum key {Up, Down, Left, Right, A, B, Start, Select, Quit};
 class keypad {
   public:
     keypad(string configfile);
-    request handle_events(mem &m, double *sleep_factor);
+    request handle_events(mem &m);
   private:
     SDL_Event event;
     string keyoption = "key";

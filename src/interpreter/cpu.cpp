@@ -24,7 +24,7 @@ cpu::cpu() {
 int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
   waitlong.tv_nsec = 1000000;
   waitlong.tv_sec = 0;
-  waitshort.tv_nsec = 10000;
+  waitshort.tv_nsec = 100000;
   waitshort.tv_sec = 0;
   waitvshort.tv_nsec =  10000;
   waitvshort.tv_sec = 0;
@@ -78,7 +78,7 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
     if (repeat) {repeat = false; pc.w -= length[op]-1;}
     m.update_timers(dt*4);
     l.step_lcd(dt,m);
-    switch (k.handle_events(m)) {
+    switch (k.handle_events(dt, m)) {
       case none: {
         break;
       }

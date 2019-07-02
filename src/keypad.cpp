@@ -2,6 +2,7 @@
 #include <fstream>
 #include <algorithm>
 #include "keypad.h"
+#define KEYUPDATECLK 20000
 
 using namespace std;
 
@@ -37,9 +38,13 @@ keypad::keypad(string configfile) {
       keymap.emplace(default_keymap[*it],*it);
     }
   }
+  clk = 0;
 }
 
-request keypad::handle_events(mem &m) {
+request keypad::handle_events(int dt, mem &m) {
+  clk += dt;
+  if (clk >= KEYUPDATECLK) {
+  clk -= KEYUPDATECLK;
   while(SDL_PollEvent (&event)) {
     if (event.type == SDL_WINDOWEVENT) {
       switch (event.window.event) {
@@ -198,4 +203,8 @@ request keypad::handle_events(mem &m) {
     }
   }
   return none;
+  }
+  else {
+    return none;
+  }
 };

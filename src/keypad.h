@@ -13,9 +13,10 @@ enum key {Up, Down, Left, Right, A, B, Start, Select, Quit};
 class keypad {
   public:
     keypad(string configfile);
-    request handle_events(mem &m);
+    request handle_events(int dt, mem &m);
   private:
     SDL_Event event;
+    int clk;
     string keyoption = "key";
     vector<key> keyset;
     vector<key> allkeys = {Up, Down, Left, Right, A, B, Start, Select, Quit};

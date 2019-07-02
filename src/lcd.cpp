@@ -242,6 +242,7 @@ void lcd::compareLYtoLYC(mem &m) {
   basically the same thing for drawing the window except scy and scx are wy and wx and they're subtracted not added to the offset, so the window is always drawn starting at its top left corner but it may be drawn anywhere on the screen
 **/
 void lcd::draw_line(mem &m) {
+  fill(begin(linebuffer),end(linebuffer),0);
   uint8 curline = m.read_byte_internal(O_IO+IO_LY);
 #ifdef DRAWBG
   if (m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_ENABLE) {
@@ -265,10 +266,10 @@ void lcd::draw_line(mem &m) {
     //each tile is 16 bytes
     //each line in a tile is 2 bytes
     if (m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_DATA) {
-      t_data = m.read_word(O_VRAM + 16*t_map_number + 2*y);
+      t_data = m.read_word_internal(O_VRAM + 16*t_map_number + 2*y);
     }
     else {
-      t_data = m.read_word(O_VRAM + 16*t_map_number + 2*y + V_TD_1);
+      t_data = m.read_word_internal(O_VRAM + 16*t_map_number + 2*y + V_TD_1);
     }
     for (int i = 0; i < 160; i++) {
       //see comment on counting backwards in draw_sprite
@@ -293,42 +294,44 @@ void lcd::draw_line(mem &m) {
           else {t_map_number += 128;}
         }
         if (m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_DATA) {
-          t_data = m.read_word(O_VRAM + 16*t_map_number + 2*y);
+          t_data = m.read_word_internal(O_VRAM + 16*t_map_number + 2*y);
         }
         else {
-          t_data = m.read_word(O_VRAM + 16*t_map_number + 2*y + V_TD_1);
+          t_data = m.read_word_internal(O_VRAM + 16*t_map_number + 2*y + V_TD_1);
         }
       }
     }
   }
-  else {/*if (!(m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_ENABLE)) {*/
-    linebuffer.fill(0);
-  }
+  //else {/*if (!(m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_ENABLE)) {*/
+  //  linebuffer.fill(0);
+  //}
 #endif
 #ifdef DRAWWIN
   //works well enough to render scenes from Kirby correctly
   //there is still some bug related to scx and scy (see pkblue.gb)
   uint8 winy = m.read_byte_internal(O_IO+IO_WY);
   uint8 winx = m.read_byte_internal(O_IO+IO_WX);
+  //cout << (int)winx << " " << (int)winy << " " << (int)curline << endl;
   if ((m.read_byte_internal(O_IO+IO_LCDC) & LCDC_WIN_ENABLE) && (winy <= curline)) {
-    if ((winx <= 166) && ((winy - 7) <= 143)) {
-    uint8 w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((7 - winx) >> 3) & 31);
-    uint8 w_map_number = ((m.read_byte_internal(O_IO+IO_LCDC) & LCDC_WIN_MAP) ? m.read_byte_internal(O_VRAM + w_offset + V_MD_1) : m.read_byte_internal(O_VRAM + w_offset + V_MD_0));
+    if ((winx < 167) && (winy < 144)) {
+    uint8 w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((max(winx - 7,0)) >> 3) & 31);
+    uint8 w_map_number;
+    if (m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) {
+      w_map_number = m.read_byte_internal(O_VRAM + w_offset + V_MD_1);
+    }
+    else {
+      w_map_number = m.read_byte_internal(O_VRAM + w_offset + V_MD_0);
+    }
+    if ((m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_DATA) == 0) {
+      if (w_map_number > 127) {w_map_number -= 128;}
+      else {w_map_number += 128;}
+    }
     //offsets within tile
     uint8 x = 0;
     uint8 y = (curline - winy) & 7;
-
-//temporary fixed copied from draw bg section
-          if (w_map_number > 127) {w_map_number -= 128;}
-          else {w_map_number += 128;}
-
-    uint16 w_data = m.read_word(O_VRAM + 16*w_map_number + (y << 1) + V_TD_1);
-    if (winx < 7) {
-      for (int i = 0; i < winx; i++) {
-        linebuffer[i] = 0;
-      }
-    }
-    for (int i = MAX(winx-7,0); i < 160; i++) {
+    //cout << (int)w_offset/32.0 << endl;
+    uint16 w_data = m.read_word_internal(O_VRAM + 16*w_map_number + 2*y + V_TD_1);
+    for (int i = max(winx-7,0); i < 160; i++) {
       uint8 a = (LOW(w_data) & BIT(7-x)) >> (7-x);
       uint8 b = (HIGH(w_data) & BIT(7-x)) >> (7-x);
       uint8 c =  (a << 2) + (b << 3);
@@ -336,16 +339,20 @@ void lcd::draw_line(mem &m) {
       x++;
       if (x == 8) {
         x = 0;
-        w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((i + 1 - winx + 7) >> 3) & 31);
-        w_map_number = ((m.read_byte_internal(O_IO+IO_LCDC) & LCDC_WIN_MAP) ? m.read_byte_internal(O_VRAM + w_offset + V_MD_1) : m.read_byte_internal(O_VRAM + w_offset + V_MD_0));
-
-//temporary fixed copied from draw bg section
+        w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((i + 1 + max(winx - 7,0)) >> 3) & 31);
+        if (m.read_byte_internal(O_IO+IO_LCDC) & LCDC_WIN_MAP) {
+          w_map_number = m.read_byte_internal(O_VRAM + w_offset + V_MD_1);
+        }
+        else {
+          w_map_number = m.read_byte_internal(O_VRAM + w_offset + V_MD_0);
+        }
+        if ((m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_DATA) == 0) {
           if (w_map_number > 127) {w_map_number -= 128;}
           else {w_map_number += 128;}
-
-        w_data = m.read_word(O_VRAM + 16*w_map_number + (y << 1) + V_TD_1);
+        }
+        w_data = m.read_word_internal(O_VRAM + 16*w_map_number + 2*y + V_TD_1);
+        }
       }
-    }
     }
   }
 #endif
@@ -375,9 +382,9 @@ void lcd::draw_sprites(mem &m) {
           t_number = ((((curline - oam_y) > 7)  || (oam_prop & OAM_F_YFLIP)) ? (t_number | 0x01) : (t_number & 0xFE));
         }
         //get the 2 bytes for the sprite's current line
-        uint16 t_data = m.read_word(O_VRAM + 16*t_number + 2*((oam_prop & OAM_F_YFLIP) ? yflip : y));
+        uint16 t_data = m.read_word_internal(O_VRAM + 16*t_number + 2*((oam_prop & OAM_F_YFLIP) ? yflip : y));
         //if flipped in the x direction reverse the 2 bytes
-        if (oam_prop & OAM_F_XFLIP) {REVERSE_WORD(t_data);}
+        if (oam_prop & OAM_F_XFLIP) {REVERSE_BYTES(t_data);}
         count++;
         for (int x = 0; x < 8; x++) {
           //for each pixel if x coordinate is on screen (between 0 and 160) and (sprites have priority over the background or the backgroun is clear)

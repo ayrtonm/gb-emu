@@ -107,6 +107,9 @@ uint8 mem::read_byte(uint16 address) {
   }
 }
 
+uint16 mem::read_word_internal(uint16 address) {
+  return (read_byte_internal(address))+(read_byte_internal(address + 1) << 8);
+}
 uint16 mem::read_word(uint16 address) {
   return (read_byte(address))+(read_byte(address + 1) << 8);
 }
@@ -210,9 +213,7 @@ void mem::dump_memory() {
   ofstream dump;
   dump.open(memorydumpfile);
   for (uint16 i = 0; i < 0xffff; i++) {
-    if (read_byte(i) != 0) {
-      dump << "[0x" << hex << i << "]  0x" << hex << (int)read_byte(i) << endl;
-    }
+    dump << read_byte(i);
   }
   dump.close();
 }

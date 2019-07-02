@@ -30,6 +30,7 @@ class mem
 
     uint8 read_byte_internal(uint16 address);
     uint8 read_byte(uint16 address);
+    uint16 read_word_internal(uint16 address);
     uint16 read_word(uint16 address);
     void write_byte_internal(uint16 address, uint8 data);
     void write_byte(uint16 address, uint8 data);

@@ -23,6 +23,9 @@ enum cartmode {rom, ram, rtc};
 const static int tacvals[4] = {256, 4, 16, 64};
 const static uint8 clock_maxvals[5] = {60, 60, 24, 255, 1};
 
+/**
+  This class represents the 64 kB memory and external ROM/RAM banks
+*/
 class mem
 {
   public:
@@ -34,20 +37,10 @@ class mem
     uint16 read_word(uint16 address);
     void write_byte_internal(uint16 address, uint8 data);
     void write_byte(uint16 address, uint8 data);
-    void write_word(uint16 address, uint16 data)
-    {
-      write_byte(address,data & 0x00ff);
-      write_byte(address+1,data >> 8);
-    };
-
-    //used in lcd.cpp
+    void write_word(uint16 address, uint16 data);
     array<color,4> get_palette(uint8 palette_num);
-
-    //used in keypad.cpp
     void dump_memory();
-    bool get_dumpmemory() {
-      return dumpmemory; 
-    }
+    bool get_dumpmemory();
     void dump_ram();
     void load_ram();
     void update_keys(keyset k, uint8 bit, keystate kp);

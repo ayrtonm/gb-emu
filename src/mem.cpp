@@ -7,7 +7,9 @@
 
 using namespace std;
 
-//!\file
+/**
+  Constructor for \ref mem
+*/
 mem::mem(string filename, string memorydump, string savefile) {
   if (memorydump != "") {
     dumpmemory = true;
@@ -90,9 +92,16 @@ mem::mem(string filename, string memorydump, string savefile) {
   wait.tv_nsec = 1;
 }
 
+/**
+  Read a byte from memory when the address is guaranteed to be outside the ROM/RAM bank address space
+*/
 uint8 mem::read_byte_internal(uint16 address) {
   return memory[address];
 }
+
+/**
+  Read a byte from memory at an arbitrary address
+*/
 uint8 mem::read_byte(uint16 address) {
   if ((address < O_VRAM) && (address >= 0x4000)) {
     return *(rombank_ptr + address - O_ROMBN);
@@ -110,32 +119,30 @@ uint8 mem::read_byte(uint16 address) {
   }
 }
 
+/**
+  Read a word from memory when the address is guaranteed to be outside the ROM/RAM bank address space
+*/
 uint16 mem::read_word_internal(uint16 address) {
   return (read_byte_internal(address))+(read_byte_internal(address + 1) << 8);
 }
+
+/**
+  Read a word from memory at an arbitrary address
+*/
 uint16 mem::read_word(uint16 address) {
   return (read_byte(address))+(read_byte(address + 1) << 8);
 }
 
+/**
+  Write a byte to memory without side effects
+*/
 void mem::write_byte_internal(uint16 address, uint8 data) {
-  //this can only take values between 0 and 153 but step_lcd takes care of that
-  //if (address == O_IO+IO_LY) {
-  //  memory[O_IO+IO_LY] = data;
-  //}
-  //else if (address == O_IO+IO_LCDSTAT) {
-  //  memory[O_IO+IO_LCDSTAT] = data;
-  //}
-  //else if ((address < O_VRAM) && (address >= 0x4000)) {
-  //  *(rombank_ptr + address - O_ROMBN) = data;
-  //}
-  //else if ((address < O_WRAM0) && (address >= O_ERAM)) {
-  //  *(rambank_ptr + address - O_ERAM) = data;
-  //}
-  //else {
-    memory[address] = data;
-  //}
+  memory[address] = data;
 }
-
+ 
+/**
+  Write a byte to memory taking into account write permissions and execute side effects
+*/
 void mem::write_byte(uint16 address, uint8 data) {
   //writing to anything but HRAM is restricted during DMA transfer
   if (dmatransfering) {
@@ -195,6 +202,21 @@ void mem::write_byte(uint16 address, uint8 data) {
   }
 }
 
+/**
+  Write a word to memory taking into account write permissions and execute side effects
+*/
+void mem::write_word(uint16 address, uint16 data) {
+  write_byte(address, data & 0x00ff);
+  write_byte(address+1, data >> 8);
+}
+
+/**
+  Get one of the palettes stored in \ref mem
+*/
+array<color,4> mem::get_palette(uint8 palette_num) {
+  return palettes[palette_num];
+}
+
 void mem::update_palette(uint8 palette, uint8 value) {
   int j = 0;
   for (int i = 0x03; i < 0xff; i = i << 2) {
@@ -208,10 +230,9 @@ void mem::update_palette(uint8 palette, uint8 value) {
   }
 }
 
-array<color,4> mem::get_palette(uint8 palette_num) {
-  return palettes[palette_num];
-}
-
+/**
+  Dump addressable contents of memory to a file. This function only dumps the ROM/RAM banks that are loaded when it's called.
+*/
 void mem::dump_memory() {
   ofstream dump;
   dump.open(memorydumpfile);
@@ -221,6 +242,16 @@ void mem::dump_memory() {
   dump.close();
 }
 
+/**
+  Get dumpmemory which is set if an output file was specified for \ref dump_memory()
+*/
+bool mem::get_dumpmemory() {
+  return dumpmemory;
+}
+
+/**
+  Dump contents of all RAM banks to a file. This function ensures that the originally loaded RAM bank is reloaded at the end so it may be called at any time.
+*/
 void mem::dump_ram() {
   ofstream dump;
   dump.open(ramdumpfile);
@@ -238,6 +269,9 @@ void mem::dump_ram() {
   dump.close();
 }
 
+/**
+  Loads contents of a file into the RAM banks.
+*/
 void mem::load_ram() {
   ifstream readram;
   readram.open(ramdumpfile, ios::binary);
@@ -249,6 +283,57 @@ void mem::load_ram() {
   }
 }
 
+/**
+  Update the internal representation of the joypad register and trigger an interrupt if necessary
+*/
+void mem::update_keys(keyset k, uint8 bit, keystate kp) {
+  if (k == special) {
+    if (kp == press) {
+      //if the key for a special button is pressed, clear that bit in joyspecial
+      joyspecial &= ~bit;
+    }
+    else { //kp == release
+      //if the key for a special button is released, set that bit in joyspecial
+      joyspecial |= bit;
+    }
+    //if joyspecial is currently loaded, update the lower 4 bits in memory
+    if (!loadeddirection) {
+      write_byte_internal(O_IO+IO_JOYP,(joyspecial & 0x0f) | (read_byte_internal(O_IO+IO_JOYP) & 0xf0));
+    }
+  }
+  else {
+    if (kp == press) {
+      //if the key for a direction button is pressed, clear that bit in joydirection
+      joydirection &= ~bit;
+    }
+    else { //kp == release
+      //if the key for a direction button is released, set that bit in joydirection
+      joydirection |= bit;
+    }
+    //if joydirection is currently loaded, update the lower 4 bits in memory
+    if (loadeddirection) {
+      write_byte_internal(O_IO+IO_JOYP,(joydirection & 0x0f) | (read_byte_internal(O_IO+IO_JOYP) & 0xf0));
+    }
+  }
+}
+
+/**
+  Returns the register representing the set of keys <code>k</code>
+*/
+uint8 mem::get_keys(keyset k) {
+  return (k == special ? joyspecial : joydirection);
+}
+
+/**
+  Returns the name of the currently loaded set of keys
+*/
+keyset mem::get_keys_loaded() {
+  return (loadeddirection ? direction : special);
+}
+
+/**
+  Increment internal timers and counters in memory. Also updates timers associated with generating sound and the MBC3 real-time clock registers.
+*/
 void mem::update_timers(int dt) {
   //compute increment based on time opcode takes to give a 16.384 kHz increment rate
   //increment every 256 CPU clicks
@@ -340,43 +425,4 @@ void mem::increment_clock(uint8 *reg, const uint8 *maxval) {
   if ((*reg == 0) && (*maxval != 1)) {
     increment_clock(reg + 1, maxval + 1);
   }
-}
-
-void mem::update_keys(keyset k, uint8 bit, keystate kp) {
-  if (k == special) {
-    if (kp == press) {
-      //if the key for a special button is pressed, clear that bit in joyspecial
-      joyspecial &= ~bit;
-    }
-    else { //kp == release
-      //if the key for a special button is released, set that bit in joyspecial
-      joyspecial |= bit;
-    }
-    //if joyspecial is currently loaded, update the lower 4 bits in memory
-    if (!loadeddirection) {
-      write_byte_internal(O_IO+IO_JOYP,(joyspecial & 0x0f) | (read_byte_internal(O_IO+IO_JOYP) & 0xf0));
-    }
-  }
-  else {
-    if (kp == press) {
-      //if the key for a direction button is pressed, clear that bit in joydirection
-      joydirection &= ~bit;
-    }
-    else { //kp == release
-      //if the key for a direction button is released, set that bit in joydirection
-      joydirection |= bit;
-    }
-    //if joydirection is currently loaded, update the lower 4 bits in memory
-    if (loadeddirection) {
-      write_byte_internal(O_IO+IO_JOYP,(joydirection & 0x0f) | (read_byte_internal(O_IO+IO_JOYP) & 0xf0));
-    }
-  }
-}
-
-uint8 mem::get_keys(keyset k) {
-  return (k == special ? joyspecial : joydirection);
-}
-
-keyset mem::get_keys_loaded() {
-  return (loadeddirection ? direction : special);
 }

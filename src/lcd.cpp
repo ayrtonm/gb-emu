@@ -98,32 +98,32 @@ void lcd::step_lcd(int dt, mem &m) {
   screenupdateclk += dt;
   clk -= dt;
   if (clk <= 0) {
-    switch(m.read_byte(O_IO+IO_LCDSTAT) & 0x03) {
+    switch(m.read_byte_internal(O_IO+IO_LCDSTAT) & 0x03) {
       //Horizontal Blank
       case 0x00: {
-        m.write_byte_internal(O_IO+IO_LY, m.read_byte(O_IO+IO_LY)+1);
+        m.write_byte_internal(O_IO+IO_LY, m.read_byte_internal(O_IO+IO_LY)+1);
         compareLYtoLYC(m);
-        if (m.read_byte(O_IO+IO_LY) < 144) {
+        if (m.read_byte_internal(O_IO+IO_LY) < 144) {
           //if OAM interrupt enabled
-          if (m.read_byte(O_IO+IO_LCDSTAT) & LCDSTAT_OAM_INT) {
+          if (m.read_byte_internal(O_IO+IO_LCDSTAT) & LCDSTAT_OAM_INT) {
             //request OAM interrupt
-            m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_LCD);
+            m.write_byte_internal(O_IO+IO_IR, m.read_byte_internal(O_IO+IO_IR) | INT_LCD);
           }
           //set lcd mode to OAM
-          m.write_byte_internal(O_IO+IO_LCDSTAT, (m.read_byte(O_IO+IO_LCDSTAT) | 0x02) & ~(0x01));
+          m.write_byte_internal(O_IO+IO_LCDSTAT, (m.read_byte_internal(O_IO+IO_LCDSTAT) | 0x02) & ~(0x01));
           clk += T_OAM;
         }
         else {
           //not sure which interrupt to request when switching to vblank
           //if vblank interrupt enabled
-          if (m.read_byte(O_IO+IO_LCDSTAT) & LCDSTAT_VBL_INT) {
+          if (m.read_byte_internal(O_IO+IO_LCDSTAT) & LCDSTAT_VBL_INT) {
             //request vblank interrupt
-            m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_LCD);
+            m.write_byte_internal(O_IO+IO_IR, m.read_byte_internal(O_IO+IO_IR) | INT_LCD);
           }
           //request vblank interrupt
-          m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_VBL);
+          m.write_byte_internal(O_IO+IO_IR, m.read_byte_internal(O_IO+IO_IR) | INT_VBL);
           //set lcd mode to VBLANK 
-          m.write_byte_internal(O_IO+IO_LCDSTAT, (m.read_byte(O_IO+IO_LCDSTAT) | 0x01) & ~(0x02));
+          m.write_byte_internal(O_IO+IO_LCDSTAT, (m.read_byte_internal(O_IO+IO_LCDSTAT) | 0x01) & ~(0x02));
           clk += TIO_LY_INC;
         }
         break;
@@ -138,8 +138,8 @@ void lcd::step_lcd(int dt, mem &m) {
           screenupdateclk -= LCDUPDATECLK;
         }
 #endif
-        if (m.read_byte(O_IO+IO_LY) < 154) {
-          m.write_byte_internal(O_IO+IO_LY, m.read_byte(O_IO+IO_LY)+1);
+        if (m.read_byte_internal(O_IO+IO_LY) < 154) {
+          m.write_byte_internal(O_IO+IO_LY, m.read_byte_internal(O_IO+IO_LY)+1);
           compareLYtoLYC(m);
           clk += TIO_LY_INC;
         }
@@ -147,12 +147,12 @@ void lcd::step_lcd(int dt, mem &m) {
           m.write_byte_internal(O_IO+IO_LY, 0);
           compareLYtoLYC(m);
           //if OAM interrupt enabled
-          if (m.read_byte(O_IO+IO_LCDSTAT) & LCDSTAT_OAM_INT) {
+          if (m.read_byte_internal(O_IO+IO_LCDSTAT) & LCDSTAT_OAM_INT) {
             //request OAM interrupt
-            m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_LCD);
+            m.write_byte_internal(O_IO+IO_IR, m.read_byte_internal(O_IO+IO_IR) | INT_LCD);
           }
           //set lcd mode to OAM
-          m.write_byte_internal(O_IO+IO_LCDSTAT, (m.read_byte(O_IO+IO_LCDSTAT) | 0x02) & ~(0x01));
+          m.write_byte_internal(O_IO+IO_LCDSTAT, (m.read_byte_internal(O_IO+IO_LCDSTAT) | 0x02) & ~(0x01));
           clk += T_OAM;
         }
         break;
@@ -160,37 +160,37 @@ void lcd::step_lcd(int dt, mem &m) {
       //OAM
       case 0x02: {
         //set lcd mode to VRAM 
-        m.write_byte_internal(O_IO+IO_LCDSTAT, m.read_byte(O_IO+IO_LCDSTAT) | 0x03);
+        m.write_byte_internal(O_IO+IO_LCDSTAT, m.read_byte_internal(O_IO+IO_LCDSTAT) | 0x03);
         clk += T_VRAM;
         break;
       }
       case 0x03: {
         compareLYtoLYC(m);
         draw_line(m);
-        if (m.read_byte(O_IO+IO_LCDC) & LCDC_ENABLE) {
-          if (!(m.read_byte(O_IO+IO_LCDC) & (LCDC_WIN_ENABLE|LCDC_BG_ENABLE))) {
-            fill(pixels.begin()+m.read_byte(O_IO+IO_LY)*160,pixels.begin()+m.read_byte(O_IO+IO_LY)*160+160,(color){SDL_ALPHA_OPAQUE,0xc0,0xc0,0xc0});
+        if (m.read_byte_internal(O_IO+IO_LCDC) & LCDC_ENABLE) {
+          if (!(m.read_byte_internal(O_IO+IO_LCDC) & (LCDC_WIN_ENABLE|LCDC_BG_ENABLE))) {
+            fill(pixels.begin()+m.read_byte_internal(O_IO+IO_LY)*160,pixels.begin()+m.read_byte_internal(O_IO+IO_LY)*160+160,(color){SDL_ALPHA_OPAQUE,0xc0,0xc0,0xc0});
           }
-          else if ((m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE) && !(LCDC_WIN_ENABLE & m.read_byte(O_IO+IO_LCDC))) {
+          else if ((m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_ENABLE) && !(LCDC_WIN_ENABLE & m.read_byte_internal(O_IO+IO_LCDC))) {
             array<color,4> pal = m.get_palette(2);
             for (int i = 0; i < 160; i++) {
-              pixels[m.read_byte(O_IO+IO_LY)*160 + i] = pal[linebuffer[i] & 0x03]; 
+              pixels[m.read_byte_internal(O_IO+IO_LY)*160 + i] = pal[linebuffer[i] & 0x03]; 
             }
           }
-          else if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE) && (LCDC_WIN_ENABLE & m.read_byte(O_IO+IO_LCDC))) {
+          else if (!(m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_ENABLE) && (LCDC_WIN_ENABLE & m.read_byte_internal(O_IO+IO_LCDC))) {
             array<color,4> pal = m.get_palette(2);
             for (int i = 0; i < 160; i++) {
-              pixels[m.read_byte(O_IO+IO_LY)*160 + i] = pal[linebuffer[i] >> 2];
+              pixels[m.read_byte_internal(O_IO+IO_LY)*160 + i] = pal[linebuffer[i] >> 2];
             }
           }
           else {
             array<color,4> pal = m.get_palette(2);
             for (int i = 0; i < 160; i++) {
               if (!(linebuffer[i] >> 2)) {
-                pixels[m.read_byte(O_IO+IO_LY)*160 + i] = pal[linebuffer[i] & 0x03];
+                pixels[m.read_byte_internal(O_IO+IO_LY)*160 + i] = pal[linebuffer[i] & 0x03];
               }
               else {
-                pixels[m.read_byte(O_IO+IO_LY)*160 + i] = pal[linebuffer[i] >> 2];
+                pixels[m.read_byte_internal(O_IO+IO_LY)*160 + i] = pal[linebuffer[i] >> 2];
               }
             }
           }
@@ -199,12 +199,12 @@ void lcd::step_lcd(int dt, mem &m) {
         draw_sprites(m);
 #endif
         //if hblank interrupt enabled
-          if (m.read_byte(O_IO+IO_LCDSTAT) & LCDSTAT_HBL_INT) {
+          if (m.read_byte_internal(O_IO+IO_LCDSTAT) & LCDSTAT_HBL_INT) {
             //request HBL interrupt
-            m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_LCD);
+            m.write_byte_internal(O_IO+IO_IR, m.read_byte_internal(O_IO+IO_IR) | INT_LCD);
           }
         //set lcd mode to HBLANK
-        m.write_byte_internal(O_IO+IO_LCDSTAT, m.read_byte(O_IO+IO_LCDSTAT) & ~(0x03));
+        m.write_byte_internal(O_IO+IO_LCDSTAT, m.read_byte_internal(O_IO+IO_LCDSTAT) & ~(0x03));
         clk += T_HBLANK;
         break;
       }
@@ -213,16 +213,16 @@ void lcd::step_lcd(int dt, mem &m) {
 }
 
 void lcd::compareLYtoLYC(mem &m) {
-  uint8 curline = m.read_byte(O_IO+IO_LY);
-  uint8 compline = m.read_byte(O_IO+IO_LYC);
+  uint8 curline = m.read_byte_internal(O_IO+IO_LY);
+  uint8 compline = m.read_byte_internal(O_IO+IO_LYC);
   if (curline == compline) {
-    m.write_byte_internal(O_IO+IO_LCDSTAT, m.read_byte(O_IO+IO_LCDSTAT) | 0x04);
-    if (m.read_byte(O_IO+IO_LCDSTAT) & LCDSTAT_LYC_INT) {
-      m.write_byte_internal(O_IO+IO_IR, m.read_byte(O_IO+IO_IR) | INT_LCD);
+    m.write_byte_internal(O_IO+IO_LCDSTAT, m.read_byte_internal(O_IO+IO_LCDSTAT) | 0x04);
+    if (m.read_byte_internal(O_IO+IO_LCDSTAT) & LCDSTAT_LYC_INT) {
+      m.write_byte_internal(O_IO+IO_IR, m.read_byte_internal(O_IO+IO_IR) | INT_LCD);
     }
   }
   else {
-    m.write_byte_internal(O_IO+IO_LCDSTAT, m.read_byte(O_IO+IO_LCDSTAT) & ~(0x04));
+    m.write_byte_internal(O_IO+IO_LCDSTAT, m.read_byte_internal(O_IO+IO_LCDSTAT) & ~(0x04));
   }
 }
 /**
@@ -242,20 +242,20 @@ void lcd::compareLYtoLYC(mem &m) {
   basically the same thing for drawing the window except scy and scx are wy and wx and they're subtracted not added to the offset, so the window is always drawn starting at its top left corner but it may be drawn anywhere on the screen
 **/
 void lcd::draw_line(mem &m) {
-  uint8 curline = m.read_byte(O_IO+IO_LY);
+  uint8 curline = m.read_byte_internal(O_IO+IO_LY);
 #ifdef DRAWBG
-  if (m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE) {
-    uint8 scrolly = m.read_byte(O_IO+IO_SCY);
-    uint8 scrollx = m.read_byte(O_IO+IO_SCX);
+  if (m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_ENABLE) {
+    uint8 scrolly = m.read_byte_internal(O_IO+IO_SCY);
+    uint8 scrollx = m.read_byte_internal(O_IO+IO_SCX);
     uint16 mapoffset = ((((curline + scrolly) >> 3) & 31) << 5) + ((scrollx >> 3) & 31);
     uint8 t_map_number;
-    if (m.read_byte(O_IO+IO_LCDC) & LCDC_BG_MAP) {
-      t_map_number = m.read_byte(O_VRAM + mapoffset + V_MD_1);
+    if (m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_MAP) {
+      t_map_number = m.read_byte_internal(O_VRAM + mapoffset + V_MD_1);
     }
     else {
-      t_map_number = m.read_byte(O_VRAM + mapoffset + V_MD_0);
+      t_map_number = m.read_byte_internal(O_VRAM + mapoffset + V_MD_0);
     }
-    if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_BG_DATA)) {
+    if (!(m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_DATA)) {
       if (t_map_number > 127) {t_map_number -= 128;}
       else {t_map_number += 128;}
     }
@@ -264,7 +264,7 @@ void lcd::draw_line(mem &m) {
     uint16 t_data;
     //each tile is 16 bytes
     //each line in a tile is 2 bytes
-    if (m.read_byte(O_IO+IO_LCDC) & LCDC_BG_DATA) {
+    if (m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_DATA) {
       t_data = m.read_word(O_VRAM + 16*t_map_number + 2*y);
     }
     else {
@@ -272,7 +272,7 @@ void lcd::draw_line(mem &m) {
     }
     for (int i = 0; i < 160; i++) {
       //see comment on counting backwards in draw_sprite
-      //here we count up since x is a uint8 (return type of read_byte)
+      //here we count up since x is a uint8 (return type of read_byte_internal)
       //to avoid having to depend on underflow let's count normally and use 7-x to access data
       uint8 a = (LOW(t_data) & BIT(7-x)) >> (7-x);
       uint8 b = (HIGH(t_data) & BIT(7-x)) >> (7-x);
@@ -282,17 +282,17 @@ void lcd::draw_line(mem &m) {
       if (x == 8) {
         x = 0;
         mapoffset = ((((curline + scrolly) >> 3) & 31) << 5) + (((scrollx + i + 1) >> 3) & 31);
-        if (m.read_byte(O_IO+IO_LCDC) & LCDC_BG_MAP) {
-          t_map_number = m.read_byte(O_VRAM + mapoffset + V_MD_1);
+        if (m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_MAP) {
+          t_map_number = m.read_byte_internal(O_VRAM + mapoffset + V_MD_1);
         }
         else {
-          t_map_number = m.read_byte(O_VRAM + mapoffset + V_MD_0);
+          t_map_number = m.read_byte_internal(O_VRAM + mapoffset + V_MD_0);
         }
-        if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_BG_DATA)) {
+        if (!(m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_DATA)) {
           if (t_map_number > 127) {t_map_number -= 128;}
           else {t_map_number += 128;}
         }
-        if (m.read_byte(O_IO+IO_LCDC) & LCDC_BG_DATA) {
+        if (m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_DATA) {
           t_data = m.read_word(O_VRAM + 16*t_map_number + 2*y);
         }
         else {
@@ -301,19 +301,19 @@ void lcd::draw_line(mem &m) {
       }
     }
   }
-  else {/*if (!(m.read_byte(O_IO+IO_LCDC) & LCDC_BG_ENABLE)) {*/
+  else {/*if (!(m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_ENABLE)) {*/
     linebuffer.fill(0);
   }
 #endif
 #ifdef DRAWWIN
   //works well enough to render scenes from Kirby correctly
   //there is still some bug related to scx and scy (see pkblue.gb)
-  uint8 winy = m.read_byte(O_IO+IO_WY);
-  uint8 winx = m.read_byte(O_IO+IO_WX);
-  if ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_ENABLE) && (winy <= curline)) {
+  uint8 winy = m.read_byte_internal(O_IO+IO_WY);
+  uint8 winx = m.read_byte_internal(O_IO+IO_WX);
+  if ((m.read_byte_internal(O_IO+IO_LCDC) & LCDC_WIN_ENABLE) && (winy <= curline)) {
     if ((winx <= 166) && ((winy - 7) <= 143)) {
     uint8 w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((7 - winx) >> 3) & 31);
-    uint8 w_map_number = ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) ? m.read_byte(O_VRAM + w_offset + V_MD_1) : m.read_byte(O_VRAM + w_offset + V_MD_0));
+    uint8 w_map_number = ((m.read_byte_internal(O_IO+IO_LCDC) & LCDC_WIN_MAP) ? m.read_byte_internal(O_VRAM + w_offset + V_MD_1) : m.read_byte_internal(O_VRAM + w_offset + V_MD_0));
     //offsets within tile
     uint8 x = 0;
     uint8 y = (curline - winy) & 7;
@@ -337,7 +337,7 @@ void lcd::draw_line(mem &m) {
       if (x == 8) {
         x = 0;
         w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((i + 1 - winx + 7) >> 3) & 31);
-        w_map_number = ((m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) ? m.read_byte(O_VRAM + w_offset + V_MD_1) : m.read_byte(O_VRAM + w_offset + V_MD_0));
+        w_map_number = ((m.read_byte_internal(O_IO+IO_LCDC) & LCDC_WIN_MAP) ? m.read_byte_internal(O_VRAM + w_offset + V_MD_1) : m.read_byte_internal(O_VRAM + w_offset + V_MD_0));
 
 //temporary fixed copied from draw bg section
           if (w_map_number > 127) {w_map_number -= 128;}
@@ -352,26 +352,26 @@ void lcd::draw_line(mem &m) {
 }
 
 void lcd::draw_sprites(mem &m) {
-  //OAM(s,p) = m.read_byte(O_OAM+LOW((s << 2) + p))
+  //OAM(s,p) = m.read_byte_internal(O_OAM+LOW((s << 2) + p))
   //if sprites enabled in LCDC
-  if (m.read_byte(O_IO+IO_LCDC) & LCDC_OBJ_ENABLE) {
+  if (m.read_byte_internal(O_IO+IO_LCDC) & LCDC_OBJ_ENABLE) {
     int count = 0;
     //loop through the 40 sprites in the OAM table
-    uint8 curline = m.read_byte(O_IO + IO_LY);
+    uint8 curline = m.read_byte_internal(O_IO + IO_LY);
     for (int i = 0; i < 40; i++) {
-      int oam_y = m.read_byte(O_OAM + (i * 4)) - 16;
-      int oam_x = m.read_byte(O_OAM + (i * 4) + 1) - 8;
+      int oam_y = m.read_byte_internal(O_OAM + (i * 4)) - 16;
+      int oam_x = m.read_byte_internal(O_OAM + (i * 4) + 1) - 8;
       //if part of the sprite is on the line we are current drawing LY
-      if ((oam_y <= curline) && ((oam_y + (((m.read_byte(O_IO+IO_LCDC) & LCDC_OBJ_SIZE) ? 16 : 8))) > curline)) {
+      if ((oam_y <= curline) && ((oam_y + (((m.read_byte_internal(O_IO+IO_LCDC) & LCDC_OBJ_SIZE) ? 16 : 8))) > curline)) {
         //get sprite properties from OAM table
-        uint8 oam_prop = m.read_byte(O_OAM + (i * 4) + 3);
+        uint8 oam_prop = m.read_byte_internal(O_OAM + (i * 4) + 3);
         //get y offset within the 8x8 or 8x16 tile from the OAM table
         uint8 y = ((curline - oam_y) & 7);
         uint8 yflip = (7 - ((curline - oam_y) & 7));
         //get the tile number from the OAM table
-        uint8 t_number = m.read_byte(O_OAM+((i * 4) + 2));
+        uint8 t_number = m.read_byte_internal(O_OAM+((i * 4) + 2));
         //if in 8x16 mode, offset the tile number
-        if ((m.read_byte(O_IO+IO_LCDC) & LCDC_OBJ_SIZE)) {
+        if ((m.read_byte_internal(O_IO+IO_LCDC) & LCDC_OBJ_SIZE)) {
           t_number = ((((curline - oam_y) > 7)  || (oam_prop & OAM_F_YFLIP)) ? (t_number | 0x01) : (t_number & 0xFE));
         }
         //get the 2 bytes for the sprite's current line

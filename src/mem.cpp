@@ -87,7 +87,10 @@ mem::mem(string filename, string memorydump, string savefile) {
   memory[O_IO + IO_JOYP] = (JOYP_SPECIAL_SELECTED|0x0f);
 }
 
-inline uint8 mem::read_byte(uint16 address) {
+uint8 mem::read_byte_internal(uint16 address) {
+  return memory[address];
+}
+uint8 mem::read_byte(uint16 address) {
   if ((address < O_VRAM) && (address >= 0x4000)) {
     return *(rombank_ptr + address - O_ROMBN);
   }
@@ -249,18 +252,18 @@ void mem::update_timers(int dt) {
   divtimer += dt;
   if (divtimer > 64) {
     divtimer -= 64;
-    write_byte_internal(O_IO+IO_DIV, memory[O_IO+IO_DIV]+1);
+    write_byte_internal(O_IO+IO_DIV, read_byte_internal(O_IO+IO_DIV)+1);
   }
-  if (memory[O_IO+IO_TAC] & TIMER_ENABLED) {
+  if (read_byte_internal(O_IO+IO_TAC) & TIMER_ENABLED) {
     timatimer += dt;
     if (timatimer > tacthreshold) {
       timatimer -= tacthreshold;
-      write_byte_internal(O_IO+IO_TIMA, memory[O_IO+IO_TIMA]+1);
+      write_byte_internal(O_IO+IO_TIMA, read_byte_internal(O_IO+IO_TIMA)+1);
       //if overflow load value in TMA register
-      if (memory[O_IO+IO_TIMA] == 0x00) {
-        write_byte_internal(O_IO+IO_TIMA, memory[O_IO+IO_TMA]);
+      if (read_byte_internal(O_IO+IO_TIMA) == 0x00) {
+        write_byte_internal(O_IO+IO_TIMA, read_byte_internal(O_IO+IO_TMA));
         //request a timer interrupt
-        write_byte_internal(O_IO+IO_IR, memory[O_IO+IO_IR] | INT_TIM);
+        write_byte_internal(O_IO+IO_IR, read_byte_internal(O_IO+IO_IR) | INT_TIM);
       }
     }
   }
@@ -276,7 +279,7 @@ void mem::update_timers(int dt) {
     if (ch1timer <= 0) {
       ch1timer = 0;
       //if 6th bit is set stop output when length in NR11 expires
-      if (memory[O_IO + IO_NR14] & 0x40) {
+      if (read_byte_internal(O_IO + IO_NR14) & 0x40) {
         memory[O_IO + IO_NR52] &= 0x01;
       }
     }
@@ -286,7 +289,7 @@ void mem::update_timers(int dt) {
     if (ch2timer <= 0) {
       ch2timer = 0;
       //if 6th bit is set stop output when length in NR21 expires
-      if (memory[O_IO + IO_NR24] & 0x40) {
+      if (read_byte_internal(O_IO + IO_NR24) & 0x40) {
         memory[O_IO + IO_NR52] &= 0x02;
       }
     }
@@ -296,7 +299,7 @@ void mem::update_timers(int dt) {
     if (ch3timer <= 0) {
       ch3timer = 0;
       //if 6th bit is set stop output when length in NR31 expires
-      if (memory[O_IO + IO_NR34] & 0x40) {
+      if (read_byte_internal(O_IO + IO_NR34) & 0x40) {
         memory[O_IO + IO_NR52] &= 0x04;
       }
     }
@@ -306,7 +309,7 @@ void mem::update_timers(int dt) {
     if (ch4timer <= 0) {
       ch4timer = 0;
       //if 6th bit is set stop output when length in NR41 expires
-      if (memory[O_IO + IO_NR44] & 0x40) {
+      if (read_byte_internal(O_IO + IO_NR44) & 0x40) {
         memory[O_IO + IO_NR52] &= 0x08;
       }
     }
@@ -347,7 +350,7 @@ void mem::update_keys(keyset k, uint8 bit, keystate kp) {
     }
     //if joyspecial is currently loaded, update the lower 4 bits in memory
     if (!loadeddirection) {
-      write_byte_internal(O_IO+IO_JOYP,(joyspecial & 0x0f) | (memory[O_IO+IO_JOYP] & 0xf0));
+      write_byte_internal(O_IO+IO_JOYP,(joyspecial & 0x0f) | (read_byte_internal(O_IO+IO_JOYP) & 0xf0));
     }
   }
   else {
@@ -361,7 +364,7 @@ void mem::update_keys(keyset k, uint8 bit, keystate kp) {
     }
     //if joydirection is currently loaded, update the lower 4 bits in memory
     if (loadeddirection) {
-      write_byte_internal(O_IO+IO_JOYP,(joydirection & 0x0f) | (memory[O_IO+IO_JOYP] & 0xf0));
+      write_byte_internal(O_IO+IO_JOYP,(joydirection & 0x0f) | (read_byte_internal(O_IO+IO_JOYP) & 0xf0));
     }
   }
 }

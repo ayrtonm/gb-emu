@@ -28,11 +28,12 @@ class mem
   public:
     mem(string filename, string memorydump, string savefile);
 
+    uint8 read_byte_internal(uint16 address);
     uint8 read_byte(uint16 address);
     uint16 read_word(uint16 address);
     void write_byte_internal(uint16 address, uint8 data);
     void write_byte(uint16 address, uint8 data);
-    inline void write_word(uint16 address, uint16 data)
+    void write_word(uint16 address, uint16 data)
     {
       write_byte(address,data & 0x00ff);
       write_byte(address+1,data >> 8);

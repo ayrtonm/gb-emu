@@ -170,7 +170,7 @@ void lcd::step_lcd(int dt, mem &m) {
           //background and window both off
           if (!(m.read_byte_internal(O_IO+IO_LCDC) & (LCDC_WIN_ENABLE|LCDC_BG_ENABLE))) {
             auto linestart = m.read_byte_internal(O_IO+IO_LY)*160;
-            fill(pixels.begin()+linestart, pixels.begin()+linestart+160,(color){SDL_ALPHA_OPAQUE,0xc0,0xc0,0xc0});
+            fill(pixels.begin()+linestart, pixels.begin()+linestart+160,(color){0xcc,0xcc,0xcc,SDL_ALPHA_OPAQUE});
           }
 
           //background on, window off

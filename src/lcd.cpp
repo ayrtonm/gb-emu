@@ -186,11 +186,13 @@ void lcd::step_lcd(int dt, mem &m) {
           else {
             array<color,4> pal = m.get_palette(2);
             for (int i = 0; i < 160; i++) {
-              if (!(linebuffer[i] >> 2)) {
-                pixels[m.read_byte_internal(O_IO+IO_LY)*160 + i] = pal[linebuffer[i] & 0x03];
-              }
-              else {
-                pixels[m.read_byte_internal(O_IO+IO_LY)*160 + i] = pal[linebuffer[i] >> 2];
+              pixels[m.read_byte_internal(O_IO+IO_LY)*160 + i] = pal[linebuffer[i] & 0x03];
+            }
+            if ((m.read_byte_internal(O_IO+IO_WY) <= m.read_byte_internal(O_IO+IO_LY)) && (m.read_byte_internal(O_IO+IO_LCDC) & LCDC_WIN_ENABLE)) {
+              if ((m.read_byte_internal(O_IO+IO_WX) < 167) && (m.read_byte_internal(O_IO+IO_WY) < 144)) {
+                for (int i = max(m.read_byte_internal(O_IO+IO_WX)-7,0); i < 160; i++) {
+                  pixels[m.read_byte_internal(O_IO+IO_LY)*160 + i] = pal[linebuffer[i] >> 2];
+                }
               }
             }
           }
@@ -282,7 +284,8 @@ void lcd::draw_line(mem &m) {
       x++;
       if (x == 8) {
         x = 0;
-        mapoffset = ((((curline + scrolly) >> 3) & 31) << 5) + (((scrollx + i + 1) >> 3) & 31);
+        mapoffset++;
+        //mapoffset = ((((curline + scrolly) >> 3) & 31) << 5) + (((scrollx + i + 1) >> 3) & 31);
         if (m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_MAP) {
           t_map_number = m.read_byte_internal(O_VRAM + mapoffset + V_MD_1);
         }
@@ -311,10 +314,9 @@ void lcd::draw_line(mem &m) {
   //there is still some bug related to scx and scy (see pkblue.gb)
   uint8 winy = m.read_byte_internal(O_IO+IO_WY);
   uint8 winx = m.read_byte_internal(O_IO+IO_WX);
-  //cout << (int)winx << " " << (int)winy << " " << (int)curline << endl;
   if ((m.read_byte_internal(O_IO+IO_LCDC) & LCDC_WIN_ENABLE) && (winy <= curline)) {
     if ((winx < 167) && (winy < 144)) {
-    uint8 w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((max(winx - 7,0)) >> 3) & 31);
+    uint16 w_offset = 32*((curline-winy) >> 3);
     uint8 w_map_number;
     if (m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) {
       w_map_number = m.read_byte_internal(O_VRAM + w_offset + V_MD_1);
@@ -327,9 +329,8 @@ void lcd::draw_line(mem &m) {
       else {w_map_number += 128;}
     }
     //offsets within tile
-    uint8 x = 0;
+    uint8 x = max(7 - winx, 0) & 7;
     uint8 y = (curline - winy) & 7;
-    //cout << (int)w_offset/32.0 << endl;
     uint16 w_data = m.read_word_internal(O_VRAM + 16*w_map_number + 2*y + V_TD_1);
     for (int i = max(winx-7,0); i < 160; i++) {
       uint8 a = (LOW(w_data) & BIT(7-x)) >> (7-x);
@@ -339,7 +340,7 @@ void lcd::draw_line(mem &m) {
       x++;
       if (x == 8) {
         x = 0;
-        w_offset = ((((curline - winy) >> 3) & 31) << 5) + (((i + 1 + max(winx - 7,0)) >> 3) & 31);
+        w_offset++;
         if (m.read_byte_internal(O_IO+IO_LCDC) & LCDC_WIN_MAP) {
           w_map_number = m.read_byte_internal(O_VRAM + w_offset + V_MD_1);
         }

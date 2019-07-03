@@ -22,11 +22,11 @@ cpu::cpu() {
 
 //one cpu click is approximately 0.953674 microseconds
 int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
-  waitlong.tv_nsec = 1000000;
+  waitlong.tv_nsec = 200000;
   waitlong.tv_sec = 0;
-  waitshort.tv_nsec = 100000;
+  waitshort.tv_nsec = 10000;
   waitshort.tv_sec = 0;
-  waitvshort.tv_nsec =  10000;
+  waitvshort.tv_nsec =  1000;
   waitvshort.tv_sec = 0;
   //local variables
   uint8 op;

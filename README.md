@@ -24,7 +24,7 @@ Install SDL2. Run `make`.
           --usage                Give a short usage message
  
 ## Testing
-**TODO** insert blurb about my half-baked assembler python script
+**TODO** insert blurb about my half-baked assembler ~~python~~ Go script
 
 **TODO** insert blurb about gb-test-roms repo and which tests are currently passing/failing
 

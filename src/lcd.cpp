@@ -275,7 +275,6 @@ void lcd::draw_bg(mem &m) {
     x++;
     if (x == 8) {
       x = 0;
-      //mapoffset++;
       mapoffset = 32*(((curline + scrolly) >> 3) & 31) + (((scrollx + i + 1) >> 3) & 31);
       if (m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_MAP) {
         t_map_number = m.read_byte_internal(O_VRAM + mapoffset + V_MD_1);
@@ -349,7 +348,6 @@ void lcd::draw_win(mem &m) {
 
 void lcd::draw_sprites(mem &m) {
 #ifdef DRAWSPRITES
-  //OAM(s,p) = m.read_byte_internal(O_OAM+LOW((s << 2) + p))
   //if sprites enabled in LCDC
   if (m.read_byte_internal(O_IO+IO_LCDC) & LCDC_OBJ_ENABLE) {
     int count = 0;
@@ -369,7 +367,10 @@ void lcd::draw_sprites(mem &m) {
         uint8 t_number = m.read_byte_internal(O_OAM+((i * 4) + 2));
         //if in 8x16 mode, offset the tile number
         if ((m.read_byte_internal(O_IO+IO_LCDC) & LCDC_OBJ_SIZE)) {
-          t_number = ((((curline - oam_y) > 7)  || (oam_prop & OAM_F_YFLIP)) ? (t_number | 0x01) : (t_number & 0xFE));
+          bool in_lower_half = (curline - oam_y) > 7;
+          bool flipped = ((oam_prop & OAM_F_YFLIP) == 0 ? false : true);
+          //not equal acts as a logical exclusive or
+          t_number = ((in_lower_half != flipped) ? (t_number | 0x01) : (t_number & 0xFE));
         }
         //get the 2 bytes for the sprite's current line
         uint16 t_data = m.read_word_internal(O_VRAM + 16*t_number + 2*((oam_prop & OAM_F_YFLIP) ? yflip : y));

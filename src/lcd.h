@@ -16,7 +16,8 @@ class lcd
 
     void step_lcd(int dt, mem &m);
     void compareLYtoLYC(mem &m);
-    void draw_line(mem &m);
+    void draw_bg(mem &m);
+    void draw_win(mem &m);
     void draw_sprites(mem &m);
     void resize();
 
@@ -33,7 +34,7 @@ class lcd
     bool fullscreen = false;
 
     float scale;
-    array<uint8,160> linebuffer;
+    array<uint8,160> bgbuffer;
     array<color,160*144> pixels;
     int clk, screenupdateclk;
 };

@@ -18,9 +18,10 @@
   x = ((x & 0xCCCC) >> 2) | ((x & 0x3333) << 2); \
   x = ((x & 0xAAAA) >> 1) | ((x & 0x5555) << 1); \
 }  while (0)
+#include <stdint.h>
 
-typedef unsigned char uint8;
-typedef unsigned short int uint16;
+typedef uint8_t uint8;
+typedef uint16_t uint16;
 typedef union {
   uint16 w;
   struct {

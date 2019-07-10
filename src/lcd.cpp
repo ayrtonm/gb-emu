@@ -240,7 +240,9 @@ void lcd::draw_bg(mem &m) {
   uint8 curline = m.read_byte_internal(O_IO+IO_LY);
   uint8 scrolly = m.read_byte_internal(O_IO+IO_SCY);
   uint8 scrollx = m.read_byte_internal(O_IO+IO_SCX);
-  uint16 mapoffset = 32*(((curline + scrolly) >> 3) & 31) + ((scrollx >> 3) & 31);
+  uint8 tilex = (scrollx >> 3) & 31;
+  uint8 tiley = ((curline + scrolly) >> 3) & 31;
+  uint16 mapoffset = 32*tiley + tilex;
   uint8 t_map_number;
   if (m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_MAP) {
     t_map_number = m.read_byte_internal(O_VRAM + mapoffset + V_MD_1);
@@ -275,7 +277,8 @@ void lcd::draw_bg(mem &m) {
     x++;
     if (x == 8) {
       x = 0;
-      mapoffset = 32*(((curline + scrolly) >> 3) & 31) + (((scrollx + i + 1) >> 3) & 31);
+      tilex = ((scrollx + i + 1) >> 3) & 31;
+      mapoffset = 32*tiley + tilex;
       if (m.read_byte_internal(O_IO+IO_LCDC) & LCDC_BG_MAP) {
         t_map_number = m.read_byte_internal(O_VRAM + mapoffset + V_MD_1);
       }
@@ -304,7 +307,8 @@ void lcd::draw_win(mem &m) {
   uint8 winy = m.read_byte_internal(O_IO+IO_WY);
   uint8 winx = m.read_byte_internal(O_IO+IO_WX);
   if ((winy <= curline) && (winx < 167) && (winy < 144)) {
-    uint16 w_offset = 32*((curline-winy) >> 3);
+    uint8 w_tiley = ((curline - winy) >> 3) & 31;
+    uint16 w_offset = 32*w_tiley;
     uint8 w_map_number;
     if (m.read_byte(O_IO+IO_LCDC) & LCDC_WIN_MAP) {
       w_map_number = m.read_byte_internal(O_VRAM + w_offset + V_MD_1);

@@ -80,6 +80,9 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
       case quit: {
         return 0;
       }
+      case boost: {
+        tp.toggle_speed();
+      }
     }
     tp.throttle(dt);
   }
@@ -105,4 +108,13 @@ void throttle_controller::start_timer(void) {
 
 void throttle_controller::end_timer(void) {
   clock_gettime(CLOCK_MONOTONIC, &tend);
+}
+
+void throttle_controller::toggle_speed(void) {
+  if (fudge_factor == 0.25) {
+    fudge_factor = 0.75;
+  }
+  else {
+    fudge_factor = 0.25;
+  }
 }

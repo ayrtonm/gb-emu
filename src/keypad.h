@@ -7,8 +7,8 @@
 
 using namespace std;
 
-enum request {none, resize, quit};
-enum key {Up, Down, Left, Right, A, B, Start, Select, Quit};
+enum request {none, resize, quit, boost};
+enum key {Up, Down, Left, Right, A, B, Start, Select, Quit, Boost};
 
 class keypad {
   public:
@@ -19,7 +19,7 @@ class keypad {
     int clk;
     string keyoption = "key";
     vector<key> keyset;
-    vector<key> allkeys = {Up, Down, Left, Right, A, B, Start, Select, Quit};
+    vector<key> required_keys = {Up, Down, Left, Right, A, B, Start, Select, Quit, Boost};
     unordered_map<SDL_Keycode, key> keymap;
     //the index and value are the opposite of keymap since we iterate through the possible values of key to find keys that weren't set in the config file
     unordered_map<key, SDL_Keycode> default_keymap = {
@@ -31,7 +31,8 @@ class keypad {
       {B, SDLK_x},
       {Start, SDLK_RETURN},
       {Select, SDLK_BACKSPACE},
-      {Quit, SDLK_q}};
+      {Quit, SDLK_q},
+      {Boost, SDLK_SPACE}};
     unordered_map<string, SDL_Keycode> value_to_keycode = {
       {"a", SDLK_a},
       {"b", SDLK_b},

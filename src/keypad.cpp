@@ -32,7 +32,7 @@ keypad::keypad(string configfile) {
       exit(2);
     }
   }
-  for (vector<key>::iterator it = allkeys.begin(); it != allkeys.end(); it++) {
+  for (vector<key>::iterator it = required_keys.begin(); it != required_keys.end(); it++) {
     //if key was not set in config file, set to its default value
     if (find(keyset.begin(), keyset.end(), *it) == keyset.end()) {
       keymap.emplace(default_keymap[*it],*it);
@@ -197,6 +197,9 @@ request keypad::handle_events(int dt, mem &m) {
             }
             m.dump_ram();
             return quit;
+          }
+          case Boost: {
+            return boost;
           }
         }
       }

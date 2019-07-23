@@ -11,6 +11,7 @@ class throttle_controller {
     void throttle(int dt);
     void start_timer(void);
     void end_timer(void);
+    void toggle_speed(void);
   private:
     double cpuclk = 0.953674;
     int throttleclk = 0;

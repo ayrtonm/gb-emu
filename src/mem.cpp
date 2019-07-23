@@ -75,6 +75,10 @@ mem::mem(string filename, string memorydump, string savefile) {
   dmatimer = 0;
   dmatransfering = false;
   rtc_timer = 0;
+  ch1timer = 0;
+  ch2timer = 0;
+  ch3timer = 0;
+  ch4timer = 0;
   for (auto it = rtc_registers.begin(); it != rtc_registers.end(); it++) {
     *it = 0;
   }

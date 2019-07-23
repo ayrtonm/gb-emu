@@ -87,6 +87,7 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
           }
           return 0;
         }
+        break;
       }
       case boost: {
         tp.toggle_speed();
@@ -142,26 +143,26 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
 }
 
 bool cpu::verify_quit(void) {
-  char q;
-  cout << "are you sure you want to exit the game? [y/N]\n";
-  cin >> q;
-  switch (q) {
-    case 'y': {
-      return true;
+  cout << "Are you sure you want to close gb-emu? [y/N]\n";
+  SDL_Event event;
+  do {
+    SDL_WaitEvent(&event);
+    if (event.type == SDL_KEYDOWN) {
+      switch (event.key.keysym.sym) {
+        case SDLK_y: {
+          return true;
+        }
+        case SDLK_n: {
+          return false;
+        }
+        default: {
+          return false;
+        }
+      }
     }
-    case 'Y': {
-      return true;
-    }
-    case 'n': {
-      return false;
-    }
-    case 'N': {
-      return false;
-    }
-    default: {
-      return false;
-    }
-  }
+  } while (event.type != SDL_KEYDOWN);
+  //this is never reached, it's only used to prevent a compiler warning
+  return false;
 }
 
 void throttle_controller::throttle(int dt) {

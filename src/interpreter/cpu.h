@@ -31,6 +31,7 @@ class cpu {
     bool repeat;
     throttle_controller tp;
     int emulate(mem &m, keypad &k, lcd &l, sound &s);
+    bool verify_quit(void);
 };
 
 //opcodes

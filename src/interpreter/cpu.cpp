@@ -78,7 +78,9 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
         break;
       }
       case quit: {
-        return 0;
+        if (verify_quit()) {
+          return 0;
+        }
       }
       case boost: {
         tp.toggle_speed();
@@ -87,6 +89,29 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
     tp.throttle(dt);
   }
   return 1;
+}
+
+bool cpu::verify_quit(void) {
+  char q;
+  cout << "are you sure you want to exit the game? [y/N]\n";
+  cin >> q;
+  switch (q) {
+    case 'y': {
+      return true;
+    }
+    case 'Y': {
+      return true;
+    }
+    case 'n': {
+      return false;
+    }
+    case 'N': {
+      return false;
+    }
+    default: {
+      return false;
+    }
+  }
 }
 
 void throttle_controller::throttle(int dt) {

@@ -116,6 +116,18 @@ request keypad::handle_events(int dt, mem &m) {
             //this is only used to remove a warning when compiling
             break;
           }
+          case Save: {
+            //this is only used to remove a warning when compiling
+            break;
+          }
+          case Load: {
+            //this is only used to remove a warning when compiling
+            break;
+          }
+          case Reset: {
+            //this is only used to remove a warning when compiling
+            break;
+          }
         }
       }
     }

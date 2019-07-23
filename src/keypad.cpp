@@ -208,10 +208,6 @@ request keypad::handle_events(int dt, mem &m) {
             break;
           }
           case Quit: {
-            if (m.get_dumpmemory()) {
-              m.dump_memory();
-            }
-            m.dump_ram();
             return quit;
           }
           case Boost: {

@@ -86,6 +86,10 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
           delete_state(init_state);
           return 0;
         }
+        if (m.get_dumpmemory()) {
+          m.dump_memory();
+        }
+        m.dump_ram();
         break;
       }
       case boost: {
@@ -101,7 +105,9 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
         break;
       }
       case resetstate: {
+        m.dump_ram();
         load_state(init_state, m, k, l, s);
+        m.load_ram();
         break;
       }
     }

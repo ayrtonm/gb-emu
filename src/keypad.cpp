@@ -2,7 +2,7 @@
 #include <fstream>
 #include <algorithm>
 #include "keypad.h"
-#define KEYUPDATECLK 20000
+#define KEYUPDATECLK 46603
 
 using namespace std;
 

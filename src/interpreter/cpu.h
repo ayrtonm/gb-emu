@@ -6,6 +6,20 @@
 #include "../keypad.h"
 #include "../sound.h"
 
+class throttle_controller {
+  public:
+    void throttle(int dt);
+    void start_timer(void);
+    void end_timer(void);
+  private:
+    double cpuclk = 0.953674;
+    int throttleclk = 0;
+    int throttlethreshold = 500;
+    double fudge_factor = 0.75;
+    struct timespec wait = {0, 0};
+    struct timespec tstart, tend;
+};
+
 class cpu {
   public:
     cpu();
@@ -14,13 +28,8 @@ class cpu {
     uint8 ei_delay;
     uint8 halt;
     bool repeat;
-    struct timespec waitvshort;
-    struct timespec waitshort;
-    struct timespec waitlong;
-    struct timespec tstart, tend;
-    int cputhrottleclk;
+    throttle_controller tp;
     int emulate(mem &m, keypad &k, lcd &l, sound &s);
-    void throttle(int dt);
 };
 
 //opcodes

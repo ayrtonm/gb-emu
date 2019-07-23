@@ -7,7 +7,7 @@
 #define DRAWSPRITES
 #define DRAWBG
 #define DRAWWIN
-#define LCDUPDATECLK 20000
+#define LCDUPDATECLK 46603
 
 using namespace std;
 

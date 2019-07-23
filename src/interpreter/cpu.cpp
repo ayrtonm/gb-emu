@@ -1,7 +1,6 @@
 #include <iostream>
 #include <time.h> //clock_nanosleep, clock_gettime
 #include "cpu.h"
-#define RATE 500
 
 using namespace std;
 
@@ -17,22 +16,14 @@ cpu::cpu() {
   ime = 0;
   ei_delay = 0;
   repeat = false;
-  cputhrottleclk = 0;
 }
 
 //one cpu click is approximately 0.953674 microseconds
 int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
-  waitlong.tv_nsec = 200000;
-  waitlong.tv_sec = 0;
-  waitshort.tv_nsec = 10000;
-  waitshort.tv_sec = 0;
-  waitvshort.tv_nsec =  1000;
-  waitvshort.tv_sec = 0;
   //local variables
   uint8 op;
   int dt = 0;
-
-  clock_gettime(CLOCK_MONOTONIC, &tstart);
+  tp.start_timer();
   for(;;)
   {
     if ((INT_VBL|INT_LCD|INT_TIM|INT_SER|INT_JOY) & m.read_byte_internal(O_IO+IO_IR) & m.read_byte_internal(O_IE)) {
@@ -90,29 +81,28 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
         return 0;
       }
     }
-    throttle(dt);
+    tp.throttle(dt);
   }
   return 1;
 }
 
-void cpu::throttle(int dt) {
-  cputhrottleclk += dt;
-  if(cputhrottleclk >= RATE) {
-    cputhrottleclk -= RATE;
-    clock_gettime(CLOCK_MONOTONIC, &tend);
+void throttle_controller::throttle(int dt) {
+  throttleclk += dt;
+  if (throttleclk >= throttlethreshold) {
+    end_timer();
+    throttleclk -= throttlethreshold;
     double elapsed = (tend.tv_sec - tstart.tv_sec) * 1000000.0;
     elapsed += (tend.tv_nsec - tstart.tv_nsec) / 1000.0;
-    //elapsed /= dt;
-    //cout << elapsed << endl;
-    if (elapsed < 1.1*RATE) {
-      clock_nanosleep(CLOCK_MONOTONIC, 0, &waitlong, NULL);
-    }
-    else if (elapsed < 1.7*RATE) {
-      clock_nanosleep(CLOCK_MONOTONIC, 0, &waitshort, NULL);
-    }
-    else {
-      clock_nanosleep(CLOCK_MONOTONIC, 0, &waitvshort, NULL);
-    }
-    tstart = tend;
+    wait.tv_nsec = ((fudge_factor*throttlethreshold*cpuclk) - elapsed) * 1000.0;
+    clock_nanosleep(CLOCK_MONOTONIC, 0, &wait, NULL);
+    start_timer();
   }
+}
+
+void throttle_controller::start_timer(void) {
+  clock_gettime(CLOCK_MONOTONIC, &tstart);
+}
+
+void throttle_controller::end_timer(void) {
+  clock_gettime(CLOCK_MONOTONIC, &tend);
 }

@@ -21,6 +21,23 @@ class throttle_controller {
     struct timespec tstart, tend;
 };
 
+typedef struct cpu_state {
+  word16 af, bc, de, hl, sp, pc;
+  uint8 ime;
+  uint8 ei_delay;
+  uint8 halt;
+  bool repeat;
+} cpu_state;
+
+typedef struct emulator_state {
+  cpu_state c;
+  mem *m;
+  lcd *l;
+  keypad *k;
+  sound *s;
+  bool saved = false;
+} emulator_state;
+
 class cpu {
   public:
     cpu();
@@ -31,6 +48,7 @@ class cpu {
     bool repeat;
     throttle_controller tp;
     int emulate(mem &m, keypad &k, lcd &l, sound &s);
+    emulator_state state;
     bool verify_quit(void);
 };
 

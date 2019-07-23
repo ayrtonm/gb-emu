@@ -205,6 +205,12 @@ request keypad::handle_events(int dt, mem &m) {
           case Boost: {
             return boost;
           }
+          case Save: {
+            return savestate;
+          }
+          case Load: {
+            return loadstate;
+          }
         }
       }
     }

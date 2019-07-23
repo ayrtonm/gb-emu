@@ -79,11 +79,61 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
       }
       case quit: {
         if (verify_quit()) {
+          if (state.saved) {
+            delete state.m;
+            delete state.l;
+            delete state.k;
+            delete state.s;
+          }
           return 0;
         }
       }
       case boost: {
         tp.toggle_speed();
+        break;
+      }
+      case savestate: {
+        if (!state.saved) {
+          state.m = new mem(m);
+          state.l = new lcd(l);
+          state.k = new keypad(k);
+          state.s = new sound(s);
+        }
+        else {
+          *state.m = m;
+          *state.l = l;
+          *state.k = k;
+          *state.s = s;
+        }
+        state.saved = true;
+        state.c.af = af;
+        state.c.bc = bc;
+        state.c.de = de;
+        state.c.hl = hl;
+        state.c.sp = sp;
+        state.c.pc = pc;
+        state.c.ime = ime;
+        state.c.ei_delay = ei_delay;
+        state.c.halt = halt;
+        break;
+      }
+      case loadstate: {
+        if (state.saved) {
+          m = *state.m;
+          l = *state.l;
+          k = *state.k;
+          s = *state.s;
+          af = state.c.af;
+          bc = state.c.bc;
+          de = state.c.de;
+          hl = state.c.hl;
+          sp = state.c.sp;
+          pc = state.c.pc;
+          ime = state.c.ime;
+          ei_delay = state.c.ei_delay;
+          halt = state.c.halt;
+        }
+        break;
       }
     }
     tp.throttle(dt);

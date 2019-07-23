@@ -211,6 +211,9 @@ request keypad::handle_events(int dt, mem &m) {
           case Load: {
             return loadstate;
           }
+          case Reset: {
+            return resetstate;
+          }
         }
       }
     }

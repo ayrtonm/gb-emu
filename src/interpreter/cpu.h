@@ -48,8 +48,11 @@ class cpu {
     bool repeat;
     throttle_controller tp;
     int emulate(mem &m, keypad &k, lcd &l, sound &s);
-    emulator_state state;
+    emulator_state *saved_state, *init_state;
     bool verify_quit(void);
+    void save_state(emulator_state *st, mem &m, keypad &k, lcd &l, sound &s);
+    void load_state(emulator_state *st, mem &m, keypad &k, lcd &l, sound &s);
+    void delete_state(emulator_state *st);
 };
 
 //opcodes

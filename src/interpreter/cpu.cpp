@@ -16,6 +16,8 @@ cpu::cpu() {
   ime = 0;
   ei_delay = 0;
   repeat = false;
+  saved_state = new emulator_state;
+  init_state = new emulator_state;
 }
 
 //one cpu click is approximately 0.953674 microseconds
@@ -24,6 +26,7 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
   uint8 op;
   int dt = 0;
   tp.start_timer();
+  save_state(init_state, m, k, l, s);
   for(;;)
   {
     if ((INT_VBL|INT_LCD|INT_TIM|INT_SER|INT_JOY) & m.read_byte_internal(O_IO+IO_IR) & m.read_byte_internal(O_IE)) {
@@ -79,12 +82,8 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
       }
       case quit: {
         if (verify_quit()) {
-          if (state.saved) {
-            delete state.m;
-            delete state.l;
-            delete state.k;
-            delete state.s;
-          }
+          delete_state(saved_state);
+          delete_state(init_state);
           return 0;
         }
         break;
@@ -94,46 +93,15 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
         break;
       }
       case savestate: {
-        if (!state.saved) {
-          state.m = new mem(m);
-          state.l = new lcd(l);
-          state.k = new keypad(k);
-          state.s = new sound(s);
-        }
-        else {
-          *state.m = m;
-          *state.l = l;
-          *state.k = k;
-          *state.s = s;
-        }
-        state.saved = true;
-        state.c.af = af;
-        state.c.bc = bc;
-        state.c.de = de;
-        state.c.hl = hl;
-        state.c.sp = sp;
-        state.c.pc = pc;
-        state.c.ime = ime;
-        state.c.ei_delay = ei_delay;
-        state.c.halt = halt;
+        save_state(saved_state, m, k, l, s);
         break;
       }
       case loadstate: {
-        if (state.saved) {
-          m = *state.m;
-          l = *state.l;
-          k = *state.k;
-          s = *state.s;
-          af = state.c.af;
-          bc = state.c.bc;
-          de = state.c.de;
-          hl = state.c.hl;
-          sp = state.c.sp;
-          pc = state.c.pc;
-          ime = state.c.ime;
-          ei_delay = state.c.ei_delay;
-          halt = state.c.halt;
-        }
+        load_state(saved_state, m, k, l, s);
+        break;
+      }
+      case resetstate: {
+        load_state(init_state, m, k, l, s);
         break;
       }
     }
@@ -163,6 +131,60 @@ bool cpu::verify_quit(void) {
   } while (event.type != SDL_KEYDOWN);
   //this is never reached, it's only used to prevent a compiler warning
   return false;
+}
+
+void cpu::save_state(emulator_state *st, mem &m, keypad &k, lcd &l, sound &s) {
+  if (!st->saved) {
+    st->m = new mem(m);
+    st->l = new lcd(l);
+    st->k = new keypad(k);
+    st->s = new sound(s);
+  }
+  else {
+    *st->m = m;
+    *st->l = l;
+    *st->k = k;
+    *st->s = s;
+  }
+  st->saved = true;
+  st->c.af = af;
+  st->c.bc = bc;
+  st->c.de = de;
+  st->c.hl = hl;
+  st->c.sp = sp;
+  st->c.pc = pc;
+  st->c.ime = ime;
+  st->c.ei_delay = ei_delay;
+  st->c.halt = halt;
+}
+
+void cpu::load_state(emulator_state *st, mem &m, keypad &k, lcd &l, sound &s) {
+  if (st->saved) {
+    m = *st->m;
+    l = *st->l;
+    l.resize();
+    k = *st->k;
+    s = *st->s;
+    af = st->c.af;
+    bc = st->c.bc;
+    de = st->c.de;
+    hl = st->c.hl;
+    sp = st->c.sp;
+    pc = st->c.pc;
+    ime = st->c.ime;
+    ei_delay = st->c.ei_delay;
+    halt = st->c.halt;
+  }
+}
+
+void cpu::delete_state(emulator_state *st) {
+  if (st->saved) {
+    delete st->m;
+    delete st->l;
+    delete st->k;
+    delete st->s;
+  }
+  delete st;
 }
 
 void throttle_controller::throttle(int dt) {

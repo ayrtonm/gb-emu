@@ -256,8 +256,7 @@ void mem::handle_mbc3(uint16 address, uint8 data) {
     return;
   }
   else if (address < 0x6000) {
-    //if (ramenabled) {
-      if (data < 0x04) {
+      if (data < 0x04 && ramenabled) {
         mbcmode = ram;
         switch_rambanks(data);
       }
@@ -265,7 +264,6 @@ void mem::handle_mbc3(uint16 address, uint8 data) {
         mbcmode = rtc;
         current_rtc = data - 0x08;
       }
-    //}
     return;
   }
   else if (address < 0x8000) {
@@ -273,9 +271,11 @@ void mem::handle_mbc3(uint16 address, uint8 data) {
       rtc_latched = false;
     }
     else if (data == 0x01) {
-      rtc_latched = true;
-      for (auto it = rtc_registers.begin(); it != rtc_registers.end(); it++) {
-        latched_rtc_registers[it - rtc_registers.begin()] = *it;
+      if (!rtc_latched) {
+        rtc_latched = true;
+        for (auto it = rtc_registers.begin(); it != rtc_registers.end(); it++) {
+          latched_rtc_registers[it - rtc_registers.begin()] = *it;
+        }
       }
     }
     return;
@@ -286,7 +286,7 @@ void mem::handle_mbc3(uint16 address, uint8 data) {
       return;
     }
     else if (mbcmode == rtc) {
-      //rtc_registers[current_rtc] = data;
+      rtc_registers[current_rtc] = data;
       return;
     }
   }

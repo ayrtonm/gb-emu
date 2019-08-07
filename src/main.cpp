@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <argp.h>
-//#include "recompiler/dynarec.h"
+#include "recompiler/dynarec.h"
 #include "interpreter/cpu.h"
 #include "mem.h"
 
@@ -88,7 +88,9 @@ int main(int argc, char *argv[]) {
   }
   //otherwise pass control to dynarec loop
   else {
-    //dynamic_recompile_loop(*m);
+    dynarec_cpu *c = new dynarec_cpu;
+    c->emulate(*m,*k,*l,*s);
+    delete c;
   }
   delete m;
   delete k;

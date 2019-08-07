@@ -1,8 +1,8 @@
 CXX = g++
-override CXXFLAGS := -g -std=c++11 -Wall $(CXXFLAGS)
+override CXXFLAGS := -g -std=c++17 -Wall $(CXXFLAGS)
 LIBS = -lSDL2 -ljitplus -ljit
 BIN = gb-emu
-SRC = main.cpp mem.cpp mbc.cpp lcd.cpp keypad.cpp cpu.cpp sound.cpp throttle.cpp states.cpp dynarec.cpp translate.cpp emit.cpp cache.cpp
+SRC = main.cpp mem.cpp mbc.cpp lcd.cpp keypad.cpp cpu.cpp sound.cpp throttle.cpp states.cpp dynarec.cpp translate.cpp emit.cpp cache.cpp cache_block.cpp
 OBJ = $(SRC:%.cpp=%.o)
 VPATH = src:src/interpreter:src/recompiler
 

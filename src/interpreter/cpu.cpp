@@ -21,7 +21,7 @@ cpu::cpu() {
 }
 
 //one cpu click is approximately 0.953674 microseconds
-int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
+void cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
   //local variables
   uint8 op;
   int dt = 0;
@@ -88,7 +88,7 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
             m.dump_memory();
           }
           m.dump_ram();
-          return 0;
+          return;
         }
         break;
       }
@@ -113,7 +113,7 @@ int cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
     }
     tp.throttle(dt);
   }
-  return 1;
+  return;
 }
 
 bool cpu::verify_quit(void) {

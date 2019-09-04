@@ -1,10 +1,19 @@
 #include "cache.h"
+#include <algorithm>
 
 cache::cache() {
+  fill(priorities.begin(),priorities.end(),0);
 }
 
 cache::~cache() {
   //iterate through the cache and free all used blocks
+  array<cache_block,MAX_BLOCKS>::iterator it, jt;
+  it = blocks.begin();
+  while (it != blocks.end()) {
+    jt = it;
+    it++;
+    delete jt;
+  }
 }
 
 int cache::insert_block(cache_block *block) {
@@ -27,12 +36,32 @@ int cache::insert_block(cache_block *block) {
 }
 
 optional<int> cache::find_block(uint16 start_address) {
+  for (array<cache_block,MAX_BLOCKS>::iterator it = blocks.begin(); it != blocks.end(); it++) {
+    if (it->get_start() == start_address) {
+      return it-blocks.begin();
+    }
+  }
   return nullopt;
 }
 
-uint16 cache::exec_block(int idx) {
-  return blocks[idx].get_end_address();
+int cache::find_last_used() {
+  return *max_element(priorities.begin(), priorities.end());
 }
 
-int cache::find_last_used() {
+void cache::invalidate_blocks(uint16 modified_address) {
+  for (array<cache_block,MAX_BLOCKS>::iterator it = blocks.begin(); it != blocks.end(); it++) {
+    if ((modified_address >= it->get_start()) && (modified_address <= it->get_end())) {
+      it->invalidate();
+    }
+  }
+}
+
+uint16 cache::exec_block(int idx) {
+  priorities[idx] = *max_element(priorities.begin(), priorities.end()) + 1;
+  if (*max_element(priorities.begin(), priorities.end()) == MAX_BLOCKS) {
+    for (array<int,MAX_BLOCKS>::iterator it = priorities.begin(); it != priorities.end(); it++) {
+      *it -= MAX_BLOCKS;
+    }
+  }
+  return blocks[idx].exec();
 }

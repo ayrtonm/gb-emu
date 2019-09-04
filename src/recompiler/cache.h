@@ -14,16 +14,27 @@ class cache_block {
     cache_block();
     ~cache_block();
     bool is_valid();
-    uint16 get_start_address() {
+    void invalidate();
+    uint16 get_start() {
       return start_address;
     }
-    uint16 get_end_address() {
+    uint16 get_end() {
       return end_address;
+    }
+    uint16 get_true() {
+      return address_if_true;
+    }
+    uint16 get_false() {
+      return address_if_false;
+    }
+    uint16 exec();
+    void store_data(uint8 data) {
+      raw_data.push_back(data);
     }
   private:
     vector<uint8> raw_data;
     uint16 start_address, end_address, address_if_true, address_if_false;
-    bool valid = false;
+    bool valid;
 };
 
 class cache {
@@ -31,11 +42,13 @@ class cache {
     cache();
     ~cache();
     int insert_block(cache_block *block);
-    uint16 exec_block(int idx);
     optional<int> find_block(uint16 start_address);
+    uint16 exec_block(int idx);
     int find_last_used();
+    void invalidate_blocks(uint16 modified_address);
   private:
     array<cache_block,MAX_BLOCKS> blocks;
+    array<int,MAX_BLOCKS> priorities;
 };
 
 #endif

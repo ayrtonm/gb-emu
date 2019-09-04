@@ -5,6 +5,6 @@
 
 using namespace std;
 
-extern void emit_code(cache_block &b, mem &m);
+extern void emit_code(void);
 
 #endif

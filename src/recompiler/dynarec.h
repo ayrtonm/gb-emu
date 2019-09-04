@@ -11,7 +11,8 @@ class dynarec_cpu {
     ~dynarec_cpu();
     void emulate(mem &m, keypad &k, lcd &l, sound &s);
   private:
-    word16 pc;
+    word16 af, bc, de, hl, sp, pc;
+    uint8 ime, ei_delay, halt;
 };
 
 #endif

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <jit/jit-plus.h>
 #include "dynarec.h"
 #include "translate.h"
 
@@ -10,17 +11,15 @@ dynarec_cpu::dynarec_cpu() {
 dynarec_cpu::~dynarec_cpu() {
 }
 void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
-  //cache_block *b = new cache_block();
-  //b->store_data(0xff);
-  //b->store_data(0xfe);
-  //b->store_data(0x00);
-  //storage->insert_block(b);
+  //initialize libjit stuff
+  jit_context context;
+
   cache *storage = new cache();
   optional<int> current_idx, next_idx;
   uint16 current_address = pc.w;
   uint16 next_address;
 
-  cache_block *block = translate(current_address,m);
+  cache_block *block = translate(current_address,m,&context);
   current_idx = storage->insert_block(block);
 
   for (;;) {
@@ -30,7 +29,7 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
     next_idx = storage->find_block(next_address);
     //if find_block fails translate the next block
     if (!next_idx) {
-      block = translate(current_address,m);
+      block = translate(current_address,m,&context);
       next_idx = storage->insert_block(block);
     }
     current_idx = next_idx;

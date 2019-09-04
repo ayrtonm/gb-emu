@@ -63,5 +63,8 @@ uint16 cache::exec_block(int idx) {
       *it -= MAX_BLOCKS;
     }
   }
-  return blocks[idx].exec();
+  blocks[idx].exec();
+  //handle jump or conditional branch
+  //return next address
+  return 0; 
 }

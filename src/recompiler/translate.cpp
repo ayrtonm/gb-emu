@@ -3,6 +3,7 @@
 #include <vector>
 #include <utility> //array
 #include "translate.h"
+#include "emit.h"
 #include "cache.h"
 #include "../mem.h"
 #include "../bits.h"
@@ -19,6 +20,7 @@ bool is_jump(uint8 opcode) {
 
 cache_block *translate(uint16 address, mem &m) {
   cache_block *block = new cache_block();
+  block->set_start(address);
   uint8 opcode;
   do {
     opcode = m.read_byte(address);
@@ -30,10 +32,7 @@ cache_block *translate(uint16 address, mem &m) {
     }
     address++;
   } while (!(is_cond(opcode)||is_jump(opcode)));
-  block->store_data(opcode);
-  for (int i = 1; i < length[opcode]; i++) {
-    address += 1;
-    block->store_data(m.read_byte(address));
-  }
+  block->set_end(address);
+  emit_code(*block, m);
   return block;
 }

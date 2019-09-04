@@ -24,7 +24,9 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
   current_idx = storage->insert_block(block);
 
   for (;;) {
+    //load libjit registers from cpu state
     next_address = storage->exec_block(current_idx.value());
+    //store libjit registers in cpu state
     next_idx = storage->find_block(next_address);
     //if find_block fails translate the next block
     if (!next_idx) {

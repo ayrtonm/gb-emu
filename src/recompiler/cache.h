@@ -11,30 +11,20 @@ using namespace std;
 
 class cache_block {
   public:
-    cache_block();
+    cache_block() { valid = true; reg_eval = false; }
     ~cache_block();
-    bool is_valid();
-    void invalidate();
-    uint16 get_start() {
-      return start_address;
-    }
-    uint16 get_end() {
-      return end_address;
-    }
-    uint16 get_true() {
-      return address_if_true;
-    }
-    uint16 get_false() {
-      return address_if_false;
-    }
-    uint16 exec();
-    void store_data(uint8 data) {
-      raw_data.push_back(data);
-    }
+    bool is_valid() { return valid; }
+    void invalidate() { valid = false; }
+    uint16 get_start() { return start_address; }
+    void set_start(uint16 address) { start_address = address; }
+    uint16 get_end() { return end_address; }
+    void set_end(uint16 address) { end_address = address; }
+    void exec();
+    void store_data(uint8 data) { raw_data.push_back(data); }
   private:
     vector<uint8> raw_data;
-    uint16 start_address, end_address, address_if_true, address_if_false;
-    bool valid;
+    uint16 start_address, end_address;
+    bool valid, reg_eval;
 };
 
 class cache {

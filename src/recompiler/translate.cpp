@@ -29,15 +29,11 @@ cache_block *translate(uint16 address, mem &m) {
       block->store_data(m.read_byte(address));
     }
     address++;
-    ////handle unconditional jump instruction
-    //if (is_jump(opcode)) {
-    //  switch(opcode) {
-    //    #include "jumps.h"
-    //  }
-    //}
-    //else {
-    //  address++;
-    //}
   } while (!(is_cond(opcode)||is_jump(opcode)));
+  block->store_data(opcode);
+  for (int i = 1; i < length[opcode]; i++) {
+    address += 1;
+    block->store_data(m.read_byte(address));
+  }
   return block;
 }

@@ -12,7 +12,7 @@ using namespace std;
 //tells the compiler how to interpret the address of the entry point of the JIT-ed code
 
 class cache_block : public jit_function {
-  typedef int (*function)(int);
+  typedef void (*function)(void);
   public:
     cache_block(jit_context &context) : jit_function(context) {
       valid = true;
@@ -29,15 +29,10 @@ class cache_block : public jit_function {
     void set_end(uint16 address) { end_address = address; }
     void store_data(uint8 data) { raw_data.push_back(data); }
     void bind() { function_name = (function)closure(); }
-    //0 is a placeholder for the argument
-    void exec() { function_name(0); }
-    virtual void build() {
-      jit_value x = get_param(0);
-      insn_return(x);
-    }
+    void exec() { function_name(); }
   protected:
     virtual jit_type_t create_signature() {
-      return signature_helper(jit_type_int, jit_type_int, end_params);
+      return signature_helper(jit_type_int, end_params);
     }
   private:
     vector<uint8> raw_data;

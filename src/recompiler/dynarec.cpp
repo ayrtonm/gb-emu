@@ -1,13 +1,25 @@
 #include <iostream>
+#include <algorithm>
 #include <jit/jit-plus.h>
 #include "dynarec.h"
-#include "translate.h"
 
 using namespace std;
 
+bool is_cond(uint8 opcode) {
+  return find(begin(cond_branches), end(cond_branches), opcode) != end(cond_branches);
+}
+
+bool is_jump(uint8 opcode) {
+  return find(begin(jumps), end(jumps), opcode) != end(jumps);
+}
+
 dynarec_cpu::dynarec_cpu() {
   pc.w = 0x0100;
+  type_uint8_ptr = jit_type_create_pointer(jit_type_ubyte, 0);
+  type_uint16_ptr = jit_type_create_pointer(jit_type_ushort, 0);
+  type_mem_ptr = jit_type_create_pointer(
 }
+
 dynarec_cpu::~dynarec_cpu() {
 }
 void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
@@ -36,4 +48,31 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
     current_address = next_address;
   }
   delete storage;
+}
+
+cache_block dynarec_cpu::translate(uint16 address, mem &m, jit_context *context) {
+  cache_block block(*context);
+  block.set_start(address);
+  //make a jit_value constant that contains a pointer to m.read_word()
+  //add a call to m.read_word() using this pointer to the block's function
+  jit_value read_word = block.new_constant(m, type_mem_ptr);
+  uint8 opcode;
+  do {
+    opcode = m.read_byte(address);
+    block.store_data(opcode);
+    //store opcode arguments if any exist
+    for (int i = 1; i < length[opcode]; i++) {
+      address += 1;
+      block.store_data(m.read_byte(address));
+    }
+    switch(opcode) {
+      #include "instructions.h"
+    }
+    address++;
+  } while (!(is_cond(opcode)||is_jump(opcode)));
+  block.set_end(address);
+  //block.build();
+  block.compile();
+  //emit_code(*block, m);
+  return block;
 }

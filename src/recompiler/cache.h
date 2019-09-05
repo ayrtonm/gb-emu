@@ -49,7 +49,7 @@ class cache_block : public jit_function {
 class cache {
   public:
     cache();
-    ~cache();
+    ~cache() {};
     int insert_block(cache_block block);
     optional<int> find_block(uint16 start_address);
     uint16 exec_block(int idx);

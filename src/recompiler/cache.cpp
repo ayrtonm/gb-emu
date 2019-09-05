@@ -5,17 +5,6 @@ cache::cache() {
   fill(priorities.begin(),priorities.end(),0);
 }
 
-cache::~cache() {
-  //iterate through the cache and free all used blocks
-  //vector<cache_block>::iterator it, jt;
-  //it = blocks.begin();
-  //while (it != blocks.end()) {
-  //  jt = it;
-  //  it++;
-  //  delete jt;
-  //}
-}
-
 int cache::insert_block(cache_block block) {
   if (blocks.size() < MAX_BLOCKS) {
     blocks.push_back(block);
@@ -26,16 +15,15 @@ int cache::insert_block(cache_block block) {
   int idx;
   for (vector<cache_block>::iterator it = blocks.begin(); it != blocks.end(); it++) {
     if (!it->is_valid()) {
-      //insert block here
-      evict_block = false;
       idx = it-blocks.begin();
+      evict_block = false;
+      blocks[idx] = block;
       break;
     }
   }
   if (evict_block) {
-    //find last used block
     idx = find_last_used();
-    //insert bloch here
+    blocks[idx] = block;
   }
   return idx;
 }

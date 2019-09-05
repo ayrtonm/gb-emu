@@ -17,11 +17,15 @@ dynarec_cpu::dynarec_cpu() {
   pc.w = 0x0100;
   type_uint8_ptr = jit_type_create_pointer(jit_type_ubyte, 0);
   type_uint16_ptr = jit_type_create_pointer(jit_type_ushort, 0);
-  type_mem_ptr = jit_type_create_pointer(
+  jit_type_t read_mem_arg[1];
+  read_mem_arg[0] = jit_type_ushort;
+  read_byte_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_ubyte, read_mem_arg, 1, 1);
+  read_word_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_ushort, read_mem_arg, 1, 1);
 }
 
 dynarec_cpu::~dynarec_cpu() {
 }
+
 void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
   //initialize libjit stuff
   jit_context context;
@@ -52,13 +56,14 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
 
 cache_block dynarec_cpu::translate(uint16 address, mem &m, jit_context *context) {
   cache_block block(*context);
+  context->build_start();
   block.set_start(address);
   //make a jit_value constant that contains a pointer to m.read_word()
   //add a call to m.read_word() using this pointer to the block's function
-  jit_value read_word = block.new_constant(m, type_mem_ptr);
-  uint8 opcode;
-  do {
-    opcode = m.read_byte(address);
+  //jit_value read_word = block.new_constant(m, type_mem_ptr);
+  uint8 opcode = m.read_byte(address);
+  while (!(is_cond(opcode)||is_jump(opcode))) {
+    //the following line should only be used for debugging as storing opcodes is not necessary, storing arguments however will be useful
     block.store_data(opcode);
     //store opcode arguments if any exist
     for (int i = 1; i < length[opcode]; i++) {
@@ -69,10 +74,11 @@ cache_block dynarec_cpu::translate(uint16 address, mem &m, jit_context *context)
       #include "instructions.h"
     }
     address++;
-  } while (!(is_cond(opcode)||is_jump(opcode)));
+    opcode = m.read_byte(address);
+  };
   block.set_end(address);
-  //block.build();
   block.compile();
-  //emit_code(*block, m);
+  context->build_end();
+  block.bind();
   return block;
 }

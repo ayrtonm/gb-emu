@@ -16,7 +16,6 @@ class cache_block : public jit_function {
   public:
     cache_block(jit_context &context) : jit_function(context) {
       valid = true;
-      reg_eval = false;
       create();
       set_recompilable();
     }
@@ -28,6 +27,8 @@ class cache_block : public jit_function {
     uint16 get_end() { return end_address; }
     void set_end(uint16 address) { end_address = address; }
     void store_data(uint8 data) { raw_data.push_back(data); }
+    uint8 get_last_byte() { return raw_data.back(); }
+    uint16 get_last_word() { return (raw_data.back() << 8) + (raw_data[raw_data.size()-2]); }
     void bind() { function_name = (function)closure(); }
     void exec() { function_name(); }
   protected:
@@ -38,7 +39,7 @@ class cache_block : public jit_function {
     vector<uint8> raw_data;
     function function_name;
     uint16 start_address, end_address;
-    bool valid, reg_eval;
+    bool valid;
 };
 
 class cache {

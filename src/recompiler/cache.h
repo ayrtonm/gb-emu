@@ -2,7 +2,6 @@
 #define CACHE_H
 #define MAX_BLOCKS 32
 #include <vector>
-#include <array>
 #include <utility>
 #include <optional>
 #include <jit/jit-plus.h>
@@ -11,24 +10,17 @@
 using namespace std;
 //placeholder until I figure out what the target functions take as arguments and return
 //tells the compiler how to interpret the address of the entry point of the JIT-ed code
-typedef int (*FF)(int);
 
-class target_function : public jit_function {
+class cache_block : public jit_function {
+  typedef int (*function)(int);
   public:
-    target_function(jit_context &context) : jit_function(context) {
+    cache_block(jit_context &context) : jit_function(context) {
+      valid = true;
+      reg_eval = false;
       create();
       set_recompilable();
     }
-    virtual void build();
-  protected:
-    virtual jit_type_t create_signature();
-};
-
-class cache_block {
-  public:
-    cache_block() { valid = true; reg_eval = false; }
-    cache_block(target_function *func) { valid = true; reg_eval = false; function = func; }
-    ~cache_block() { delete function; }
+    ~cache_block() {};
     bool is_valid() { return valid; }
     void invalidate() { valid = false; }
     uint16 get_start() { return start_address; }
@@ -36,15 +28,20 @@ class cache_block {
     uint16 get_end() { return end_address; }
     void set_end(uint16 address) { end_address = address; }
     void store_data(uint8 data) { raw_data.push_back(data); }
-    void build() { function->build(); }
-    void compile() { function->compile(); }
-    void bind() { closure = (FF)function->closure(); }
+    void bind() { function_name = (function)closure(); }
     //0 is a placeholder for the argument
-    void exec() { closure(0); }
+    void exec() { function_name(0); }
+    virtual void build() {
+      jit_value x = get_param(0);
+      insn_return(x);
+    }
+  protected:
+    virtual jit_type_t create_signature() {
+      return signature_helper(jit_type_int, jit_type_int, end_params);
+    }
   private:
     vector<uint8> raw_data;
-    target_function *function;
-    FF closure;
+    function function_name;
     uint16 start_address, end_address;
     bool valid, reg_eval;
 };
@@ -53,14 +50,14 @@ class cache {
   public:
     cache();
     ~cache();
-    int insert_block(cache_block *block);
+    int insert_block(cache_block block);
     optional<int> find_block(uint16 start_address);
     uint16 exec_block(int idx);
     int find_last_used();
     void invalidate_blocks(uint16 modified_address);
   private:
-    array<cache_block,MAX_BLOCKS> blocks;
-    array<int,MAX_BLOCKS> priorities;
+    vector<cache_block> blocks;
+    vector<int> priorities;
 };
 
 #endif

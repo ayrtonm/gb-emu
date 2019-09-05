@@ -7,19 +7,24 @@ cache::cache() {
 
 cache::~cache() {
   //iterate through the cache and free all used blocks
-  array<cache_block,MAX_BLOCKS>::iterator it, jt;
-  it = blocks.begin();
-  while (it != blocks.end()) {
-    jt = it;
-    it++;
-    delete jt;
-  }
+  //vector<cache_block>::iterator it, jt;
+  //it = blocks.begin();
+  //while (it != blocks.end()) {
+  //  jt = it;
+  //  it++;
+  //  delete jt;
+  //}
 }
 
-int cache::insert_block(cache_block *block) {
+int cache::insert_block(cache_block block) {
+  if (blocks.size() < MAX_BLOCKS) {
+    blocks.push_back(block);
+    priorities.push_back(0);
+    return blocks.size()-1;
+  }
   bool evict_block = true;
   int idx;
-  for (array<cache_block,MAX_BLOCKS>::iterator it = blocks.begin(); it != blocks.end(); it++) {
+  for (vector<cache_block>::iterator it = blocks.begin(); it != blocks.end(); it++) {
     if (!it->is_valid()) {
       //insert block here
       evict_block = false;
@@ -36,7 +41,7 @@ int cache::insert_block(cache_block *block) {
 }
 
 optional<int> cache::find_block(uint16 start_address) {
-  for (array<cache_block,MAX_BLOCKS>::iterator it = blocks.begin(); it != blocks.end(); it++) {
+  for (vector<cache_block>::iterator it = blocks.begin(); it != blocks.end(); it++) {
     if (it->get_start() == start_address) {
       return it-blocks.begin();
     }
@@ -49,7 +54,7 @@ int cache::find_last_used() {
 }
 
 void cache::invalidate_blocks(uint16 modified_address) {
-  for (array<cache_block,MAX_BLOCKS>::iterator it = blocks.begin(); it != blocks.end(); it++) {
+  for (vector<cache_block>::iterator it = blocks.begin(); it != blocks.end(); it++) {
     if ((modified_address >= it->get_start()) && (modified_address <= it->get_end())) {
       it->invalidate();
     }
@@ -59,7 +64,7 @@ void cache::invalidate_blocks(uint16 modified_address) {
 uint16 cache::exec_block(int idx) {
   priorities[idx] = *max_element(priorities.begin(), priorities.end()) + 1;
   if (*max_element(priorities.begin(), priorities.end()) == MAX_BLOCKS) {
-    for (array<int,MAX_BLOCKS>::iterator it = priorities.begin(); it != priorities.end(); it++) {
+    for (vector<int>::iterator it = priorities.begin(); it != priorities.end(); it++) {
       *it -= MAX_BLOCKS;
     }
   }

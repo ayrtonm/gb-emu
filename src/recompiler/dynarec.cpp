@@ -19,7 +19,7 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
   uint16 current_address = pc.w;
   uint16 next_address;
 
-  cache_block *block = translate(current_address,m,&context);
+  cache_block block = translate(current_address,m,&context);
   current_idx = storage->insert_block(block);
 
   for (;;) {

@@ -18,25 +18,23 @@ bool is_jump(uint8 opcode) {
   return find(begin(jumps), end(jumps), opcode) != end(jumps);
 }
 
-cache_block *translate(uint16 address, mem &m, jit_context *context) {
-  target_function *func = new target_function(*context);
-
-  cache_block *block = new cache_block(func);
-  block->set_start(address);
+cache_block translate(uint16 address, mem &m, jit_context *context) {
+  cache_block block(*context);
+  block.set_start(address);
   uint8 opcode;
   do {
     opcode = m.read_byte(address);
-    block->store_data(opcode);
+    block.store_data(opcode);
     //store opcode arguments if any exist
     for (int i = 1; i < length[opcode]; i++) {
       address += 1;
-      block->store_data(m.read_byte(address));
+      block.store_data(m.read_byte(address));
     }
     address++;
   } while (!(is_cond(opcode)||is_jump(opcode)));
-  block->set_end(address);
-  block->build();
-  block->compile();
+  block.set_end(address);
+  block.build();
+  block.compile();
   //emit_code(*block, m);
   return block;
 }

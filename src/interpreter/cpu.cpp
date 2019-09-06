@@ -70,7 +70,7 @@ void cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
       }
     }
     if (repeat) {repeat = false; pc.w -= length[op]-1;}
-    m.update_timers(dt*4);
+    m.update_timers(dt);
     l.step_lcd(dt,m);
     switch (k.handle_events(dt, m)) {
       case none: {

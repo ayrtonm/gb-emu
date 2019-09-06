@@ -342,6 +342,7 @@ keyset mem::get_keys_loaded() {
   Increment internal timers and counters in memory. Also updates timers associated with generating sound and the MBC3 real-time clock registers.
 */
 void mem::update_timers(int dt) {
+  dt *= 4;
   //compute increment based on time opcode takes to give a 16.384 kHz increment rate
   //increment every 256 CPU clicks
   //this should be independent of CPU throttling which is artificial

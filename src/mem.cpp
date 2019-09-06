@@ -134,7 +134,9 @@ uint16 mem::read_word_internal(uint16 address) {
   Read a word from memory at an arbitrary address
 */
 uint16 mem::read_word(uint16 address) {
-  return (read_byte(address))+(read_byte(address + 1) << 8);
+  uint16 data = (read_byte(address))+(read_byte(address + 1) << 8);
+  cout << "read " << hex << (int)data << " from " << hex << (int)address << endl;
+  return data;
 }
 
 /**
@@ -210,6 +212,7 @@ void mem::write_byte(uint16 address, uint8 data) {
   Write a word to memory taking into account write permissions and execute side effects
 */
 void mem::write_word(uint16 address, uint16 data) {
+  cout << "writing " << hex << (int)data << " to " << hex << (int)address << endl;
   write_byte(address, data & 0x00ff);
   write_byte(address+1, data >> 8);
 }

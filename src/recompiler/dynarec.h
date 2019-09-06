@@ -14,13 +14,14 @@ class dynarec_cpu {
     dynarec_cpu();
     ~dynarec_cpu();
     void emulate(mem &m, keypad &k, lcd &l, sound &s);
-    cache_block translate(uint16 start_address, mem &m, jit_context *context);
+    cache_block translate(uint16 address, mem &m, keypad &k, lcd &l, jit_context *context);
     void emit_code(void);
   private:
+    uint16 init_address;
     word16 af, bc, de, hl, sp;
     uint8 ime, ei_delay, halt;
     jit_type_t type_uint8_ptr, type_uint16_ptr, type_class_ptr;
-    jit_type_t read_byte_signature, read_word_signature, write_byte_signature, write_word_signature;
+    jit_type_t read_byte_signature, read_word_signature, write_byte_signature, write_word_signature, update_timers_signature, step_lcd_signature, handle_events_signature;
 };
 
 #endif

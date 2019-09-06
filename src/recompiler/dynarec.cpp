@@ -24,16 +24,25 @@ dynarec_cpu::dynarec_cpu() {
   halt = 0;
   ime = 0;
   ei_delay = 0;
+
   type_uint8_ptr = jit_type_create_pointer(jit_type_ubyte, 0);
   type_uint16_ptr = jit_type_create_pointer(jit_type_ushort, 0);
   type_class_ptr = jit_type_create_pointer(jit_type_void_ptr, 0);
-  jit_type_t read_mem_arg[] = {jit_type_void_ptr, jit_type_ushort};
-  jit_type_t write_byte_args[] = {jit_type_void_ptr, jit_type_ushort, jit_type_ubyte};
-  jit_type_t write_word_args[] = {jit_type_void_ptr, jit_type_ushort, jit_type_ushort};
-  read_byte_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_ubyte, read_mem_arg, 2, 1);
-  read_word_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_ushort, read_mem_arg, 2, 1);
-  write_byte_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_void, write_byte_args, 3, 1);
-  write_word_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_void, write_word_args, 3, 1);
+
+  jit_type_t read_mem_args_t[] = {jit_type_void_ptr, jit_type_ushort};
+  jit_type_t write_byte_args_t[] = {jit_type_void_ptr, jit_type_ushort, jit_type_ubyte};
+  jit_type_t write_word_args_t[] = {jit_type_void_ptr, jit_type_ushort, jit_type_ushort};
+  jit_type_t update_timers_args_t[] = {jit_type_void_ptr, jit_type_int};
+  jit_type_t step_lcd_args_t[] = {jit_type_void_ptr, jit_type_int, jit_type_void_ptr};
+  jit_type_t handle_events_args_t[] = {jit_type_void_ptr, jit_type_int, jit_type_void_ptr};
+
+  read_byte_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_ubyte, read_mem_args_t, 2, 0);
+  read_word_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_ushort, read_mem_args_t, 2, 0);
+  write_byte_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_void, write_byte_args_t, 3, 0);
+  write_word_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_void, write_word_args_t, 3, 0);
+  update_timers_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_void, update_timers_args_t, 2, 0);
+  step_lcd_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_void, step_lcd_args_t, 3, 0);
+  handle_events_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_void, handle_events_args_t, 3, 0);
 }
 
 dynarec_cpu::~dynarec_cpu() {
@@ -51,7 +60,7 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
   for (;;) {
     idx = storage->find_block(address);
     if (!idx) {
-      block = translate(address, m, &context);
+      block = translate(address, m, k, l, &context);
       while (!block.is_valid()) {
         switch (m.read_byte(address)) {
           #include "jumps.h"
@@ -63,7 +72,7 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
         }
         idx = storage->find_block(address);
         if (!idx) {
-          block = translate(address, m, &context);
+          block = translate(address, m, k, l, &context);
           idx = storage->insert_block(block);
         }
         else {
@@ -76,11 +85,13 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
   delete storage;
 }
 
-cache_block dynarec_cpu::translate(uint16 address, mem &m, jit_context *context) {
+cache_block dynarec_cpu::translate(uint16 address, mem &m, keypad &k, lcd &l, jit_context *context) {
   cache_block block(*context);
   context->build_start();
   block.set_start(address);
   jit_value m_addr = block.new_constant(&m, type_class_ptr);
+  jit_value k_addr = block.new_constant(&k, type_class_ptr);
+  jit_value l_addr = block.new_constant(&l, type_class_ptr);
   uint8 opcode = m.read_byte(address);
   while (!(is_cond(opcode)||is_jump(opcode))) {
     //the following line should only be used for debugging as storing opcodes is not necessary, storing arguments however will be useful
@@ -97,6 +108,14 @@ cache_block dynarec_cpu::translate(uint16 address, mem &m, jit_context *context)
         break;
       }
     }
+    jit_value dt = block.new_constant(cycles[opcode], jit_type_int);
+    jit_value_t update_timers_args[] = {m_addr.raw(), dt.raw()};
+    jit_value_t step_lcd_args[] = {l_addr.raw(), dt.raw(), m_addr.raw()};
+    jit_value_t handle_events_args[] = {k_addr.raw(), dt.raw(), m_addr.raw()};
+    block.insn_call_native(NULL, (void *)&mem::update_timers, update_timers_signature, update_timers_args, 2, 0);
+    block.insn_call_native(NULL, (void *)&lcd::step_lcd, step_lcd_signature, step_lcd_args, 3, 0);
+    block.insn_call_native(NULL, (void *)&keypad::handle_events, handle_events_signature, handle_events_args, 3, 0);
+
     address++;
     opcode = m.read_byte(address);
   };

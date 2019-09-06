@@ -14,7 +14,7 @@ using namespace std;
 class cache_block : public jit_function {
   typedef void (*function)(void);
   public:
-    cache_block(jit_context &context) : jit_function(context) {
+    cache_block() : jit_function(*context) {
       valid = true;
       create();
       set_recompilable();
@@ -31,11 +31,14 @@ class cache_block : public jit_function {
     uint16 get_last_word() { return (raw_data.back() << 8) + (raw_data[raw_data.size()-2]); }
     void bind() { function_name = (function)closure(); }
     void exec() { function_name(); }
+    void build_start() { context->build_start(); }
+    void build_end() { context->build_end(); }
   protected:
     virtual jit_type_t create_signature() {
       return signature_helper(jit_type_int, end_params);
     }
   private:
+    jit_context *context;
     vector<uint8> raw_data;
     function function_name;
     uint16 start_address, end_address;

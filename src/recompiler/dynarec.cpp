@@ -64,18 +64,15 @@ dynarec_cpu::~dynarec_cpu() {
 
 void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
   int counter = 200000;
-  //initialize libjit stuff
-  jit_context context;
-
   cache *storage = new cache();
   optional<int> idx;
   uint16 address = init_address;
-  optional<cache_block> block(context);
+  optional<cache_block> block;
 
   for (;;) {
     idx = storage->find_block(address);
     if (!idx) {
-      block = translate(address, m, k, l, &context);
+      block = translate(address, m, k, l);
       while (!block) {
         switch (m.read_byte(address)) {
           #include "jumps.h"
@@ -87,7 +84,7 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
         }
         idx = storage->find_block(address);
         if (!idx) {
-          block = translate(address, m, k, l, &context);
+          block = translate(address, m, k, l);
           idx = storage->insert_block(block.value());
         }
         else {
@@ -106,7 +103,7 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
   return;
 }
 
-optional<cache_block> dynarec_cpu::translate(uint16 address, mem &m, keypad &k, lcd &l, jit_context *context) {
+optional<cache_block> dynarec_cpu::translate(uint16 address, mem &m, keypad &k, lcd &l) {
   //jit_function destructors do not free the raw function. the raw function persists until the context is destroyed
   //since we want to reuse the same context throughout the program, this means that we should not make instances of cache_blocks (class derived from jit_function) that we will not use
   //this means it is important to return nullopt in the case of a jump or conditional branch before the cache_block instance is created
@@ -115,9 +112,9 @@ optional<cache_block> dynarec_cpu::translate(uint16 address, mem &m, keypad &k, 
   if (is_cond(opcode) || is_jump(opcode)) {
     return nullopt;
   }
-  cache_block block(*context);
+  cache_block block;
   block.set_start(address);
-  context->build_start();
+  block.build_start();
   jit_value m_addr = block.new_constant(&m, type_class_ptr);
   jit_value k_addr = block.new_constant(&k, type_class_ptr);
   jit_value l_addr = block.new_constant(&l, type_class_ptr);
@@ -155,6 +152,6 @@ optional<cache_block> dynarec_cpu::translate(uint16 address, mem &m, keypad &k, 
   block.insn_return();
   block.compile();
   block.bind();
-  context->build_end();
+  block.build_end();
   return block;
 }

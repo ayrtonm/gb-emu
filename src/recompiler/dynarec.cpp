@@ -14,7 +14,15 @@ bool is_jump(uint8 opcode) {
 }
 
 dynarec_cpu::dynarec_cpu() {
+  af.w = 0x01b0;
+  bc.w = 0x0013;
+  de.w = 0x00d8;
+  hl.w = 0x014d;
+  sp.w = 0xfffe;
   pc.w = 0x0100;
+  halt = 0;
+  ime = 0;
+  ei_delay = 0;
   type_uint8_ptr = jit_type_create_pointer(jit_type_ubyte, 0);
   type_uint16_ptr = jit_type_create_pointer(jit_type_ushort, 0);
   type_class_ptr = jit_type_create_pointer(jit_type_void_ptr, 0);
@@ -23,8 +31,8 @@ dynarec_cpu::dynarec_cpu() {
   jit_type_t write_word_args[] = {jit_type_void_ptr, jit_type_ushort, jit_type_ushort};
   read_byte_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_ubyte, read_mem_arg, 2, 1);
   read_word_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_ushort, read_mem_arg, 2, 1);
-  write_byte_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_int, write_byte_args, 3, 1);
-  write_word_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_int, write_word_args, 3, 1);
+  write_byte_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_void, write_byte_args, 3, 1);
+  write_word_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_void, write_word_args, 3, 1);
 }
 
 dynarec_cpu::~dynarec_cpu() {
@@ -96,8 +104,6 @@ cache_block dynarec_cpu::translate(uint16 address, mem &m, jit_context *context)
     block.compile();
     block.bind();
   }
-  //figure out how to handle jumps before uncommenting the following code
-  //if no instructions were translated (ex: consecutive jumps) mark this block as invalid
   else {
     block.invalidate();
   }

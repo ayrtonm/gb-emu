@@ -1,4 +1,5 @@
-#include "cpu.h"
+#include <time.h> //clock_nanosleep, clock_gettime
+#include "throttle.h"
 
 void throttle_controller::throttle(int dt) {
   throttleclk += dt;

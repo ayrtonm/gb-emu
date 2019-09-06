@@ -35,6 +35,7 @@ dynarec_cpu::dynarec_cpu() {
   jit_type_t update_timers_args_t[] = {jit_type_void_ptr, jit_type_int};
   jit_type_t step_lcd_args_t[] = {jit_type_void_ptr, jit_type_int, jit_type_void_ptr};
   jit_type_t handle_events_args_t[] = {jit_type_void_ptr, jit_type_int, jit_type_void_ptr};
+  jit_type_t throttle_args_t[] = {jit_type_void_ptr, jit_type_int};
 
   read_byte_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_ubyte, read_mem_args_t, 2, 0);
   read_word_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_ushort, read_mem_args_t, 2, 0);
@@ -42,7 +43,9 @@ dynarec_cpu::dynarec_cpu() {
   write_word_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_void, write_word_args_t, 3, 0);
   update_timers_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_void, update_timers_args_t, 2, 0);
   step_lcd_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_void, step_lcd_args_t, 3, 0);
-  handle_events_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_void, handle_events_args_t, 3, 0);
+  handle_events_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_int, handle_events_args_t, 3, 0);
+  throttle_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_void, throttle_args_t, 2, 0);
+  tp.start_timer();
 }
 
 dynarec_cpu::~dynarec_cpu() {
@@ -92,6 +95,7 @@ cache_block dynarec_cpu::translate(uint16 address, mem &m, keypad &k, lcd &l, ji
   jit_value m_addr = block.new_constant(&m, type_class_ptr);
   jit_value k_addr = block.new_constant(&k, type_class_ptr);
   jit_value l_addr = block.new_constant(&l, type_class_ptr);
+  jit_value tp_addr = block.new_constant(&tp, type_class_ptr);
   uint8 opcode = m.read_byte(address);
   while (!(is_cond(opcode)||is_jump(opcode))) {
     //the following line should only be used for debugging as storing opcodes is not necessary, storing arguments however will be useful
@@ -112,9 +116,12 @@ cache_block dynarec_cpu::translate(uint16 address, mem &m, keypad &k, lcd &l, ji
     jit_value_t update_timers_args[] = {m_addr.raw(), dt.raw()};
     jit_value_t step_lcd_args[] = {l_addr.raw(), dt.raw(), m_addr.raw()};
     jit_value_t handle_events_args[] = {k_addr.raw(), dt.raw(), m_addr.raw()};
+    jit_value_t throttle_args[] = {tp_addr.raw(), dt.raw()};
+
     block.insn_call_native(NULL, (void *)&mem::update_timers, update_timers_signature, update_timers_args, 2, 0);
     block.insn_call_native(NULL, (void *)&lcd::step_lcd, step_lcd_signature, step_lcd_args, 3, 0);
-    block.insn_call_native(NULL, (void *)&keypad::handle_events, handle_events_signature, handle_events_args, 3, 0);
+    jit_value event = block.insn_call_native(NULL, (void *)&keypad::handle_events, handle_events_signature, handle_events_args, 3, 0);
+    block.insn_call_native(NULL, (void *)&throttle_controller::throttle, throttle_signature, throttle_args, 2, 0);
 
     address++;
     opcode = m.read_byte(address);

@@ -1,5 +1,4 @@
 #include <iostream>
-#include <time.h> //clock_nanosleep, clock_gettime
 #include "cpu.h"
 
 using namespace std;

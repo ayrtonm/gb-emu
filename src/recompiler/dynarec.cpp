@@ -17,10 +17,14 @@ dynarec_cpu::dynarec_cpu() {
   pc.w = 0x0100;
   type_uint8_ptr = jit_type_create_pointer(jit_type_ubyte, 0);
   type_uint16_ptr = jit_type_create_pointer(jit_type_ushort, 0);
-  jit_type_t read_mem_arg[1];
-  read_mem_arg[0] = jit_type_ushort;
-  read_byte_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_ubyte, read_mem_arg, 1, 1);
-  read_word_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_ushort, read_mem_arg, 1, 1);
+  type_class_ptr = jit_type_create_pointer(jit_type_void_ptr, 0);
+  jit_type_t read_mem_arg[] = {jit_type_void_ptr, jit_type_ushort};
+  jit_type_t write_byte_args[] = {jit_type_void_ptr, jit_type_ushort, jit_type_ubyte};
+  jit_type_t write_word_args[] = {jit_type_void_ptr, jit_type_ushort, jit_type_ushort};
+  read_byte_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_ubyte, read_mem_arg, 2, 1);
+  read_word_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_ushort, read_mem_arg, 2, 1);
+  write_byte_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_int, write_byte_args, 3, 1);
+  write_word_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_int, write_word_args, 3, 1);
 }
 
 dynarec_cpu::~dynarec_cpu() {
@@ -31,25 +35,34 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
   jit_context context;
 
   cache *storage = new cache();
-  optional<int> current_idx, next_idx;
-  uint16 current_address = pc.w;
-  uint16 next_address;
-
-  cache_block block = translate(current_address,m,&context);
-  current_idx = storage->insert_block(block);
+  optional<int> idx;
+  uint16 address = pc.w;
+  cache_block block(context);
 
   for (;;) {
-    //load libjit registers from cpu state
-    next_address = storage->exec_block(current_idx.value());
-    //store libjit registers in cpu state
-    next_idx = storage->find_block(next_address);
-    //if find_block fails translate the next block
-    if (!next_idx) {
-      block = translate(current_address,m,&context);
-      next_idx = storage->insert_block(block);
+    idx = storage->find_block(address);
+    if (!idx) {
+      block = translate(address, m, &context);
+      while (!block.is_valid()) {
+        switch (m.read_byte(address)) {
+          #include "jumps.h"
+          #include "cond_branches.h"
+          default: {
+            cout << "ran into unimplemented jump or conditional branch" << endl;
+            break;
+          }
+        }
+        idx = storage->find_block(address);
+        if (!idx) {
+          block = translate(address, m, &context);
+          idx = storage->insert_block(block);
+        }
+        else {
+          break;
+        }
+      }
     }
-    current_idx = next_idx;
-    current_address = next_address;
+    address = storage->exec_block(idx.value());
   }
   delete storage;
 }
@@ -58,9 +71,7 @@ cache_block dynarec_cpu::translate(uint16 address, mem &m, jit_context *context)
   cache_block block(*context);
   context->build_start();
   block.set_start(address);
-  //make a jit_value constant that contains a pointer to m.read_word()
-  //add a call to m.read_word() using this pointer to the block's function
-  //jit_value read_word = block.new_constant(m, type_mem_ptr);
+  jit_value m_addr = block.new_constant(&m, type_class_ptr);
   uint8 opcode = m.read_byte(address);
   while (!(is_cond(opcode)||is_jump(opcode))) {
     //the following line should only be used for debugging as storing opcodes is not necessary, storing arguments however will be useful
@@ -71,14 +82,25 @@ cache_block dynarec_cpu::translate(uint16 address, mem &m, jit_context *context)
       block.store_data(m.read_byte(address));
     }
     switch(opcode) {
-      #include "instructions.h"
+      #include "translations.h"
+      default: {
+        cout << "ran into unimplemented opcode" << endl;
+        break;
+      }
     }
     address++;
     opcode = m.read_byte(address);
   };
   block.set_end(address);
-  block.compile();
+  if (block.get_end() != block.get_start()) {
+    block.compile();
+    block.bind();
+  }
+  //figure out how to handle jumps before uncommenting the following code
+  //if no instructions were translated (ex: consecutive jumps) mark this block as invalid
+  else {
+    block.invalidate();
+  }
   context->build_end();
-  block.bind();
   return block;
 }

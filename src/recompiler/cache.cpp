@@ -1,4 +1,5 @@
 #include "cache.h"
+#include <iostream> //for debugging only
 #include <algorithm>
 
 cache::cache() {
@@ -57,7 +58,6 @@ uint16 cache::exec_block(int idx) {
     }
   }
   blocks[idx].exec();
-  //handle jump or conditional branch
   //return next address
-  return 0; 
+  return blocks[idx].get_end();
 }

@@ -19,8 +19,8 @@ class dynarec_cpu {
   private:
     word16 af, bc, de, hl, sp, pc;
     uint8 ime, ei_delay, halt;
-    jit_type_t type_uint8_ptr, type_uint16_ptr;
-    jit_type_t read_byte_signature, read_word_signature;
+    jit_type_t type_uint8_ptr, type_uint16_ptr, type_class_ptr;
+    jit_type_t read_byte_signature, read_word_signature, write_byte_signature, write_word_signature;
 };
 
 #endif

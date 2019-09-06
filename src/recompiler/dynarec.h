@@ -17,7 +17,7 @@ class dynarec_cpu {
     cache_block translate(uint16 start_address, mem &m, jit_context *context);
     void emit_code(void);
   private:
-    word16 af, bc, de, hl, sp, pc;
+    word16 af, bc, de, hl, sp;
     uint8 ime, ei_delay, halt;
     jit_type_t type_uint8_ptr, type_uint16_ptr, type_class_ptr;
     jit_type_t read_byte_signature, read_word_signature, write_byte_signature, write_word_signature;

@@ -19,7 +19,8 @@ dynarec_cpu::dynarec_cpu() {
   de.w = 0x00d8;
   hl.w = 0x014d;
   sp.w = 0xfffe;
-  pc.w = 0x0100;
+  //pc.w = 0x0100;
+  init_address = 0x0100;
   halt = 0;
   ime = 0;
   ei_delay = 0;
@@ -44,7 +45,7 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
 
   cache *storage = new cache();
   optional<int> idx;
-  uint16 address = pc.w;
+  uint16 address = init_address;
   cache_block block(context);
 
   for (;;) {

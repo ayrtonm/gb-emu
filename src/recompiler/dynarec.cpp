@@ -49,22 +49,34 @@ dynarec_cpu::dynarec_cpu() {
 }
 
 dynarec_cpu::~dynarec_cpu() {
+  jit_type_free(type_uint8_ptr);
+  jit_type_free(type_uint16_ptr);
+  jit_type_free(type_class_ptr);
+  jit_type_free(read_byte_signature);
+  jit_type_free(read_word_signature);
+  jit_type_free(write_byte_signature);
+  jit_type_free(write_word_signature);
+  jit_type_free(update_timers_signature);
+  jit_type_free(step_lcd_signature);
+  jit_type_free(handle_events_signature);
+  jit_type_free(throttle_signature);
 }
 
 void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
+  int counter = 200000;
   //initialize libjit stuff
   jit_context context;
 
   cache *storage = new cache();
   optional<int> idx;
   uint16 address = init_address;
-  cache_block block(context);
+  optional<cache_block> block(context);
 
   for (;;) {
     idx = storage->find_block(address);
     if (!idx) {
       block = translate(address, m, k, l, &context);
-      while (!block.is_valid()) {
+      while (!block) {
         switch (m.read_byte(address)) {
           #include "jumps.h"
           #include "cond_branches.h"
@@ -76,7 +88,7 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
         idx = storage->find_block(address);
         if (!idx) {
           block = translate(address, m, k, l, &context);
-          idx = storage->insert_block(block);
+          idx = storage->insert_block(block.value());
         }
         else {
           break;
@@ -84,19 +96,32 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
       }
     }
     address = storage->exec_block(idx.value());
+    //counter--;
+    //if (counter == 0) {
+    //  delete storage;
+    //  return;
+    //}
   }
   delete storage;
+  return;
 }
 
-cache_block dynarec_cpu::translate(uint16 address, mem &m, keypad &k, lcd &l, jit_context *context) {
+optional<cache_block> dynarec_cpu::translate(uint16 address, mem &m, keypad &k, lcd &l, jit_context *context) {
+  //jit_function destructors do not free the raw function. the raw function persists until the context is destroyed
+  //since we want to reuse the same context throughout the program, this means that we should not make instances of cache_blocks (class derived from jit_function) that we will not use
+  //this means it is important to return nullopt in the case of a jump or conditional branch before the cache_block instance is created
+  //this also means there is another potential memory leak issue when replacing one cache_block in the cache with a new one
+  uint8 opcode = m.read_byte(address);
+  if (is_cond(opcode) || is_jump(opcode)) {
+    return nullopt;
+  }
   cache_block block(*context);
-  context->build_start();
   block.set_start(address);
+  context->build_start();
   jit_value m_addr = block.new_constant(&m, type_class_ptr);
   jit_value k_addr = block.new_constant(&k, type_class_ptr);
   jit_value l_addr = block.new_constant(&l, type_class_ptr);
   jit_value tp_addr = block.new_constant(&tp, type_class_ptr);
-  uint8 opcode = m.read_byte(address);
   while (!(is_cond(opcode)||is_jump(opcode))) {
     //the following line should only be used for debugging as storing opcodes is not necessary, storing arguments however will be useful
     block.store_data(opcode);
@@ -127,13 +152,9 @@ cache_block dynarec_cpu::translate(uint16 address, mem &m, keypad &k, lcd &l, ji
     opcode = m.read_byte(address);
   };
   block.set_end(address);
-  if (block.get_end() != block.get_start()) {
-    block.compile();
-    block.bind();
-  }
-  else {
-    block.invalidate();
-  }
+  block.insn_return();
+  block.compile();
+  block.bind();
   context->build_end();
   return block;
 }

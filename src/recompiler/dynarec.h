@@ -15,7 +15,7 @@ class dynarec_cpu {
     dynarec_cpu();
     ~dynarec_cpu();
     void emulate(mem &m, keypad &k, lcd &l, sound &s);
-    cache_block translate(uint16 address, mem &m, keypad &k, lcd &l, jit_context *context);
+    optional<cache_block> translate(uint16 address, mem &m, keypad &k, lcd &l, jit_context *context);
     void emit_code(void);
   private:
     uint16 init_address;

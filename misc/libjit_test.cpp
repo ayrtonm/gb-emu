@@ -38,10 +38,10 @@ int main(int argc, char *argv[]) {
   context.build_start();
   func.build();
   func.compile();
-  context.build_end();
 
   typedef int (*FF)(void);
   FF closure = (FF)func.closure();
+  context.build_end();
   for (int i = 0; i < 10; i++) {
     std::cout << closure() << " ";
     std::cout << reg << std::endl;

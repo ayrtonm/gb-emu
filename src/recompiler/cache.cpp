@@ -18,13 +18,19 @@ int cache::insert_block(cache_block block) {
     if (!it->is_valid()) {
       idx = it-blocks.begin();
       evict_block = false;
-      blocks[idx] = block;
+      blocks.erase(blocks.begin() + idx);
+      blocks.push_back(block);
+      priorities.erase(priorities.begin() + idx);
+      priorities.push_back(0);
       break;
     }
   }
   if (evict_block) {
     idx = find_last_used();
-    blocks[idx] = block;
+    blocks.erase(blocks.begin() + idx);
+    blocks.push_back(block);
+    priorities.erase(priorities.begin() + idx);
+    priorities.push_back(0);
   }
   return idx;
 }

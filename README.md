@@ -42,6 +42,15 @@ Install SDL2. Run `make`.
 | o         | Load state |                        |
 | r         | Reset game |                        |
 
+## Configuration Options
+
+| Setting               | Configuration string | Value type | Default value |
+| --------------------- | -------------------- | ---------- | ------------- |
+| horizontal resolution | lcd.x                | int        | 160           |
+| vertical resolution   | lcd.y                | int        | 144           |
+| resizable display     | lcd.resizable        | bool       | true          |
+| fullscreen display    | lcd.fullscreen       | bool       | false         |
+
  
 ## Testing
 **TODO** insert blurb about my half-baked assembler ~~python~~ Go script  

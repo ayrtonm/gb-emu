@@ -26,23 +26,25 @@ Install SDL2. Run `make`.
 
 ## Default Keybindings
 
-| Key       | Action     | Configuration string   |
-| --------- | ---------- | ---------------------- |
-| Up        | Up         | key.up                 |
-| Down      | Down       | key.down               |
-| Left      | Left       | key.left               |
-| Right     | Right      | key.right              |
-| z         | A          | key.a                  |
-| x         | B          | key.b                  |
-| Return    | Start      | key.start              |
-| Backspace | Select     | key.select             |
-| q         | Quit       |                        |
-| Space     | Boost      |                        |
-| p         | Save state |                        |
-| o         | Load state |                        |
-| r         | Reset game |                        |
+| Key       | Action          | Configuration string   |
+| --------- | --------------- | ---------------------- |
+| Up        | Up              | key.up                 |
+| Down      | Down            | key.down               |
+| Left      | Left            | key.left               |
+| Right     | Right           | key.right              |
+| z         | A               | key.a                  |
+| x         | B               | key.b                  |
+| Return    | Start           | key.start              |
+| Backspace | Select          | key.select             |
+| q         | Quit            |                        |
+| Space     | Toggle throttle |                        |
+| p         | Save state      |                        |
+| o         | Load state      |                        |
+| r         | Reset game      |                        |
 
-## Configuration Options
+## Other Configuration Options
+
+Config files should contain one line per setting with the configuration string and value separated by a space.
 
 | Setting               | Configuration string | Value type | Default value |
 | --------------------- | -------------------- | ---------- | ------------- |

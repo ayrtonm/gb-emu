@@ -1,6 +1,7 @@
-#include "cpu.h"
+#include "generic.h"
+#include "states.h"
 
-void cpu::save_state(emulator_state *st, mem &m, keypad &k, lcd &l, sound &s) {
+void generic_cpu::save_state(emulator_state *st, mem &m, keypad &k, lcd &l, sound &s) {
   if (!st->saved) {
     st->m = new mem(m);
     st->l = new lcd(l);
@@ -25,7 +26,7 @@ void cpu::save_state(emulator_state *st, mem &m, keypad &k, lcd &l, sound &s) {
   st->c.halt = halt;
 }
 
-void cpu::load_state(emulator_state *st, mem &m, keypad &k, lcd &l, sound &s) {
+void generic_cpu::load_state(emulator_state *st, mem &m, keypad &k, lcd &l, sound &s) {
   if (st->saved) {
     m = *st->m;
     l = *st->l;
@@ -44,7 +45,7 @@ void cpu::load_state(emulator_state *st, mem &m, keypad &k, lcd &l, sound &s) {
   }
 }
 
-void cpu::delete_state(emulator_state *st) {
+void generic_cpu::delete_state(emulator_state *st) {
   if (st->saved) {
     delete st->m;
     delete st->l;

@@ -1,44 +1,21 @@
 #ifndef CPU_H
 #define CPU_H
 #include "../bits.h"
+#include "../generic.h"
 #include "../mem.h"
 #include "../lcd.h"
 #include "../keypad.h"
 #include "../sound.h"
 #include "../throttle.h"
+#include "../states.h"
 
-typedef struct cpu_state {
-  word16 af, bc, de, hl, sp, pc;
-  uint8 ime;
-  uint8 ei_delay;
-  uint8 halt;
-  bool repeat;
-} cpu_state;
-
-typedef struct emulator_state {
-  cpu_state c;
-  mem *m;
-  lcd *l;
-  keypad *k;
-  sound *s;
-  bool saved = false;
-} emulator_state;
-
-class cpu {
+class cpu : public generic_cpu {
   public:
     cpu();
-    word16 af, bc, de, hl, sp, pc;
-    uint8 ime;
-    uint8 ei_delay;
-    uint8 halt;
-    bool repeat;
-    throttle_controller tp;
     void emulate(mem &m, keypad &k, lcd &l, sound &s);
+    bool repeat;
     emulator_state *saved_state, *init_state;
     bool verify_quit(void);
-    void save_state(emulator_state *st, mem &m, keypad &k, lcd &l, sound &s);
-    void load_state(emulator_state *st, mem &m, keypad &k, lcd &l, sound &s);
-    void delete_state(emulator_state *st);
 };
 
 //opcodes

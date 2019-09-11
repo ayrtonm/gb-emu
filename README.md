@@ -1,14 +1,14 @@
 # gb-emu
 ![demo](https://github.com/ayrtonm/gb-emu/blob/master/demo.gif)  
-This is a gameboy emulator started in 2013 as a personal project to learn about computer architecture. After years of on and off (mostly off) development it now works well enough to run some games though it is still a work in progress. Currently the display and keypad are the only implemented I/O peripherals (no sound yet). Memory bank switching (required for ROMs larger than 32 kB) is implemented for a few common memory bank controllers. The processor is currently emulated like an interpreter that decodes opcodes one at a time. This works well, but I'm also working on a dynamic recompilation option using LLVM to learn about just-in-time (JIT) compilation.
+This is a gameboy emulator started in 2013 as a personal project to learn about computer architecture. After years of on and off (mostly off) development it now works well enough to run many games though it is still a work in progress. Currently the display and keypad are the only implemented I/O peripherals (no sound yet). Memory bank switching (required for ROMs larger than 32 kB) is implemented for a few common memory bank controllers. The processor currently works by decoding and interpreting opcodes one at a time, but a dynamic recompiler (dynarec) version is in the works. The dynarec uses [LibJIT](https://www.gnu.org/software/libjit/) to compile continuous sequences of gameboy opcodes into executable native code. This version is mainly a way to learn to about just-in-time (JIT) compilation since the interpreted cpu is more than fast enough and many components are shared between the two versions.
 
 ## Features
-- video display
-- keypad input
-- memory bank switching for MBC1, MBC2, MBC3
-- internal timer and real-time clock registers
-- interrupts
+- fully-functional display and keyboard input
+- reads an optional configuration file for display and keyboard settings 
+- automatically loads and saves external RAM to a file
+- save and reload the emulator states at any point
 - option to dump contents of addressable memory to a file on exit (for debugging)
+- memory bank switching for MBC1, MBC2, MBC3 (partially implemented for MBC5)
 
 ## Building
 Install SDL2. Run `make`.
@@ -23,10 +23,29 @@ Install SDL2. Run `make`.
       -s, --savefile=SAVEFILE    load and save external RAM to the following file
       -?, --help                 Give this help list
           --usage                Give a short usage message
+
+## Default Keybindings
+
+| Key       | Action     | Configuration string   |
+| --------- | ---------- | ---------------------- |
+| Up        | Up         | key.up                 |
+| Down      | Down       | key.down               |
+| Left      | Left       | key.left               |
+| Right     | Right      | key.right              |
+| z         | A          | key.a                  |
+| x         | B          | key.b                  |
+| Return    | Start      | key.start              |
+| Backspace | Select     | key.select             |
+| q         | Quit       |                        |
+| Space     | Boost      |                        |
+| p         | Save state |                        |
+| o         | Load state |                        |
+| r         | Reset game |                        |
+
  
 ## Testing
 **TODO** insert blurb about my half-baked assembler ~~python~~ Go script  
-**TODO** insert blurb about gb-test-roms repo and which tests are currently passing/failing
+**TODO** insert blurb about [gb-test-roms repo](https://github.com/retrio/gb-test-roms) and which tests are currently passing/failing
 
 ## Useful references
 

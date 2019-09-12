@@ -19,8 +19,7 @@ dynarec_cpu::dynarec_cpu() {
   de.w = 0x00d8;
   hl.w = 0x014d;
   sp.w = 0xfffe;
-  //pc.w = 0x0100;
-  init_address = 0x0100;
+  pc.w = 0x0100;
   halt = 0;
   ime = 0;
   ei_delay = 0;
@@ -63,18 +62,16 @@ dynarec_cpu::~dynarec_cpu() {
 }
 
 void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
-  int counter = 200000;
   cache *storage = new cache();
   optional<int> idx;
-  uint16 address = init_address;
   optional<cache_block> block;
 
   for (;;) {
-    idx = storage->find_block(address);
+    idx = storage->find_block(pc.w);
     if (!idx) {
-      block = translate(address, m, k, l);
+      block = translate(pc.w, m, k, l);
       while (!block) {
-        switch (m.read_byte(address)) {
+        switch (m.read_byte(pc.w)) {
           #include "jumps.h"
           #include "cond_branches.h"
           default: {
@@ -82,9 +79,9 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
             break;
           }
         }
-        idx = storage->find_block(address);
+        idx = storage->find_block(pc.w);
         if (!idx) {
-          block = translate(address, m, k, l);
+          block = translate(pc.w, m, k, l);
           idx = storage->insert_block(block.value());
         }
         else {
@@ -92,12 +89,7 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
         }
       }
     }
-    address = storage->exec_block(idx.value());
-    //counter--;
-    //if (counter == 0) {
-    //  delete storage;
-    //  return;
-    //}
+    pc.w = storage->exec_block(idx.value());
   }
   delete storage;
   return;

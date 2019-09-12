@@ -78,7 +78,12 @@ class keypad {
       {"key.up", Up},
       {"key.down", Down},
       {"key.left", Left},
-      {"key.right", Right}};
+      {"key.right", Right},
+      {"key.quit", Quit},
+      {"key.throttle", Boost},
+      {"key.save", Save},
+      {"key.load", Load},
+      {"key.reset", Reset}};
 };
 
 #endif

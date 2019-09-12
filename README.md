@@ -36,15 +36,15 @@ Install SDL2. Run `make`.
 | x         | B               | key.b                  |
 | Return    | Start           | key.start              |
 | Backspace | Select          | key.select             |
-| q         | Quit            |                        |
-| Space     | Toggle throttle |                        |
-| p         | Save state      |                        |
-| o         | Load state      |                        |
-| r         | Reset game      |                        |
+| q         | Quit            | key.quit               |
+| Space     | Toggle throttle | key.throttle           |
+| p         | Save state      | key.save               |
+| o         | Load state      | key.load               |
+| r         | Reset game      | key.reset              |
 
 ## Other Configuration Options
 
-Config files should contain one line per setting with the configuration string and value separated by a space.
+Config files should contain one line per setting with the configuration string and value. Examples are available in [settings.cfg](https://github.com/ayrtonm/gb-emu/blob/master/settings.cfg).
 
 | Setting               | Configuration string | Value type | Default value |
 | --------------------- | -------------------- | ---------- | ------------- |

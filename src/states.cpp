@@ -1,4 +1,4 @@
-#include "generic.h"
+#include "generic_cpu.h"
 #include "states.h"
 
 void generic_cpu::save_state(emulator_state *st, mem &m, keypad &k, lcd &l, sound &s) {

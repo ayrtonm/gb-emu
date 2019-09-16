@@ -1,3 +1,4 @@
+#ifdef DYNAREC_CPU
 #include "cache.h"
 #include <iostream> //for debugging only
 #include <algorithm>
@@ -67,3 +68,4 @@ uint16 cache::exec_block(int idx) {
   //return next address
   return blocks[idx].get_end();
 }
+#endif

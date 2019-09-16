@@ -1,3 +1,4 @@
+#ifdef DYNAREC_CPU
 #include <iostream>
 #include <algorithm>
 #include <jit/jit-plus.h>
@@ -147,3 +148,4 @@ optional<cache_block> dynarec_cpu::translate(uint16 address, mem &m, keypad &k, 
   block.build_end();
   return block;
 }
+#endif

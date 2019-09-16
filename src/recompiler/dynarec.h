@@ -1,7 +1,7 @@
 #ifndef DYNAREC_H
 #define DYNAREC_H
 #include "cache.h"
-#include "../generic.h"
+#include "../generic_cpu.h"
 #include "../states.h"
 #include "../mem.h"
 #include "../keypad.h"

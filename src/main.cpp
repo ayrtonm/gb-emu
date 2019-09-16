@@ -1,9 +1,11 @@
 #include <iostream>
 #include <string>
 #include <argp.h>
-#include "recompiler/dynarec.h"
-#include "interpreter/cpu.h"
 #include "mem.h"
+#include "interpreter/cpu.h"
+#ifdef DYNAREC_CPU
+#include "recompiler/dynarec.h"
+#endif
 
 struct arguments {
   char *args[2];
@@ -20,7 +22,9 @@ static struct argp_option options[] = {
   {"configfile", 'c',"CONFIGFILE", 0, "load the given configuration file"},
   {"memorydump", 'd', "OUTPUTFILE", 0, "print addresses and values of non-zero memory into OUTFILE at the end of emulation"},
   {"savefile", 's', "SAVEFILE", 0, "load and save external RAM to the following file"},
+#ifdef DYNAREC_CPU
   {NULL, 'r', NULL, 0, "use dynamic recompilation"},
+#endif
   {0}
 };
 
@@ -80,11 +84,14 @@ int main(int argc, char *argv[]) {
   k = new keypad(configfile);
   l = new lcd(configfile);
   s = new sound(configfile);
+#ifdef DYNAREC_CPU
   //if we are not dynamically recompiling, make a pointer to an instance of the cpu class and start emulator
   if (!arguments.recompiled) {
+#endif
     cpu *c = new cpu;
     c->emulate(*m,*k,*l,*s);
     delete c;
+#ifdef DYNAREC_CPU
   }
   //otherwise pass control to dynarec loop
   else {
@@ -92,6 +99,7 @@ int main(int argc, char *argv[]) {
     c->emulate(*m,*k,*l,*s);
     delete c;
   }
+#endif
   delete m;
   delete k;
   delete l;

@@ -1,7 +1,7 @@
 #ifndef CPU_H
 #define CPU_H
 #include "../bits.h"
-#include "../generic.h"
+#include "../generic_cpu.h"
 #include "../mem.h"
 #include "../lcd.h"
 #include "../keypad.h"

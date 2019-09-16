@@ -11,7 +11,7 @@ This is a gameboy emulator started in 2013 as a personal project to learn about 
 - memory bank switching for MBC1, MBC2, MBC3 (partially implemented for MBC5)
 
 ## Building
-Install SDL2. Run `make`.
+Install SDL2. Run `make`. This only compiles the interpreter version by default. To compile with support for dynamic recompilation install LibJIT and run `make CXXFLAGS=-DDYNAREC_CPU`.
 
 ## Usage
     Usage: gb-emu [OPTION...] -l FILENAME

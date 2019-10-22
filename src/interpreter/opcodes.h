@@ -216,11 +216,11 @@ case 0xbe:  {CP(m.read_byte(hl.w));break;}
 case 0xbf:  {CP(af.b.h);break;}
 
 case 0xc0:  {COND_RET(!(af.b.l & F_Z));break;}
-case 0xc1:  {POP(bc.b.h,bc.b.l);break;}
+case 0xc1:  {POP(bc.w);break;}
 case 0xc2:  {COND_JP(!(af.b.l & F_Z),m.read_word(pc.w-2));break;}
 case 0xc3:  {JP(m.read_word(pc.w-2));break;}
 case 0xc4:  {COND_CALL(!(af.b.l & F_Z),m.read_word(pc.w-2));break;}
-case 0xc5:  {PUSH(bc.b.h,bc.b.l);break;}
+case 0xc5:  {PUSH(bc.w);break;}
 case 0xc6:  {ADD(m.read_byte(pc.w-1));break;}
 case 0xc7:  {RST(0x00);break;}
 
@@ -234,11 +234,11 @@ case 0xce:  {ADC(m.read_byte(pc.w-1));break;}
 case 0xcf:  {RST(0x08);break;}
 
 case 0xd0:  {COND_RET(!(af.b.l & F_C));break;}
-case 0xd1:  {POP(de.b.h,de.b.l);break;}
+case 0xd1:  {POP(de.w);break;}
 case 0xd2:  {COND_JP(!(af.b.l & F_C),m.read_word(pc.w-2));break;}
 case 0xd3:  {break;}//no opcode
 case 0xd4:  {COND_CALL(!(af.b.l & F_C),m.read_word(pc.w-2));break;}
-case 0xd5:  {PUSH(de.b.h,de.b.l);break;}
+case 0xd5:  {PUSH(de.w);break;}
 case 0xd6:  {SUB(m.read_byte(pc.w-1));break;}
 case 0xd7:  {RST(0x10);break;}
 
@@ -252,11 +252,11 @@ case 0xde:  {SBC(m.read_byte(pc.w-1));break;}
 case 0xdf:  {RST(0x18);break;}
 
 case 0xe0:  {uint16 temp=m.read_byte(pc.w-1)+0xFF00;LD_RM(temp,af.b.h);break;}
-case 0xe1:  {POP(hl.b.h,hl.b.l);break;}
+case 0xe1:  {POP(hl.w);break;}
 case 0xe2:  {uint16 temp=bc.b.l+0xFF00;LD_RM(temp,af.b.h);break;}
 case 0xe3:  {break;}//no opcode
 case 0xe4:  {break;}//no opcode
-case 0xe5:  {PUSH(hl.b.h,hl.b.l);break;}
+case 0xe5:  {PUSH(hl.w);break;}
 case 0xe6:  {AND(m.read_byte(pc.w-1));break;}
 case 0xe7:  {RST(0x20);break;}
 
@@ -276,11 +276,11 @@ case 0xef:  {RST(0x28);break;}
 
 case 0xf0:  {uint16 temp=m.read_byte(pc.w-1)+0xFF00;LD_MR(af.b.h,temp);break;}
 //need to "and" flag register with 0xf0 since lower 4 bits are unused
-case 0xf1:  {POP(af.b.h,af.b.l);af.b.l &= 0xf0;break;}
+case 0xf1:  {POP(af.w);af.b.l &= 0xf0;break;}
 case 0xf2:  {uint16 temp=bc.b.l+0xFF00;LD_MR(af.b.h,temp);break;}
 case 0xf3:  {ime=0;ei_delay = 0;break;}
 case 0xf4:  {break;}//no opcode
-case 0xf5:  {PUSH(af.b.h,af.b.l);break;}
+case 0xf5:  {PUSH(af.w);break;}
 case 0xf6:  {OR(m.read_byte(pc.w-1));break;}
 case 0xf7:  {RST(0x30);break;}
 

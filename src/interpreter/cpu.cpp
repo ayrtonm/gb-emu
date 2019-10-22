@@ -43,7 +43,7 @@ void cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
           //clear the interrupt flag that was just triggered
           m.write_byte_internal(O_IO + IO_IR, m.read_byte_internal(O_IO + IO_IR) & ~i);
           //push the program counter onto the stack
-          PUSH(pc.b.h,pc.b.l);
+          PUSH(pc.w);
           pc.w = 0x40 + interrupt_table[i-1];
         }
       }

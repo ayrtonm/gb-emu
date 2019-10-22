@@ -24,32 +24,4 @@ class dynarec_cpu : public generic_cpu {
     jit_type_t read_byte_signature, read_word_signature, write_byte_signature, write_word_signature, update_timers_signature, step_lcd_signature, handle_events_signature, throttle_signature;
 };
 
-//these macros start with JIT_ to avoid having to redefine the macros in cpu.h
-//however these should only be used *outside* JIT code
-//I still need to figure out how to handle updating the aux classes based on the dt
-//from all jumps and conditionals, the variable dt in the conditionals below is commented out for now
-#define JIT_JR(n) do {pc.w += ((signed char)n);} while(0)
-
-#define JIT_COND_JR(cond,n) do {if (cond) {JIT_JR(n);/*dt += 1;*/};} while(0)
-
-#define JIT_RET do {JIT_POP;} while(0)
-
-#define JIT_COND_RET(cond) do {if (cond) {JIT_RET;/*dt += 3;*/};} while(0)
-
-#define JIT_RETI do {ime=1;JIT_POP;} while(0)
-
-#define JIT_JP(n) do {pc.w = n;} while(0)
-
-#define JIT_COND_JP(cond,n) do {if (cond) {JIT_JP(n);/*dt += 1;*/};} while(0)
-
-#define JIT_CALL(n) do {JIT_PUSH; pc.w = n;} while(0)
-
-#define JIT_COND_CALL(cond,n) do {if (cond) {JIT_CALL(n);/*dt += 3;*/};} while(0)
-
-#define JIT_POP do {pc.w = m.read_word(sp.w); sp.w += 2;} while(0)
-
-#define JIT_PUSH do {sp.w -= 2; m.write_word(sp.w, pc.w + 3);} while (0)
-
-#define JIT_RST(n) do {JIT_PUSH; pc.w = n;} while(0)
-
 #endif

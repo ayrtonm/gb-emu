@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <jit/jit-plus.h>
 #include "dynarec.h"
+#include "jit_macros.h"
 
 using namespace std;
 

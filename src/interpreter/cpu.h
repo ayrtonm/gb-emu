@@ -25,30 +25,6 @@ class cpu : public generic_cpu {
 
 #define ADDHL(r) do {int mtemp = hl.w+(r); af.b.l = (af.b.l & F_Z)|(mtemp & 0x010000 ? F_C : 0)|((hl.w^(r)^(mtemp & 0xFFFF)) & 0x1000 ? F_H : 0); hl.w = mtemp & 0xFFFF;} while(0)
 
-#define JR(n) do {pc.w += ((signed char)n);} while(0)
-
-#define COND_JR(cond,n) do {if (cond) {JR(n);dt += 1;};} while(0)
-
-#define RET do {POP(pc.b.h,pc.b.l);} while(0)
-
-#define COND_RET(cond) do {if (cond) {RET;dt += 3;};} while(0)
-
-#define RETI do {POP(pc.b.h,pc.b.l);ime=1;} while(0)
-
-#define JP(n) do {pc.w = n;} while(0)
-
-#define COND_JP(cond,n) do {if (cond) {JP(n); dt += 1;};} while(0)
-
-#define CALL(n) do {PUSH(pc.b.h,pc.b.l); pc.w = n;} while(0)
-
-#define COND_CALL(cond,n) do {if (cond) {CALL(n);dt += 3;};} while(0)
-
-#define POP(a,b) do {b = m.read_byte(sp.w++); a = m.read_byte(sp.w++);} while(0)
-
-#define PUSH(a,b) do {m.write_byte(--sp.w,a); m.write_byte(--sp.w,b);} while(0)
-
-#define RST(n) do {PUSH(pc.b.h,pc.b.l); pc.w = n;} while(0)
-
 #define DAA do {uint16 mtemp = af.b.h; mtemp |= (af.b.l & (F_C|F_H|F_N)) << 4; af.w = DAATable[mtemp];} while(0)
 
 #define CPL do {af.b.h ^= 0xFF; af.b.l |= (F_N|F_H);} while(0)

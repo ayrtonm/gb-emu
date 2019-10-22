@@ -9,25 +9,33 @@ main:
   //this pushes the address of f onto the stack
   call f
   call g
+  call h
+  call k
+  call j
   jp main
 
-.data
-  0xffffffff
-  0xffffffff
-
 //don't pop before pushing to not mess up the call stack
-//0x0164
 f:
   push $bc
   pop $bc
   ret
 
-.data
-  0xffffffff
-  0xffffffff
-
-//0x016f
 g:
+  push $bc
+  pop $bc
+  ret
+
+h:
+  push $bc
+  pop $bc
+  ret
+
+k:
+  push $bc
+  pop $bc
+  ret
+
+j:
   push $bc
   pop $bc
   ret

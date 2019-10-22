@@ -1,0 +1,6 @@
+c3 - jp main
+1 - ld $bc 0x1000
+cd - call push
+c1 - pop $bc
+c9 - ret
+c5 - push $bc

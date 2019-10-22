@@ -91,14 +91,12 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
       else {
         //cache the translated block
         idx = storage->insert_block(block.value());
-        //cout << "inserting block at " << idx.value() << endl;
         //break out of the for loop to execute the block
         break;
       }
     }
     //at this point idx points to the correct block in the cache
     //execute the block and update pc.w accordingly
-    //cout << "executing block" << idx.value() << endl;
     pc.w = storage->exec_block(idx.value());
   }
   delete storage;

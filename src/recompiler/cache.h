@@ -62,7 +62,6 @@ class cache_block : public jit_function {
     void build_end() {
       context->build_end();
     }
-    vector<uint8> raw_data;
   protected:
     virtual jit_type_t create_signature() {
       return signature_helper(jit_type_int, end_params);
@@ -70,6 +69,7 @@ class cache_block : public jit_function {
   private:
     jit_context *context;
     function function_name;
+    vector<uint8> raw_data;
     uint16 start_address, end_address;
     bool valid;
 };
@@ -81,7 +81,13 @@ class cache {
         *it = NULL;
       }
     };
-    ~cache() {};
+    ~cache() {
+      for (auto it = blocks.begin(); it != blocks.end(); it++) {
+        if (*it != NULL) {
+          delete *it;
+        }
+      }
+    };
     int insert_block(cache_block *block);
     optional<int> find_block(uint16 start_address);
     uint16 exec_block(int idx);

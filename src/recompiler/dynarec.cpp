@@ -1,4 +1,5 @@
 #ifdef DYNAREC_CPU
+#define DYNAREC_DEBUG
 #include <iostream>
 #include <algorithm>
 #include <jit/jit-plus.h>
@@ -7,7 +8,7 @@
 using namespace std;
 
 bool is_cond(uint8 opcode) {
-  return find(begin(cond_branches), end(cond_branches), opcode) != end(cond_branches);
+  return find(begin(conditionals), end(conditionals), opcode) != end(conditionals);
 }
 
 bool is_jump(uint8 opcode) {
@@ -65,87 +66,117 @@ dynarec_cpu::~dynarec_cpu() {
 void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
   cache *storage = new cache();
   optional<int> idx;
-  optional<cache_block> block;
+  optional<cache_block*> block;
 
   for (;;) {
-    idx = storage->find_block(pc.w);
-    if (!idx) {
+    //if we can't find the right block in the cache
+    for (idx = storage->find_block(pc.w); !idx; idx = storage->find_block(pc.w)) {
+      //try translating the binary
       block = translate(pc.w, m, k, l);
-      while (!block) {
-        switch (m.read_byte(pc.w)) {
+      //if $pc points to a jump/conditional
+      if (!block) {
+        //update $pc accordingly
+        uint8 op = m.read_byte(pc.w);
+        switch(op) {
           #include "jumps.h"
-          #include "cond_branches.h"
+          #include "conditionals.h"
           default: {
             cout << "ran into unimplemented jump or conditional branch" << endl;
             break;
           }
         }
-        idx = storage->find_block(pc.w);
-        if (!idx) {
-          block = translate(pc.w, m, k, l);
-          idx = storage->insert_block(block.value());
-        }
-        else {
-          break;
-        }
+        //at this point $pc may or may not point to another jump/conditional so we search the cache again
+      }
+      //if the translation was successful
+      else {
+        //cache the translated block
+        idx = storage->insert_block(block.value());
+        //cout << "inserting block at " << idx.value() << endl;
+        //break out of the for loop to execute the block
+        break;
       }
     }
+    //at this point idx points to the correct block in the cache
+    //execute the block and update pc.w accordingly
+    //cout << "executing block" << idx.value() << endl;
     pc.w = storage->exec_block(idx.value());
   }
   delete storage;
   return;
 }
 
-optional<cache_block> dynarec_cpu::translate(uint16 address, mem &m, keypad &k, lcd &l) {
-  //jit_function destructors do not free the raw function. the raw function persists until the context is destroyed
-  //since we want to reuse the same context throughout the program, this means that we should not make instances of cache_blocks (class derived from jit_function) that we will not use
-  //this means it is important to return nullopt in the case of a jump or conditional branch before the cache_block instance is created
-  //this also means there is another potential memory leak issue when replacing one cache_block in the cache with a new one
+/*
+LibJIT's function destructors do not actually delete the underlying raw function until the context is destroyed
+since we want to be able to replace blocks individually when the cache gets filled, this means that we need a JIT
+context for each block. As a result, there is quite a bit of repetition for now
+*/
+optional<cache_block*> dynarec_cpu::translate(uint16 address, mem &m, keypad &k, lcd &l) {
+  //check if the translation is going to fail
   uint8 opcode = m.read_byte(address);
   if (is_cond(opcode) || is_jump(opcode)) {
     return nullopt;
   }
-  cache_block block;
-  block.set_start(address);
-  block.build_start();
-  jit_value m_addr = block.new_constant(&m, type_class_ptr);
-  jit_value k_addr = block.new_constant(&k, type_class_ptr);
-  jit_value l_addr = block.new_constant(&l, type_class_ptr);
-  jit_value tp_addr = block.new_constant(&tp, type_class_ptr);
+  //we are sure the translation won't fail at this point
+  //let's create a new context for this block
+  jit_context *cx = new jit_context();
+  //let's allocate memory for the new block here
+  cache_block *block = new cache_block(*cx);
+  block->set_start(address);
+  block->build_start();
+
+  //get the addresses of the four auxilary classes
+  //we have to do this for each block since they don't share a context
+  jit_value m_addr = block->new_constant(&m, type_class_ptr);
+  jit_value k_addr = block->new_constant(&k, type_class_ptr);
+  jit_value l_addr = block->new_constant(&l, type_class_ptr);
+  jit_value tp_addr = block->new_constant(&tp, type_class_ptr);
+
+  //read in opcodes until we hit a conditional or jump
+  //we are guaranteed to have at least one valid instruction due to the check at the beginning of this function
   while (!(is_cond(opcode)||is_jump(opcode))) {
-    //the following line should only be used for debugging as storing opcodes is not necessary, storing arguments however will be useful
-    block.store_data(opcode);
+#ifdef DYNAREC_DEBUG
+    //storing the opcode isn't strictly necessary
+    block->store_data(opcode);
+#endif
     //store opcode arguments if any exist
     for (int i = 1; i < length[opcode]; i++) {
       address += 1;
-      block.store_data(m.read_byte(address));
+      block->store_data(m.read_byte(address));
     }
+    //translate an instruction into part of the block's JIT function
     switch(opcode) {
       #include "translations.h"
       default: {
-        cout << "ran into unimplemented opcode" << endl;
+        cout << "ran into unimplemented opcode:" << hex << (int)opcode << " at [" << hex << (int)address << "]" << endl;
+        getchar();
         break;
       }
     }
-    jit_value dt = block.new_constant(cycles[opcode], jit_type_int);
+    //insert calls to the auxilary classes' update functions in the block's JIT function
+    //first get the arguments we are going to pass them
+    //since these all depend on dt, we have to do this for each instruction
+    jit_value dt = block->new_constant(cycles[opcode], jit_type_int);
     jit_value_t update_timers_args[] = {m_addr.raw(), dt.raw()};
     jit_value_t step_lcd_args[] = {l_addr.raw(), dt.raw(), m_addr.raw()};
     jit_value_t handle_events_args[] = {k_addr.raw(), dt.raw(), m_addr.raw()};
     jit_value_t throttle_args[] = {tp_addr.raw(), dt.raw()};
 
-    block.insn_call_native(NULL, (void *)&mem::update_timers, update_timers_signature, update_timers_args, 2, 0);
-    block.insn_call_native(NULL, (void *)&lcd::step_lcd, step_lcd_signature, step_lcd_args, 3, 0);
-    jit_value event = block.insn_call_native(NULL, (void *)&keypad::handle_events, handle_events_signature, handle_events_args, 3, 0);
-    block.insn_call_native(NULL, (void *)&throttle_controller::throttle, throttle_signature, throttle_args, 2, 0);
+    //insert calls to the aux class update functions
+    block->insn_call_native(NULL, (void *)&mem::update_timers, update_timers_signature, update_timers_args, 2, 0);
+    block->insn_call_native(NULL, (void *)&lcd::step_lcd, step_lcd_signature, step_lcd_args, 3, 0);
+    jit_value event = block->insn_call_native(NULL, (void *)&keypad::handle_events, handle_events_signature, handle_events_args, 3, 0);
+    //FIXME: write a function to handle the result of keypad::handle_events() from the JIT code
+    block->insn_call_native(NULL, (void *)&throttle_controller::throttle, throttle_signature, throttle_args, 2, 0);
 
     address++;
     opcode = m.read_byte(address);
   };
-  block.set_end(address);
-  block.insn_return();
-  block.compile();
-  block.bind();
-  block.build_end();
+  //end_address is guaranteed to be a jump or conditional
+  block->set_end(address);
+  block->insn_return();
+  block->compile();
+  block->bind();
+  block->build_end();
   return block;
 }
 #endif

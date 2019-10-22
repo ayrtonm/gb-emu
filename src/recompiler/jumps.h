@@ -27,7 +27,7 @@ case 0xc9: {
 case 0xcd: {
   //push the program counter onto the stack
   sp.w -= 2;
-  m.write_word(sp.w, pc.w);
+  m.write_word(sp.w, pc.w + 3);
   pc.w = m.read_word(pc.w + 1);
   break;
 }

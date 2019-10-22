@@ -73,60 +73,60 @@ case 0x3e: {JIT_LOAD_BYTE(af.b.h);break;}
 case 0x3f: {break;}
 
 case 0x40: {JIT_LOAD_REG(bc.b.h, bc.b.h);break;}
-case 0x41: {JIT_LOAD_REG(bc.b.h, bc.b.l;break;}
-case 0x42: {JIT_LOAD_REG(bc.b.h, de.b.h;break;}
-case 0x43: {JIT_LOAD_REG(bc.b.h, de.b.l;break;}
-case 0x44: {JIT_LOAD_REG(bc.b.h, hl.b.h;break;}
-case 0x45: {JIT_LOAD_REG(bc.b.h, hl.b.l;break;}
+case 0x41: {JIT_LOAD_REG(bc.b.h, bc.b.l);break;}
+case 0x42: {JIT_LOAD_REG(bc.b.h, de.b.h);break;}
+case 0x43: {JIT_LOAD_REG(bc.b.h, de.b.l);break;}
+case 0x44: {JIT_LOAD_REG(bc.b.h, hl.b.h);break;}
+case 0x45: {JIT_LOAD_REG(bc.b.h, hl.b.l);break;}
 case 0x46: {break;}
-case 0x47: {JIT_LOAD_REG(bc.b.h, af.b.h;break;}
+case 0x47: {JIT_LOAD_REG(bc.b.h, af.b.h);break;}
 
 case 0x48: {JIT_LOAD_REG(bc.b.l, bc.b.h);break;}
-case 0x49: {JIT_LOAD_REG(bc.b.l, bc.b.l;break;}
-case 0x4a: {JIT_LOAD_REG(bc.b.l, de.b.h;break;}
-case 0x4b: {JIT_LOAD_REG(bc.b.l, de.b.l;break;}
-case 0x4c: {JIT_LOAD_REG(bc.b.l, hl.b.h;break;}
-case 0x4d: {JIT_LOAD_REG(bc.b.l, hl.b.l;break;}
+case 0x49: {JIT_LOAD_REG(bc.b.l, bc.b.l);break;}
+case 0x4a: {JIT_LOAD_REG(bc.b.l, de.b.h);break;}
+case 0x4b: {JIT_LOAD_REG(bc.b.l, de.b.l);break;}
+case 0x4c: {JIT_LOAD_REG(bc.b.l, hl.b.h);break;}
+case 0x4d: {JIT_LOAD_REG(bc.b.l, hl.b.l);break;}
 case 0x4e: {break;}
-case 0x4f: {JIT_LOAD_REG(bc.b.l, af.b.h;break;}
+case 0x4f: {JIT_LOAD_REG(bc.b.l, af.b.h);break;}
 
 case 0x50: {JIT_LOAD_REG(de.b.h, bc.b.h);break;}
-case 0x51: {JIT_LOAD_REG(de.b.h, bc.b.l;break;}
-case 0x52: {JIT_LOAD_REG(de.b.h, de.b.h;break;}
-case 0x53: {JIT_LOAD_REG(de.b.h, de.b.l;break;}
-case 0x54: {JIT_LOAD_REG(de.b.h, hl.b.h;break;}
-case 0x55: {JIT_LOAD_REG(de.b.h, hl.b.l;break;}
+case 0x51: {JIT_LOAD_REG(de.b.h, bc.b.l);break;}
+case 0x52: {JIT_LOAD_REG(de.b.h, de.b.h);break;}
+case 0x53: {JIT_LOAD_REG(de.b.h, de.b.l);break;}
+case 0x54: {JIT_LOAD_REG(de.b.h, hl.b.h);break;}
+case 0x55: {JIT_LOAD_REG(de.b.h, hl.b.l);break;}
 case 0x56: {
   break;
 }
-case 0x57: {JIT_LOAD_REG(de.b.h, af.b.h;break;}
+case 0x57: {JIT_LOAD_REG(de.b.h, af.b.h);break;}
 
 case 0x58: {JIT_LOAD_REG(de.b.l, bc.b.h);break;}
-case 0x59: {JIT_LOAD_REG(de.b.l, bc.b.l;break;}
-case 0x5a: {JIT_LOAD_REG(de.b.l, de.b.h;break;}
-case 0x5b: {JIT_LOAD_REG(de.b.l, de.b.l;break;}
-case 0x5c: {JIT_LOAD_REG(de.b.l, hl.b.h;break;}
-case 0x5d: {JIT_LOAD_REG(de.b.l, hl.b.l;break;}
+case 0x59: {JIT_LOAD_REG(de.b.l, bc.b.l);break;}
+case 0x5a: {JIT_LOAD_REG(de.b.l, de.b.h);break;}
+case 0x5b: {JIT_LOAD_REG(de.b.l, de.b.l);break;}
+case 0x5c: {JIT_LOAD_REG(de.b.l, hl.b.h);break;}
+case 0x5d: {JIT_LOAD_REG(de.b.l, hl.b.l);break;}
 case 0x5e: {break;}
-case 0x5f: {JIT_LOAD_REG(de.b.l, af.b.h;break;}
+case 0x5f: {JIT_LOAD_REG(de.b.l, af.b.h);break;}
 
 case 0x60: {JIT_LOAD_REG(hl.b.h, bc.b.h);break;}
-case 0x61: {JIT_LOAD_REG(hl.b.h, bc.b.l;break;}
-case 0x62: {JIT_LOAD_REG(hl.b.h, de.b.h;break;}
-case 0x63: {JIT_LOAD_REG(hl.b.h, de.b.l;break;}
-case 0x64: {JIT_LOAD_REG(hl.b.h, hl.b.h;break;}
-case 0x65: {JIT_LOAD_REG(hl.b.h, hl.b.l;break;}
+case 0x61: {JIT_LOAD_REG(hl.b.h, bc.b.l);break;}
+case 0x62: {JIT_LOAD_REG(hl.b.h, de.b.h);break;}
+case 0x63: {JIT_LOAD_REG(hl.b.h, de.b.l);break;}
+case 0x64: {JIT_LOAD_REG(hl.b.h, hl.b.h);break;}
+case 0x65: {JIT_LOAD_REG(hl.b.h, hl.b.l);break;}
 case 0x66: {break;}
-case 0x67: {JIT_LOAD_REG(hl.b.h, af.b.h;break;}
+case 0x67: {JIT_LOAD_REG(hl.b.h, af.b.h);break;}
 
 case 0x68: {JIT_LOAD_REG(hl.b.l, bc.b.h);break;}
-case 0x69: {JIT_LOAD_REG(hl.b.l, bc.b.l;break;}
-case 0x6a: {JIT_LOAD_REG(hl.b.l, de.b.h;break;}
-case 0x6b: {JIT_LOAD_REG(hl.b.l, de.b.l;break;}
-case 0x6c: {JIT_LOAD_REG(hl.b.l, hl.b.h;break;}
-case 0x6d: {JIT_LOAD_REG(hl.b.l, hl.b.l;break;}
+case 0x69: {JIT_LOAD_REG(hl.b.l, bc.b.l);break;}
+case 0x6a: {JIT_LOAD_REG(hl.b.l, de.b.h);break;}
+case 0x6b: {JIT_LOAD_REG(hl.b.l, de.b.l);break;}
+case 0x6c: {JIT_LOAD_REG(hl.b.l, hl.b.h);break;}
+case 0x6d: {JIT_LOAD_REG(hl.b.l, hl.b.l);break;}
 case 0x6e: {break;}
-case 0x6f: {JIT_LOAD_REG(hl.b.l, af.b.h;break;}
+case 0x6f: {JIT_LOAD_REG(hl.b.l, af.b.h);break;}
 
 case 0x70: {break;}
 case 0x71: {break;}
@@ -140,13 +140,13 @@ case 0x76: {break;}
 case 0x77: {break;}
 
 case 0x78: {JIT_LOAD_REG(af.b.h, bc.b.h);break;}
-case 0x79: {JIT_LOAD_REG(af.b.h, bc.b.l;break;}
-case 0x7a: {JIT_LOAD_REG(af.b.h, de.b.h;break;}
-case 0x7b: {JIT_LOAD_REG(af.b.h, de.b.l;break;}
-case 0x7c: {JIT_LOAD_REG(af.b.h, hl.b.h;break;}
-case 0x7d: {JIT_LOAD_REG(af.b.h, hl.b.l;break;}
+case 0x79: {JIT_LOAD_REG(af.b.h, bc.b.l);break;}
+case 0x7a: {JIT_LOAD_REG(af.b.h, de.b.h);break;}
+case 0x7b: {JIT_LOAD_REG(af.b.h, de.b.l);break;}
+case 0x7c: {JIT_LOAD_REG(af.b.h, hl.b.h);break;}
+case 0x7d: {JIT_LOAD_REG(af.b.h, hl.b.l);break;}
 case 0x7e: {break;}
-case 0x7f: {JIT_LOAD_REG(af.b.h, af.b.h;break;}
+case 0x7f: {JIT_LOAD_REG(af.b.h, af.b.h);break;}
 
 case 0x80: {
   break;

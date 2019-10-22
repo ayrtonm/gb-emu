@@ -68,125 +68,56 @@
   JIT_WRITE_WORD(word.raw(), a_val.raw()) \
 } while(0)
 
-#define JIT_ADD(r) do { \
-  JIT_ARITHMETIC_INIT(r) \
-  JIT_ADD_FUNC \
+#define JIT_ARITHMETIC(r,op) do { \
+  GET_A_VAL \
+  GET_REG8_VAL(r) \
+  JIT_##op##_FUNC \
 } while(0)
 
-#define JIT_ADD_PTR do { \
-  JIT_ARITHMETIC_INIT_PTR \
-  JIT_ADD_FUNC \
+#define JIT_ARITHMETIC_PTR(op) do { \
+  GET_A_VAL \
+  GET_REG16_VAL(hl) \
+  JIT_READ_BYTE(reg16_val.raw(), reg8_val) \
+  JIT_##op##_FUNC \
 } while(0)
 
-#define JIT_ADD_IMM8 do { \
-  JIT_ARITHMETIC_INIT_IMM8 \
-  JIT_ADD_FUNC \
+#define JIT_ARITHMETIC_IMM8(op) do { \
+  GET_A_VAL \
+  GET_BYTE(reg8_val) \
+  JIT_##op##_FUNC \
 } while(0)
 
-#define JIT_ADC(r) do { \
-  JIT_ARITHMETIC_INIT(r) \
-  JIT_ADC_FUNC \
-} while(0)
+#define JIT_ADD(r) JIT_ARITHMETIC(r,ADD)
+#define JIT_ADD_PTR JIT_ARITHMETIC_PTR(ADD)
+#define JIT_ADD_IMM8 JIT_ARITHMETIC_IMM8(ADD)
 
-#define JIT_ADC_PTR do { \
-  JIT_ARITHMETIC_INIT_PTR \
-  JIT_ADC_FUNC \
-} while(0)
+#define JIT_ADC(r) JIT_ARITHMETIC(r,ADC)
+#define JIT_ADC_PTR JIT_ARITHMETIC_PTR(ADC)
+#define JIT_ADC_IMM8 JIT_ARITHMETIC_IMM8(ADC)
 
-#define JIT_ADC_IMM8 do { \
-  JIT_ARITHMETIC_INIT_IMM8 \
-  JIT_ADD_FUNC \
-} while(0)
+#define JIT_SUB(r) JIT_ARITHMETIC(r,SUB)
+#define JIT_SUB_PTR JIT_ARITHMETIC_PTR(SUB)
+#define JIT_SUB_IMM8 JIT_ARITHMETIC_IMM8(SUB)
 
-#define JIT_SUB(r) do { \
-  JIT_ARITHMETIC_INIT(r) \
-  JIT_SUB_FUNC \
-} while(0)
+#define JIT_SBC(r) JIT_ARITHMETIC(r,SBC)
+#define JIT_SBC_PTR JIT_ARITHMETIC_PTR(SBC)
+#define JIT_SBC_IMM8 JIT_ARITHMETIC_IMM8(SBC)
 
-#define JIT_SUB_PTR do { \
-  JIT_ARITHMETIC_INIT_PTR \
-  JIT_SUB_FUNC \
-} while(0)
+#define JIT_AND(r) JIT_ARITHMETIC(r,AND)
+#define JIT_AND_PTR JIT_ARITHMETIC_PTR(AND)
+#define JIT_AND_IMM8 JIT_ARITHMETIC_IMM8(AND)
 
-#define JIT_SUB_IMM8 do { \
-  JIT_ARITHMETIC_INIT_IMM8 \
-  JIT_SUB_FUNC \
-} while(0)
+#define JIT_XOR(r) JIT_ARITHMETIC(r,XOR)
+#define JIT_XOR_PTR JIT_ARITHMETIC_PTR(XOR)
+#define JIT_XOR_IMM8 JIT_ARITHMETIC_IMM8(XOR)
 
-#define JIT_SBC(r) do { \
-  JIT_ARITHMETIC_INIT(r) \
-  JIT_SBC_FUNC \
-} while(0)
+#define JIT_OR(r) JIT_ARITHMETIC(r,OR)
+#define JIT_OR_PTR JIT_ARITHMETIC_PTR(OR)
+#define JIT_OR_IMM8 JIT_ARITHMETIC_IMM8(OR)
 
-#define JIT_SBC_PTR do { \
-  JIT_ARITHMETIC_INIT_PTR \
-  JIT_SBC_FUNC \
-} while(0)
-
-#define JIT_SBC_IMM8 do { \
-  JIT_ARITHMETIC_INIT_IMM8 \
-  JIT_SBC_FUNC \
-} while(0)
-
-#define JIT_AND(r) do { \
-  JIT_ARITHMETIC_INIT(r) \
-  JIT_AND_FUNC \
-} while(0)
-
-#define JIT_AND_PTR do { \
-  JIT_ARITHMETIC_INIT_PTR \
-  JIT_AND_FUNC \
-} while(0)
-
-#define JIT_AND_IMM8 do { \
-  JIT_ARITHMETIC_INIT_IMM8 \
-  JIT_AND_FUNC \
-} while(0)
-
-#define JIT_XOR(r) do { \
-  JIT_ARITHMETIC_INIT(r) \
-  JIT_XOR_FUNC \
-} while(0)
-
-#define JIT_XOR_PTR do { \
-  JIT_ARITHMETIC_INIT_PTR \
-  JIT_XOR_FUNC \
-} while(0)
-
-#define JIT_XOR_IMM8 do { \
-  JIT_ARITHMETIC_INIT_IMM8 \
-  JIT_XOR_FUNC \
-} while(0)
-
-#define JIT_OR(r) do { \
-  JIT_ARITHMETIC_INIT(r) \
-  JIT_OR_FUNC \
-} while(0)
-
-#define JIT_OR_PTR do { \
-  JIT_ARITHMETIC_INIT_PTR \
-  JIT_OR_FUNC \
-} while(0)
-
-#define JIT_OR_IMM8 do { \
-  JIT_ARITHMETIC_INIT_IMM8 \
-  JIT_OR_FUNC \
-} while(0)
-
-#define JIT_CP(r) do { \
-  JIT_ARITHMETIC_INIT(r) \
-  JIT_CP_FUNC \
-} while(0)
-
-#define JIT_CP_PTR do { \
-  JIT_ARITHMETIC_INIT_PTR \
-  JIT_CP_FUNC \
-} while(0)
-
-#define JIT_CP_IMM8 do { \
-  JIT_ARITHMETIC_INIT_IMM8 \
-  JIT_CP_FUNC \
-} while(0)
+#define JIT_CP(r) JIT_ARITHMETIC(r,CP)
+#define JIT_CP_PTR JIT_ARITHMETIC_PTR(CP)
+#define JIT_CP_IMM8 JIT_ARITHMETIC_IMM8(CP)
 
 //FIXME: remember to handle flags here
 #define JIT_CPL do { \

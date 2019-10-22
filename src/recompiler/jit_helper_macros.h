@@ -82,19 +82,6 @@
   SET_READ_ARGS(addr) \
   jit_value res = block->insn_call_native(NULL, (void *)&mem::read_word, read_word_signature, args, 2, 0);
 
-#define JIT_ARITHMETIC_INIT(r) \
-  GET_A_VAL \
-  GET_REG8_VAL(r)
-
-#define JIT_ARITHMETIC_INIT_PTR \
-  GET_A_VAL \
-  GET_REG16_VAL(hl) \
-  JIT_READ_BYTE(reg16_val.raw(), reg8_val)
-
-#define JIT_ARITHMETIC_INIT_IMM8 \
-  GET_A_VAL \
-  GET_BYTE(reg8_val)
-
 //FIXME: don't forget to handle flags here
 #define JIT_ADD_FUNC \
   SET_A(a_val + reg8_val)

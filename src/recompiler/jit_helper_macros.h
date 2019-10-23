@@ -66,6 +66,25 @@
   SET_READ_ARGS(addr) \
   jit_value res = block->insn_call_native(NULL, (void *)&mem::read_word, read_word_signature, args, 2, 0);
 
+#define JIT_ARITHMETIC(r,op) do { \
+  GET_A_VAL \
+  GET_REG8_VAL(r) \
+  JIT_##op##_FUNC \
+} while(0)
+
+#define JIT_ARITHMETIC_PTR(op) do { \
+  GET_A_VAL \
+  GET_REG16_VAL(hl) \
+  JIT_READ_BYTE(reg16_val.raw(), reg8_val) \
+  JIT_##op##_FUNC \
+} while(0)
+
+#define JIT_ARITHMETIC_IMM8(op) do { \
+  GET_A_VAL \
+  GET_BYTE(reg8_val) \
+  JIT_##op##_FUNC \
+} while(0)
+
 #define JIT_ADD_FUNC \
   a_val = block->insn_add(a_val, reg8_val); \
   SET_A(a_val) \

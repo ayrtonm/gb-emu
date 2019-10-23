@@ -67,25 +67,6 @@
   JIT_WRITE_WORD(word.raw(), a_val.raw()) \
 } while(0)
 
-#define JIT_ARITHMETIC(r,op) do { \
-  GET_A_VAL \
-  GET_REG8_VAL(r) \
-  JIT_##op##_FUNC \
-} while(0)
-
-#define JIT_ARITHMETIC_PTR(op) do { \
-  GET_A_VAL \
-  GET_REG16_VAL(hl) \
-  JIT_READ_BYTE(reg16_val.raw(), reg8_val) \
-  JIT_##op##_FUNC \
-} while(0)
-
-#define JIT_ARITHMETIC_IMM8(op) do { \
-  GET_A_VAL \
-  GET_BYTE(reg8_val) \
-  JIT_##op##_FUNC \
-} while(0)
-
 #define JIT_ADD(r) JIT_ARITHMETIC(r,ADD)
 #define JIT_ADD_PTR JIT_ARITHMETIC_PTR(ADD)
 #define JIT_ADD_IMM8 JIT_ARITHMETIC_IMM8(ADD)

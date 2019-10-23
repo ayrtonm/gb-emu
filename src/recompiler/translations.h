@@ -1,4 +1,4 @@
-case 0x00: {break;}
+case 0x00: {break;} // for some reason LibJIT's insn_nop() isn't available when using C++ so nop should be handled as an unconditional jump
 case 0x01: {JIT_LOAD_WORD(bc);break;}
 case 0x02: {JIT_STORE_A_PTR(bc);break;}
 case 0x03: {JIT_INC_REG16(bc);break;}
@@ -147,6 +147,8 @@ case 0x80: {JIT_ADD(bc.b.h);break;}
 case 0x90: {JIT_SUB(bc.b.h);break;}
 case 0x97: {JIT_SUB(af.b.h);break;}
 
+case 0xa8: {JIT_XOR(bc.b.h);break;}
+
 case 0xb8: {JIT_CP(bc.b.h);break;}
 
 case 0xc1: {JIT_POP(bc);break;}
@@ -162,5 +164,6 @@ case 0xe5: {JIT_PUSH(hl);break;}
 case 0xe6: {JIT_AND_IMM8;break;}
 
 case 0xea: {JIT_STORE_A_IMM16;break;}
+
 case 0xfa: {JIT_LOAD_A_IMM16;break;}
 case 0xfe: {JIT_CP_IMM8;break;}

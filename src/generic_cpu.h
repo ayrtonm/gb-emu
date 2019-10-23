@@ -38,9 +38,9 @@ class generic_cpu {
 
 #define COND_CALL(cond,n) do {if (cond) {CALL(n);/*dt += 3;*/};} while(0)
 
-#define RST(n) do {PUSH(pc.w); pc.w = n;} while(0)
+#define RST(n) do {CALL(n);} while(0)
 
-#define POP(r) do {r = m.read_word(sp.w); sp.w += 2;} while(0)
+#define POP(r) do {r = m.read_word(sp.w);sp.w += 2;} while(0)
 
 #define PUSH(r) do {sp.w -= 2;m.write_word(sp.w,r);} while(0)
 

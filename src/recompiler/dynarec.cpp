@@ -77,6 +77,7 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
       //if $pc points to a jump/conditional
       if (!block) {
         //update $pc accordingly
+        uint16_t start = pc.w;
         uint8 op = m.read_byte(pc.w);
         switch(op) {
           #include "jumps.h"
@@ -86,6 +87,8 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
             break;
           }
         }
+        uint16_t end = pc.w;
+        cout << hex << (int)op << " mapped " << hex << (int)start << " to " << hex << (int)end << endl;
         //at this point $pc may or may not point to another jump/conditional so we search the cache again
       }
       //if the translation was successful
@@ -129,6 +132,23 @@ optional<cache_block*> dynarec_cpu::translate(uint16 address, mem &m, keypad &k,
   jit_value k_addr = block->new_constant(&k, type_class_ptr);
   jit_value l_addr = block->new_constant(&l, type_class_ptr);
   jit_value tp_addr = block->new_constant(&tp, type_class_ptr);
+
+  //declare the most common JIT constants
+  jit_value zero = block->new_constant(0, jit_type_ushort);
+  jit_value one = block->new_constant(1, jit_type_ushort);
+  jit_value two = block->new_constant(2, jit_type_ushort);
+  jit_value ff = block->new_constant(0xff, jit_type_ushort);
+  jit_value f_z = block->new_constant(F_Z, jit_type_ushort);
+  jit_value f_n = block->new_constant(F_N, jit_type_ushort);
+  jit_value f_h = block->new_constant(F_H, jit_type_ushort);
+  jit_value f_c = block->new_constant(F_C, jit_type_ushort);
+  jit_value f_addr = block->new_constant(&af.b.l, type_uint8_ptr);
+  jit_value a_addr = block->new_constant(&af.b.h, type_uint8_ptr);
+  jit_value sp_addr = block->new_constant(&sp, type_uint16_ptr);
+
+  //unused jit_values will be optimized away so define the majority here
+  jit_value f_val, a_val, sp_val, reg8_addr, reg16_addr, reg8_val, reg16_val, take_branch;
+  jit_label skip;
 
   //read in opcodes until we hit a conditional or jump
   //we are guaranteed to have at least one valid instruction due to the check at the beginning of this function

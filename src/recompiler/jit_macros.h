@@ -2,17 +2,17 @@
 #define JIT_PUSH(r) do { \
   GET_SP_VAL \
   GET_REG16_VAL(r) \
-  DEF_TWO \
-  SET_SP(sp_val - two) \
+  sp_val = block->insn_sub(sp_val, two); \
+  SET_SP(sp_val) \
   JIT_WRITE_WORD(sp_val.raw(), reg16_val.raw()) \
 } while (0)
 
 #define JIT_POP(r) do { \
   GET_REG16_ADDR(r) \
   GET_SP_VAL \
-  DEF_TWO \
   JIT_READ_WORD(sp_val.raw(), temp) \
-  SET_SP(sp_val + two) \
+  sp_val = block->insn_add(sp_val, two); \
+  SET_SP(sp_val) \
   SET_REG16(temp) \
 } while (0)
 
@@ -34,7 +34,7 @@
 //order of operations matters here since the first two macros define reg_addr
 #define JIT_LOAD_REG(dest, src) do { \
   GET_REG8_VAL(src) \
-  GET_REG8_ADDR_REDEF(dest) \
+  GET_REG8_ADDR(dest) \
   SET_REG8(reg8_val) \
 } while(0)
 
@@ -56,7 +56,6 @@
 #define JIT_LOAD_A_PTR(r) JIT_LOAD_PTR(af.b.h, r)
 
 #define JIT_LOAD_A_IMM16 do { \
-  GET_A_ADDR \
   GET_WORD(word) \
   JIT_READ_WORD(word.raw(), temp) \
   SET_A(temp) \
@@ -119,34 +118,48 @@
 #define JIT_CP_PTR JIT_ARITHMETIC_PTR(CP)
 #define JIT_CP_IMM8 JIT_ARITHMETIC_IMM8(CP)
 
-//FIXME: remember to handle flags here
 #define JIT_CPL do { \
   GET_A_VAL \
-  DEF_0xFF \
-  SET_A(a_val ^ ff) \
+  a_val = block->insn_xor(a_val, ff); \
+  SET_A(a_val) \
+  GET_F_VAL \
+  f_val = block->insn_or(f_val, block->insn_or(f_n, f_h)); \
+  SET_F(f_val) \
 } while(0)
 
 #define JIT_INC_REG8(r) do { \
   GET_REG8_VAL(r) \
-  DEF_ONE \
-  SET_REG8(reg8_val + one) \
+  reg8_val = block->insn_add(reg8_val, one); \
+  SET_REG8(reg8_val) \
+  GET_F_VAL \
+  f_val = block->insn_and(f_val, f_c); \
+  SET_F(f_val) \
+  SET_F_Z(reg8_val) \
+  SET_F_H(reg8_val) \
 } while(0)
 
 #define JIT_DEC_REG8(r) do { \
   GET_REG8_VAL(r) \
-  DEF_ONE \
-  SET_REG8(reg8_val - one) \
+  reg8_val = block->insn_sub(reg8_val, one); \
+  SET_REG8(reg8_val) \
+  GET_F_VAL \
+  f_val = block->insn_and(f_val, f_c); \
+  SET_F(f_val) \
+  GET_F_VAL \
+  f_val = block->insn_or(f_val, f_n); \
+  SET_F(f_val) \
+  SET_F_Z(reg8_val) \
+  SET_F_H(reg8_val) \
 } while(0)
 
-//no flag handling here
 #define JIT_INC_REG16(r) do { \
   GET_REG16_VAL(r) \
-  DEF_ONE \
-  SET_REG16(reg16_val + one) \
+  reg16_val = block->insn_add(reg16_val, one); \
+  SET_REG16(reg16_val) \
 } while(0)
 
 #define JIT_DEC_REG16(r) do { \
   GET_REG16_VAL(r) \
-  DEF_ONE \
-  SET_REG16(reg16_val - one) \
+  reg16_val = block->insn_sub(reg16_val, one); \
+  SET_REG16(reg16_val) \
 } while(0)

@@ -125,6 +125,7 @@
   SET_F_C(temp) \
   SET_F_H(temp)
 
+//I need to implement this with two labels to add the case for clearing the flag
 #define SET_F_FLAG(flag) \
   skip = block->new_label(); \
   block->insn_branch_if_not(take_branch, skip); \

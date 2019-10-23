@@ -144,8 +144,6 @@
   SET_REG8(reg8_val) \
   GET_F_VAL \
   f_val = block->insn_and(f_val, f_c); \
-  SET_F(f_val) \
-  GET_F_VAL \
   f_val = block->insn_or(f_val, f_n); \
   SET_F(f_val) \
   SET_F_Z(reg8_val) \

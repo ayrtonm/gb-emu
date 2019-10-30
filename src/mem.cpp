@@ -264,7 +264,7 @@ void mem::dump_ram() {
   dump.open(ramdumpfile);
   int original_rambank = current_rambank;
   //for each ram bank
-  for (int i = 0; i < num_rombanks; i++) {
+  for (int i = 0; i < num_rambanks; i++) {
     switch_rambanks(i);
     //iterate through ram bank addresses
     for (int j = O_ERAM; j < O_WRAM0; j++) {

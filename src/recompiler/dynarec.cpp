@@ -31,6 +31,7 @@ dynarec_cpu::dynarec_cpu() {
   type_uint16_ptr = jit_type_create_pointer(jit_type_ushort, 0);
   type_class_ptr = jit_type_create_pointer(jit_type_void_ptr, 0);
 
+  jit_type_t invalidate_blocks_args_t[] = {jit_type_ushort};
   jit_type_t read_mem_args_t[] = {jit_type_void_ptr, jit_type_ushort};
   jit_type_t write_byte_args_t[] = {jit_type_void_ptr, jit_type_ushort, jit_type_ubyte};
   jit_type_t write_word_args_t[] = {jit_type_void_ptr, jit_type_ushort, jit_type_ushort};
@@ -39,6 +40,7 @@ dynarec_cpu::dynarec_cpu() {
   jit_type_t handle_events_args_t[] = {jit_type_void_ptr, jit_type_int, jit_type_void_ptr};
   jit_type_t throttle_args_t[] = {jit_type_void_ptr, jit_type_int};
 
+  invalidate_blocks_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_void, invalidate_blocks_args_t, 1, 0);
   read_byte_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_ubyte, read_mem_args_t, 2, 0);
   read_word_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_ushort, read_mem_args_t, 2, 0);
   write_byte_signature = jit_type_create_signature(jit_abi_cdecl, jit_type_void, write_byte_args_t, 3, 0);
@@ -54,6 +56,7 @@ dynarec_cpu::~dynarec_cpu() {
   jit_type_free(type_uint8_ptr);
   jit_type_free(type_uint16_ptr);
   jit_type_free(type_class_ptr);
+  jit_type_free(invalidate_blocks_signature);
   jit_type_free(read_byte_signature);
   jit_type_free(read_word_signature);
   jit_type_free(write_byte_signature);

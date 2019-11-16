@@ -50,11 +50,17 @@
 #define SET_READ_ARGS(addr) \
   jit_value_t args[] = {m_addr.raw(), addr};
 
+#define JIT_INVALIDATE_BLOCKS(addr) \
+  jit_value_t invalidate_args[] = {addr}; \
+  block->insn_call_native(NULL, (void *)&cache::invalidate_blocks, invalidate_blocks_signature, invalidate_args, 3, 0);
+
 #define JIT_WRITE_BYTE(addr, val) \
+  JIT_INVALIDATE_BLOCKS(addr) \
   SET_WRITE_ARGS(addr, val) \
   block->insn_call_native(NULL, (void *)&mem::write_byte, write_byte_signature, args, 3, 0);
 
 #define JIT_WRITE_WORD(addr, val) \
+  JIT_INVALIDATE_BLOCKS(addr) \
   SET_WRITE_ARGS(addr, val) \
   block->insn_call_native(NULL, (void *)&mem::write_word, write_word_signature, args, 3, 0);
 

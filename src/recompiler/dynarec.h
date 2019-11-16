@@ -21,7 +21,13 @@ class dynarec_cpu : public generic_cpu {
     void emit_code(void);
   private:
     jit_type_t type_uint8_ptr, type_uint16_ptr, type_class_ptr;
-    jit_type_t read_byte_signature, read_word_signature, write_byte_signature, write_word_signature, update_timers_signature, step_lcd_signature, handle_events_signature, throttle_signature;
+    jit_type_t read_byte_signature, read_word_signature,
+               write_byte_signature, write_word_signature,
+               invalidate_blocks_signature,
+               update_timers_signature,
+               step_lcd_signature,
+               handle_events_signature,
+               throttle_signature;
 };
 
 #endif

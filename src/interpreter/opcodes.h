@@ -57,8 +57,8 @@ case 0x30:  {COND_JR(!(af.b.l & F_C),m.read_byte(pc.w-1));break;}
 case 0x31:  {LD(sp.w,m.read_word(pc.w-2));break;}
 case 0x32:  {LD_RM(hl.w--,af.b.h);/*hl.w--;*/break;}
 case 0x33:  {sp.w++;break;}
-case 0x34:  {uint8 temp = m.read_byte(hl.w);INC(temp);m.write_byte(hl.w,temp);break;}
-case 0x35:  {uint8 temp = m.read_byte(hl.w);DEC(temp);m.write_byte(hl.w,temp);break;}
+case 0x34:  {uint8_t temp = m.read_byte(hl.w);INC(temp);m.write_byte(hl.w,temp);break;}
+case 0x35:  {uint8_t temp = m.read_byte(hl.w);DEC(temp);m.write_byte(hl.w,temp);break;}
 case 0x36:  {LD_RM(hl.w,m.read_byte(pc.w-1));break;}
 case 0x37:  {SCL;break;}
 
@@ -251,9 +251,9 @@ case 0xdd:  {break;}//no opcode
 case 0xde:  {SBC(m.read_byte(pc.w-1));break;}
 case 0xdf:  {RST(0x18);break;}
 
-case 0xe0:  {uint16 temp=m.read_byte(pc.w-1)+0xFF00;LD_RM(temp,af.b.h);break;}
+case 0xe0:  {uint16_t temp=m.read_byte(pc.w-1)+0xFF00;LD_RM(temp,af.b.h);break;}
 case 0xe1:  {POP(hl.w);break;}
-case 0xe2:  {uint16 temp=bc.b.l+0xFF00;LD_RM(temp,af.b.h);break;}
+case 0xe2:  {uint16_t temp=bc.b.l+0xFF00;LD_RM(temp,af.b.h);break;}
 case 0xe3:  {break;}//no opcode
 case 0xe4:  {break;}//no opcode
 case 0xe5:  {PUSH(hl.w);break;}
@@ -261,7 +261,7 @@ case 0xe6:  {AND(m.read_byte(pc.w-1));break;}
 case 0xe7:  {RST(0x20);break;}
 
 case 0xe8:  {
-  uint16 mtemp = sp.w + ((signed char)m.read_byte(pc.w-1));
+  uint16_t mtemp = sp.w + ((signed char)m.read_byte(pc.w-1));
   af.b.l = ((mtemp^sp.w^((signed char)m.read_byte(pc.w-1))) & 0x0100 ? F_C : 0)|((mtemp^sp.w^((signed char)m.read_byte(pc.w-1))) & 0x10 ? F_H : 0);
   sp.w = mtemp;
   break;
@@ -274,10 +274,10 @@ case 0xed:  {break;}//no opcode
 case 0xee:  {EOR(m.read_byte(pc.w-1));break;}
 case 0xef:  {RST(0x28);break;}
 
-case 0xf0:  {uint16 temp=m.read_byte(pc.w-1)+0xFF00;LD_MR(af.b.h,temp);break;}
+case 0xf0:  {uint16_t temp=m.read_byte(pc.w-1)+0xFF00;LD_MR(af.b.h,temp);break;}
 //need to "and" flag register with 0xf0 since lower 4 bits are unused
 case 0xf1:  {POP(af.w);af.b.l &= 0xf0;break;}
-case 0xf2:  {uint16 temp=bc.b.l+0xFF00;LD_MR(af.b.h,temp);break;}
+case 0xf2:  {uint16_t temp=bc.b.l+0xFF00;LD_MR(af.b.h,temp);break;}
 case 0xf3:  {ime=0;ei_delay = 0;break;}
 case 0xf4:  {break;}//no opcode
 case 0xf5:  {PUSH(af.w);break;}
@@ -285,7 +285,7 @@ case 0xf6:  {OR(m.read_byte(pc.w-1));break;}
 case 0xf7:  {RST(0x30);break;}
 
 case 0xf8:  {
-  uint16 mtemp = sp.w + ((signed char)m.read_byte(pc.w-1));
+  uint16_t mtemp = sp.w + ((signed char)m.read_byte(pc.w-1));
   af.b.l = ((mtemp^sp.w^((signed char)m.read_byte(pc.w-1))) & 0x0100 ? F_C : 0)|((mtemp^sp.w^((signed char)m.read_byte(pc.w-1))) & 0x10 ? F_H : 0);
   hl.w = mtemp;
   break;

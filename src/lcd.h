@@ -34,7 +34,7 @@ class lcd
     bool fullscreen = false;
 
     float scale;
-    array<uint8,160> bgbuffer;
+    array<uint8_t,160> bgbuffer;
     array<color,160*144> pixels;
     int clk, screenupdateclk;
 };

@@ -25,7 +25,7 @@ class cpu : public generic_cpu {
 
 #define ADDHL(r) do {int mtemp = hl.w+(r); af.b.l = (af.b.l & F_Z)|(mtemp & 0x010000 ? F_C : 0)|((hl.w^(r)^(mtemp & 0xFFFF)) & 0x1000 ? F_H : 0); hl.w = mtemp & 0xFFFF;} while(0)
 
-#define DAA do {uint16 mtemp = af.b.h; mtemp |= (af.b.l & (F_C|F_H|F_N)) << 4; af.w = DAATable[mtemp];} while(0)
+#define DAA do {uint16_t mtemp = af.b.h; mtemp |= (af.b.l & (F_C|F_H|F_N)) << 4; af.w = DAATable[mtemp];} while(0)
 
 #define CPL do {af.b.h ^= 0xFF; af.b.l |= (F_N|F_H);} while(0)
 
@@ -39,13 +39,13 @@ class cpu : public generic_cpu {
 
 #define LD_RM(x,y) do {m.write_byte(x,y);} while(0)
 
-#define ADD(r) do {uint16 mtemp = af.b.h + (r); af.b.l = ((mtemp & 0xFF00) ? F_C : 0)|((mtemp & 0x00FF) ? 0 : F_Z)|((af.b.h^(r)^(mtemp & 0x00FF)) & 0x10 ? F_H : 0); af.b.h = mtemp & 0x00FF;} while(0)
+#define ADD(r) do {uint16_t mtemp = af.b.h + (r); af.b.l = ((mtemp & 0xFF00) ? F_C : 0)|((mtemp & 0x00FF) ? 0 : F_Z)|((af.b.h^(r)^(mtemp & 0x00FF)) & 0x10 ? F_H : 0); af.b.h = mtemp & 0x00FF;} while(0)
 
-#define ADC(r) do {uint16 mtemp = af.b.h + (r) + ((af.b.l & F_C) ? 1 : 0); af.b.l = ((mtemp & 0xFF00) ? F_C : 0)|((mtemp & 0x00FF) ? 0 : F_Z)|((af.b.h^(r)^(mtemp & 0x00FF)) & 0x10 ? F_H : 0); af.b.h = mtemp & 0x00FF;} while(0)
+#define ADC(r) do {uint16_t mtemp = af.b.h + (r) + ((af.b.l & F_C) ? 1 : 0); af.b.l = ((mtemp & 0xFF00) ? F_C : 0)|((mtemp & 0x00FF) ? 0 : F_Z)|((af.b.h^(r)^(mtemp & 0x00FF)) & 0x10 ? F_H : 0); af.b.h = mtemp & 0x00FF;} while(0)
 
-#define SUB(r) do {uint16 mtemp = af.b.h - (r); af.b.l = F_N|((mtemp & 0xFF00) ? F_C : 0)|((mtemp & 0x00FF) ? 0 : F_Z)|((af.b.h^(r)^(mtemp & 0x00FF)) & 0x10 ? F_H : 0); af.b.h = mtemp & 0x00FF;} while(0)
+#define SUB(r) do {uint16_t mtemp = af.b.h - (r); af.b.l = F_N|((mtemp & 0xFF00) ? F_C : 0)|((mtemp & 0x00FF) ? 0 : F_Z)|((af.b.h^(r)^(mtemp & 0x00FF)) & 0x10 ? F_H : 0); af.b.h = mtemp & 0x00FF;} while(0)
 
-#define SBC(r) do {uint16 mtemp = af.b.h - (r) - ((af.b.l & F_C) ? 1 : 0); af.b.l = F_N|((mtemp & 0xFF00) ? F_C : 0)|((mtemp & 0x00FF) ? 0 : F_Z)|((af.b.h^(r)^(mtemp & 0x00FF)) & 0x10 ? F_H : 0); af.b.h = mtemp & 0x00FF;} while(0)
+#define SBC(r) do {uint16_t mtemp = af.b.h - (r) - ((af.b.l & F_C) ? 1 : 0); af.b.l = F_N|((mtemp & 0xFF00) ? F_C : 0)|((mtemp & 0x00FF) ? 0 : F_Z)|((af.b.h^(r)^(mtemp & 0x00FF)) & 0x10 ? F_H : 0); af.b.h = mtemp & 0x00FF;} while(0)
 
 #define AND(r) do {af.b.h &= (r); af.b.l = F_H|(af.b.h > 0 ? 0 : F_Z);} while(0)
 
@@ -53,16 +53,16 @@ class cpu : public generic_cpu {
 
 #define OR(r) do {af.b.h |= (r); af.b.l = (af.b.h ? 0 : F_Z);} while(0)
 
-#define CP(r) do {uint16 mtemp = af.b.h - (r); af.b.l = F_N|((mtemp & 0xFF00) ? F_C : 0)|((mtemp & 0x00FF) ? 0 : F_Z)|((af.b.h^(r)^(mtemp & 0x00FF)) & 0x10 ? F_H : 0);} while(0)
+#define CP(r) do {uint16_t mtemp = af.b.h - (r); af.b.l = F_N|((mtemp & 0xFF00) ? F_C : 0)|((mtemp & 0x00FF) ? 0 : F_Z)|((af.b.h^(r)^(mtemp & 0x00FF)) & 0x10 ? F_H : 0);} while(0)
 
 //cb opcodes
-#define RLCA do {uint8 mtemp = (af.b.h & 0x80 ? F_C : 0); af.b.h = (af.b.h << 1)|(af.b.h >> 7); af.b.l = mtemp;} while(0)
+#define RLCA do {uint8_t mtemp = (af.b.h & 0x80 ? F_C : 0); af.b.h = (af.b.h << 1)|(af.b.h >> 7); af.b.l = mtemp;} while(0)
 
-#define RRCA do {uint8 mtemp = af.b.h & 0x01; af.b.h = (af.b.h >> 1)|(mtemp ? 0x80 : 0); af.b.l = (mtemp << 4);} while(0)
+#define RRCA do {uint8_t mtemp = af.b.h & 0x01; af.b.h = (af.b.h >> 1)|(mtemp ? 0x80 : 0); af.b.l = (mtemp << 4);} while(0)
 
-#define RLA do {uint8 mtemp = (af.b.h & 0x80 ? F_C : 0); af.b.h = (af.b.h << 1)|((af.b.l & F_C) >> 4); af.b.l = mtemp;} while(0)
+#define RLA do {uint8_t mtemp = (af.b.h & 0x80 ? F_C : 0); af.b.h = (af.b.h << 1)|((af.b.l & F_C) >> 4); af.b.l = mtemp;} while(0)
 
-#define RRA do {uint8 mtemp = af.b.h & 0x01; af.b.h = (af.b.h >> 1)|(af.b.l & F_C ? 0x80 : 0); af.b.l = (mtemp << 4);} while(0)
+#define RRA do {uint8_t mtemp = af.b.h & 0x01; af.b.h = (af.b.h >> 1)|(af.b.l & F_C ? 0x80 : 0); af.b.l = (mtemp << 4);} while(0)
 
 #define RLC(r) do {af.b.l = ((r) & 0x80) ? F_C : 0; r = (r << 1) | (r >> 7); af.b.l |= (r ? 0 : F_Z);} while(0)
 
@@ -80,7 +80,7 @@ class cpu : public generic_cpu {
 
 #define SRL(r) do {af.b.l = (r & 0x01) ? F_C : 0; r >>= 1; af.b.l |= (r ? 0 : F_Z);} while(0)
 
-static const uint16 DAATable[] = {
+static const uint16_t DAATable[] = {
   0x0080,0x0100,0x0200,0x0300,0x0400,0x0500,0x0600,0x0700,
   0x0800,0x0900,0x1000,0x1100,0x1200,0x1300,0x1400,0x1500,
   0x1000,0x1100,0x1200,0x1300,0x1400,0x1500,0x1600,0x1700,

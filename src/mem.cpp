@@ -99,14 +99,14 @@ mem::mem(string filename, string memorydump, string savefile) {
 /**
   Read a byte from memory when the address is guaranteed to be outside the ROM/RAM bank address space
 */
-uint8 mem::read_byte_internal(uint16 address) {
+uint8_t mem::read_byte_internal(uint16_t address) {
   return memory[address];
 }
 
 /**
   Read a byte from memory at an arbitrary address
 */
-uint8 mem::read_byte(uint16 address) {
+uint8_t mem::read_byte(uint16_t address) {
   if ((address < O_VRAM) && (address >= 0x4000)) {
     return *(rombank_ptr + address - O_ROMBN);
   }
@@ -126,15 +126,15 @@ uint8 mem::read_byte(uint16 address) {
 /**
   Read a word from memory when the address is guaranteed to be outside the ROM/RAM bank address space
 */
-uint16 mem::read_word_internal(uint16 address) {
+uint16_t mem::read_word_internal(uint16_t address) {
   return (read_byte_internal(address))+(read_byte_internal(address + 1) << 8);
 }
 
 /**
   Read a word from memory at an arbitrary address
 */
-uint16 mem::read_word(uint16 address) {
-  uint16 data = (read_byte(address))+(read_byte(address + 1) << 8);
+uint16_t mem::read_word(uint16_t address) {
+  uint16_t data = (read_byte(address))+(read_byte(address + 1) << 8);
   //cout << "read " << hex << (int)data << " from " << hex << (int)address << endl;
   return data;
 }
@@ -142,14 +142,14 @@ uint16 mem::read_word(uint16 address) {
 /**
   Write a byte to memory without side effects
 */
-void mem::write_byte_internal(uint16 address, uint8 data) {
+void mem::write_byte_internal(uint16_t address, uint8_t data) {
   memory[address] = data;
 }
  
 /**
   Write a byte to memory taking into account write permissions and execute side effects
 */
-void mem::write_byte(uint16 address, uint8 data) {
+void mem::write_byte(uint16_t address, uint8_t data) {
   //writing to anything but HRAM is restricted during DMA transfer
   if (dmatransfering) {
     if ((address >= O_HRAM) && (address != O_IE)) {
@@ -211,7 +211,7 @@ void mem::write_byte(uint16 address, uint8 data) {
 /**
   Write a word to memory taking into account write permissions and execute side effects
 */
-void mem::write_word(uint16 address, uint16 data) {
+void mem::write_word(uint16_t address, uint16_t data) {
   //cout << "writing " << hex << (int)data << " to " << hex << (int)address << endl;
   write_byte(address, data & 0x00ff);
   write_byte(address+1, data >> 8);
@@ -220,11 +220,11 @@ void mem::write_word(uint16 address, uint16 data) {
 /**
   Get one of the palettes stored in \ref mem
 */
-array<color,4> mem::get_palette(uint8 palette_num) {
+array<color,4> mem::get_palette(uint8_t palette_num) {
   return palettes[palette_num];
 }
 
-void mem::update_palette(uint8 palette, uint8 value) {
+void mem::update_palette(uint8_t palette, uint8_t value) {
   int j = 0;
   for (int i = 0x03; i < 0xff; i = i << 2) {
     switch ((value & i) >> (2*j)) {
@@ -243,7 +243,7 @@ void mem::update_palette(uint8 palette, uint8 value) {
 void mem::dump_memory() {
   ofstream dump;
   dump.open(memorydumpfile);
-  for (uint16 i = 0; i < 0xffff; i++) {
+  for (uint16_t i = 0; i < 0xffff; i++) {
     dump << read_byte(i);
   }
   dump.close();
@@ -293,7 +293,7 @@ void mem::load_ram() {
 /**
   Update the internal representation of the joypad register and trigger an interrupt if necessary
 */
-void mem::update_keys(keyset k, uint8 bit, keystate kp) {
+void mem::update_keys(keyset k, uint8_t bit, keystate kp) {
   if (k == special) {
     if (kp == press) {
       //if the key for a special button is pressed, clear that bit in joyspecial
@@ -327,7 +327,7 @@ void mem::update_keys(keyset k, uint8 bit, keystate kp) {
 /**
   Returns the register representing the set of keys <code>k</code>
 */
-uint8 mem::get_keys(keyset k) {
+uint8_t mem::get_keys(keyset k) {
   return (k == special ? joyspecial : joydirection);
 }
 
@@ -427,7 +427,7 @@ void mem::update_timers(int dt) {
 }
 
 //using recursion to update clock for simplicity since this is cleaner than using 5 nested register updates
-void mem::increment_clock(uint8 *reg, const uint8 *maxval) {
+void mem::increment_clock(uint8_t *reg, const uint8_t *maxval) {
   *reg += 1;
   *reg %= *maxval;
   if ((*reg == 0) && (*maxval != 1)) {

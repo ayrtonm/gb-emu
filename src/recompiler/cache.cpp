@@ -34,7 +34,7 @@ int cache::insert_block(cache_block *block) {
   return 0;
 }
 
-optional<int> cache::find_block(uint16 start_address) {
+optional<int> cache::find_block(uint16_t start_address) {
   for (auto it = blocks.begin(); it != blocks.end(); it++) {
     if (*it == NULL) {
       continue;
@@ -46,7 +46,7 @@ optional<int> cache::find_block(uint16 start_address) {
   return nullopt;
 }
 
-void cache::invalidate_blocks(uint16 modified_address) {
+void cache::invalidate_blocks(uint16_t modified_address) {
   for (auto it = blocks.begin(); it != blocks.end(); it++) {
     if ((modified_address >= (*it)->get_start()) && (modified_address <= (*it)->get_end())) {
       (*it)->invalidate();
@@ -55,7 +55,7 @@ void cache::invalidate_blocks(uint16 modified_address) {
   }
 }
 
-uint16 cache::exec_block(int idx) {
+uint16_t cache::exec_block(int idx) {
   blocks[idx]->exec();
   return blocks[idx]->get_end();
 }

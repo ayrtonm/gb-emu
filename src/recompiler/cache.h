@@ -29,25 +29,25 @@ class cache_block : public jit_function {
     void invalidate() {
       valid = false;
     }
-    uint16 get_start() {
+    uint16_t get_start() {
       return start_address;
     }
-    void set_start(uint16 address) {
+    void set_start(uint16_t address) {
       start_address = address;
     }
-    uint16 get_end() {
+    uint16_t get_end() {
       return end_address;
     }
-    void set_end(uint16 address) {
+    void set_end(uint16_t address) {
       end_address = address;
     }
-    void store_data(uint8 data) {
+    void store_data(uint8_t data) {
       raw_data.push_back(data);
     }
-    uint8 get_last_byte() {
+    uint8_t get_last_byte() {
       return raw_data.back();
     }
-    uint16 get_last_word() {
+    uint16_t get_last_word() {
       return (raw_data.back() << 8) + (raw_data[raw_data.size()-2]);
     }
     void bind() {
@@ -69,8 +69,8 @@ class cache_block : public jit_function {
   private:
     jit_context *context;
     function function_name;
-    vector<uint8> raw_data;
-    uint16 start_address, end_address;
+    vector<uint8_t> raw_data;
+    uint16_t start_address, end_address;
     bool valid;
 };
 
@@ -89,9 +89,9 @@ class cache {
       }
     };
     int insert_block(cache_block *block);
-    optional<int> find_block(uint16 start_address);
-    uint16 exec_block(int idx);
-    void invalidate_blocks(uint16 modified_address);
+    optional<int> find_block(uint16_t start_address);
+    uint16_t exec_block(int idx);
+    void invalidate_blocks(uint16_t modified_address);
   private:
     //num_blocks refers to the number of valid blocks
     int num_blocks;

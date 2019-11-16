@@ -8,11 +8,11 @@
 
 using namespace std;
 
-bool is_cond(uint8 opcode) {
+bool is_cond(uint8_t opcode) {
   return find(begin(conditionals), end(conditionals), opcode) != end(conditionals);
 }
 
-bool is_jump(uint8 opcode) {
+bool is_jump(uint8_t opcode) {
   return find(begin(jumps), end(jumps), opcode) != end(jumps);
 }
 
@@ -27,8 +27,8 @@ dynarec_cpu::dynarec_cpu() {
   ime = 0;
   ei_delay = 0;
 
-  type_uint8_ptr = jit_type_create_pointer(jit_type_ubyte, 0);
-  type_uint16_ptr = jit_type_create_pointer(jit_type_ushort, 0);
+  type_uint8_t_ptr = jit_type_create_pointer(jit_type_ubyte, 0);
+  type_uint16_t_ptr = jit_type_create_pointer(jit_type_ushort, 0);
   type_class_ptr = jit_type_create_pointer(jit_type_void_ptr, 0);
 
   jit_type_t invalidate_blocks_args_t[] = {jit_type_ushort};
@@ -53,8 +53,8 @@ dynarec_cpu::dynarec_cpu() {
 }
 
 dynarec_cpu::~dynarec_cpu() {
-  jit_type_free(type_uint8_ptr);
-  jit_type_free(type_uint16_ptr);
+  jit_type_free(type_uint8_t_ptr);
+  jit_type_free(type_uint16_t_ptr);
   jit_type_free(type_class_ptr);
   jit_type_free(invalidate_blocks_signature);
   jit_type_free(read_byte_signature);
@@ -81,7 +81,7 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
       if (!block) {
         //update $pc accordingly
         uint16_t start = pc.w;
-        uint8 op = m.read_byte(pc.w);
+        uint8_t op = m.read_byte(pc.w);
         switch(op) {
           #include "jumps.h"
           #include "conditionals.h"
@@ -115,9 +115,9 @@ LibJIT's function destructors do not actually delete the underlying raw function
 since we want to be able to replace blocks individually when the cache gets filled, this means that we need a JIT
 context for each block. As a result, there is quite a bit of repetition for now
 */
-optional<cache_block*> dynarec_cpu::translate(uint16 address, mem &m, keypad &k, lcd &l) {
+optional<cache_block*> dynarec_cpu::translate(uint16_t address, mem &m, keypad &k, lcd &l) {
   //check if the translation is going to fail
-  uint8 opcode = m.read_byte(address);
+  uint8_t opcode = m.read_byte(address);
   if (is_cond(opcode) || is_jump(opcode)) {
     return nullopt;
   }
@@ -145,9 +145,9 @@ optional<cache_block*> dynarec_cpu::translate(uint16 address, mem &m, keypad &k,
   jit_value f_n = block->new_constant(F_N, jit_type_ushort);
   jit_value f_h = block->new_constant(F_H, jit_type_ushort);
   jit_value f_c = block->new_constant(F_C, jit_type_ushort);
-  jit_value f_addr = block->new_constant(&af.b.l, type_uint8_ptr);
-  jit_value a_addr = block->new_constant(&af.b.h, type_uint8_ptr);
-  jit_value sp_addr = block->new_constant(&sp, type_uint16_ptr);
+  jit_value f_addr = block->new_constant(&af.b.l, type_uint8_t_ptr);
+  jit_value a_addr = block->new_constant(&af.b.h, type_uint8_t_ptr);
+  jit_value sp_addr = block->new_constant(&sp, type_uint16_t_ptr);
 
   //unused jit_values will be optimized away so define the majority here
   jit_value f_val, a_val, sp_val, reg8_addr, reg16_addr, reg8_val, reg16_val, take_branch;

@@ -19,7 +19,7 @@
   block->insn_store_relative(sp_addr, 0, val);
 
 #define GET_REG8_ADDR(r) \
-  reg8_addr = block->new_constant(&r, type_uint8_ptr);
+  reg8_addr = block->new_constant(&r, type_uint8_t_ptr);
 
 #define GET_REG8_VAL(r) \
   GET_REG8_ADDR(r) \
@@ -29,7 +29,7 @@
   block->insn_store_relative(reg8_addr, 0, val);
 
 #define GET_REG16_ADDR(r) \
-  reg16_addr = block->new_constant(&r, type_uint16_ptr);
+  reg16_addr = block->new_constant(&r, type_uint16_t_ptr);
 
 #define GET_REG16_VAL(r) \
   GET_REG16_ADDR(r) \

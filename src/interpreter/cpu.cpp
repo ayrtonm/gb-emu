@@ -22,7 +22,7 @@ cpu::cpu() {
 //one cpu click is approximately 0.953674 microseconds
 void cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
   //local variables
-  uint8 op;
+  uint8_t op;
   int dt = 0;
   tp.start_timer();
   save_state(init_state, m, k, l, s);

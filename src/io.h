@@ -44,7 +44,7 @@ case IO_TAC: {
   break;
 }
 case IO_JOYP: {
-  uint8 keysselected = data & 0x30;
+  uint8_t keysselected = data & 0x30;
   //if special keys are selected
   if (keysselected == JOYP_DIRECTION_SELECTED) {
     loadeddirection = false;
@@ -256,7 +256,7 @@ case IO_NR51: {
 case IO_NR52: {
   //writing zero to bit 7 destroys the contents of all sound registers
   if ((data & 0x80) == 0x00) {
-    for (uint8 i = IO_NR10; i <= IO_NR52; i++) {
+    for (uint8_t i = IO_NR10; i <= IO_NR52; i++) {
       //sound registers are contiguous memory from NR10 to NR52 except 0xFF15 and 0xFF1F
       if (i != 0x15 && i != 0x1f) {
         memory[O_IO + i] = 0;

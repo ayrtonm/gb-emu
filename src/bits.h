@@ -20,15 +20,13 @@
 }  while (0)
 #include <stdint.h>
 
-typedef uint8_t uint8;
-typedef uint16_t uint16;
 typedef union {
-  uint16 w;
+  uint16_t w;
   struct {
     #ifdef HIGH_ENDIAN
-    uint8 h,l;
+    uint8_t h,l;
     #else
-    uint8 l,h;
+    uint8_t l,h;
     #endif
   } b;
 } word16;
@@ -36,9 +34,9 @@ typedef union {
 //the following four tables were originally in cpu.h but they are used in both the interpreted and recompiled versions so they were moved here
 //using lookup table to avoid having to do log2
 //not totally sure there is a performance improvement but it is easier to implement for now
-const static uint16 interrupt_table[16] = {0,0x08,0,0x10,0,0,0,0x18,0,0,0,0,0,0,0,0x20};
+const static uint16_t interrupt_table[16] = {0,0x08,0,0x10,0,0,0,0x18,0,0,0,0,0,0,0,0x20};
 
-const static uint16 length[0x0100] = {
+const static uint16_t length[0x0100] = {
 /*0 1 2 3 4 5 6 7 8 9 A B C D E F*/
   1,3,1,1,1,1,2,1,3,1,1,1,1,1,2,1, /*0x*/
   2,3,1,1,1,1,2,1,2,1,1,1,1,1,2,1, /*1x*/

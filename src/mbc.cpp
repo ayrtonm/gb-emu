@@ -102,7 +102,7 @@ void mem::load_cart(string filename) {
       case 0x03: {num_rambanks = 4;break;}
       default: {throw runtime_error("unknown RAM size detected");break;}
     }
-    uint8 checksum = 0;
+    uint8_t checksum = 0;
     for (int i = 0x0134; i < 0x014d; i++) {
       checksum = checksum - memory[i] - 1;
     }
@@ -153,7 +153,7 @@ void mem::load_cart(string filename) {
 }
 //the handle MBC functions need to access and modify the memory model so they should be members of the mem class
 //the ROM only handle function should take care of writing to RAM
-void mem::handle_romonly(uint16 address, uint8 data) {
+void mem::handle_romonly(uint16_t address, uint8_t data) {
   //ignore attempts to write to address < 0x8000
   if (address < 0x8000) {
     return;
@@ -170,7 +170,7 @@ void mem::handle_romonly(uint16 address, uint8 data) {
   }
 };
 //address can only be in 0x0000-0x7fff or 0xa000-0xbfff
-void mem::handle_mbc1(uint16 address, uint8 data) {
+void mem::handle_mbc1(uint16_t address, uint8_t data) {
   if (address < 0x2000) {
     ramenabled = (data & 0x0a ? true : false);
     return;
@@ -214,7 +214,7 @@ void mem::handle_mbc1(uint16 address, uint8 data) {
     return;
   }
 };
-void mem::handle_mbc2(uint16 address, uint8 data) {
+void mem::handle_mbc2(uint16_t address, uint8_t data) {
   if (address < 0x2000) {
     if ((address & 0x0100) == 0x00) {
       ramenabled = (data & 0x0a ? true : false);
@@ -240,7 +240,7 @@ void mem::handle_mbc2(uint16 address, uint8 data) {
     return;
   }
 };
-void mem::handle_mbc3(uint16 address, uint8 data) {
+void mem::handle_mbc3(uint16_t address, uint8_t data) {
   if (address < 0x2000) {
     ramenabled = (data & 0x0a ? true : false);
     return;
@@ -292,7 +292,7 @@ void mem::handle_mbc3(uint16 address, uint8 data) {
   }
 };
 
-void mem::handle_mbc5(uint16 address, uint8 data) {
+void mem::handle_mbc5(uint16_t address, uint8_t data) {
   handle_mbc3(address, data);
 };
 

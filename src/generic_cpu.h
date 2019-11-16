@@ -15,7 +15,7 @@ class generic_cpu {
     void delete_state(emulator_state *st);
   protected:
     word16 af, bc, de, hl, sp, pc;
-    uint8 ime, ei_delay, halt;
+    uint8_t ime, ei_delay, halt;
     throttle_controller tp;
 };
 

@@ -8,9 +8,9 @@
 
 typedef struct cpu_state {
   word16 af, bc, de, hl, sp, pc;
-  uint8 ime;
-  uint8 ei_delay;
-  uint8 halt;
+  uint8_t ime;
+  uint8_t ei_delay;
+  uint8_t halt;
   bool repeat;
 } cpu_state;
 

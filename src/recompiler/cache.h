@@ -10,6 +10,11 @@
 
 using namespace std;
 
+typedef struct location {
+  uint16_t address;
+  int bank;
+} location;
+
 class cache_block : public jit_function {
   //this typedef is a placeholder until I figure out what the target functions take as
   //arguments and return tells the compiler how to interpret the address of the entry
@@ -29,17 +34,17 @@ class cache_block : public jit_function {
     void invalidate() {
       valid = false;
     }
-    uint16_t get_start() {
-      return start_address;
+    location get_start() {
+      return start;
     }
-    void set_start(uint16_t address) {
-      start_address = address;
+    void set_start(location st) {
+      start = st;
     }
-    uint16_t get_end() {
-      return end_address;
+    location get_end() {
+      return end;
     }
-    void set_end(uint16_t address) {
-      end_address = address;
+    void set_end(location en) {
+      end = en;
     }
     void store_data(uint8_t data) {
       raw_data.push_back(data);
@@ -70,7 +75,7 @@ class cache_block : public jit_function {
     jit_context *context;
     function function_name;
     vector<uint8_t> raw_data;
-    uint16_t start_address, end_address;
+    location start, end;
     bool valid;
 };
 

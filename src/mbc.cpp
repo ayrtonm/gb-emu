@@ -296,6 +296,14 @@ void mem::handle_mbc5(uint16_t address, uint8_t data) {
   handle_mbc3(address, data);
 };
 
+int mem::get_rombank() {
+  return current_rombank;
+};
+
+int mem::get_rambank() {
+  return current_rambank;
+};
+
 void mem::switch_rombanks(int newbank) {
   if (newbank >= num_rombanks) {
     return;
@@ -321,4 +329,3 @@ void mem::switch_rambanks(int newbank) {
   }
   current_rambank = newbank;
 };
-

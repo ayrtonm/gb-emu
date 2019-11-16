@@ -46,6 +46,8 @@ class mem
     void update_keys(keyset k, uint8_t bit, keystate kp);
     uint8_t get_keys(keyset k);
     keyset get_keys_loaded();
+    int get_rombank();
+    int get_rambank();
 
     //used in cpu.cpp
     void update_timers(int dt);

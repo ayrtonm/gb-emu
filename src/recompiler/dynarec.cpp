@@ -126,7 +126,16 @@ optional<cache_block*> dynarec_cpu::translate(uint16_t address, mem &m, keypad &
   jit_context *cx = new jit_context();
   //let's allocate memory for the new block here
   cache_block *block = new cache_block(*cx);
-  block->set_start(address);
+
+  location start { address, 0 };
+  if (address < 0x8000) {
+    start.bank = m.get_rombank();
+  }
+  else if ((address >= 0xA000) &&
+           (address < 0xC000)) {
+    start.bank = m.get_rambank();
+  }
+  block->set_start(start);
   block->build_start();
 
   //get the addresses of the four auxilary classes
@@ -194,7 +203,15 @@ optional<cache_block*> dynarec_cpu::translate(uint16_t address, mem &m, keypad &
     opcode = m.read_byte(address);
   };
   //end_address is guaranteed to be a jump or conditional
-  block->set_end(address);
+  location end { address, 0 };
+  if (address < 0x8000) {
+    end.bank = m.get_rombank();
+  }
+  else if ((address >= 0xA000) &&
+           (address < 0xC000)) {
+    end.bank = m.get_rambank();
+  }
+  block->set_end(end);
   block->insn_return();
   block->compile();
   block->bind();

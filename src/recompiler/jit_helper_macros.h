@@ -10,12 +10,15 @@
   sp_val = block->insn_load_relative(sp_addr, 0, jit_type_ushort);
 
 #define SET_F(val) \
-  block->insn_store_relative(f_addr, 0, val);
+  val = block->insn_convert(val, jit_type_ubyte); \
+  block->insn_store_relative(f_addr, 0, val.raw());
 
 #define SET_A(val) \
+  val = block->insn_convert(val, jit_type_ubyte); \
   block->insn_store_relative(a_addr, 0, val);
 
 #define SET_SP(val) \
+  val = block->insn_convert(val, jit_type_ushort); \
   block->insn_store_relative(sp_addr, 0, val);
 
 #define GET_REG8_ADDR(r) \
@@ -26,6 +29,7 @@
   reg8_val = block->insn_load_relative(reg8_addr, 0, jit_type_ubyte);
 
 #define SET_REG8(val) \
+  val = block->insn_convert(val, jit_type_ubyte); \
   block->insn_store_relative(reg8_addr, 0, val);
 
 #define GET_REG16_ADDR(r) \
@@ -36,10 +40,11 @@
   reg16_val = block->insn_load_relative(reg16_addr, 0, jit_type_ushort);
 
 #define SET_REG16(val) \
+  val = block->insn_convert(val, jit_type_ushort); \
   block->insn_store_relative(reg16_addr, 0, val);
 
 #define GET_BYTE(byte) \
-  jit_value byte = block->new_constant(block->get_last_byte(), jit_type_ushort);
+  jit_value byte = block->new_constant(block->get_last_byte(), jit_type_ubyte);
 
 #define GET_WORD(word) \
   jit_value word = block->new_constant(block->get_last_word(), jit_type_ushort);
@@ -52,7 +57,7 @@
 
 #define JIT_INVALIDATE_BLOCKS(addr) \
   jit_value_t invalidate_args[] = {addr}; \
-  block->insn_call_native(NULL, (void *)&cache::invalidate_blocks, invalidate_blocks_signature, invalidate_args, 3, 0);
+  /*block->insn_call_native(NULL, (void *)&cache::invalidate_blocks, invalidate_blocks_signature, invalidate_args, 3, 0);*/
 
 #define JIT_WRITE_BYTE(addr, val) \
   JIT_INVALIDATE_BLOCKS(addr) \
@@ -95,78 +100,84 @@
   a_val = block->insn_add(a_val, reg8_val); \
   SET_A(a_val) \
   SET_F(zero) \
-  SET_F_Z(a_val) \
-  SET_F_C(a_val) \
-  SET_F_H(a_val)
+  MODIFY_ZERO_FLAG(a_val) \
+  MODIFY_CARRY_FLAG(a_val) \
+  MODIFY_H_FLAG(a_val)
 
 //FIXME: add the carry
 #define JIT_ADC_FUNC \
   a_val = block->insn_add(a_val, reg8_val); \
   SET_A(a_val) \
   SET_F(zero) \
-  SET_F_Z(a_val) \
-  SET_F_C(a_val) \
-  SET_F_H(a_val)
+  MODIFY_ZERO_FLAG(a_val) \
+  MODIFY_CARRY_FLAG(a_val) \
+  MODIFY_H_FLAG(a_val)
 
 #define JIT_SUB_FUNC \
   a_val = block->insn_sub(a_val, reg8_val); \
   SET_A(a_val) \
   SET_F(f_n) \
-  SET_F_Z(a_val) \
-  SET_F_C(a_val) \
-  SET_F_H(a_val)
+  MODIFY_ZERO_FLAG(a_val) \
+  MODIFY_CARRY_FLAG(a_val) \
+  MODIFY_H_FLAG(a_val)
 
 //FIXME: add the carry
 #define JIT_SBC_FUNC \
   a_val = block->insn_sub(a_val, reg8_val); \
   SET_A(a_val) \
   SET_F(f_n) \
-  SET_F_Z(a_val) \
-  SET_F_C(a_val) \
-  SET_F_H(a_val)
+  MODIFY_ZERO_FLAG(a_val) \
+  MODIFY_CARRY_FLAG(a_val) \
+  MODIFY_H_FLAG(a_val)
 
 #define JIT_AND_FUNC \
   a_val = block->insn_and(a_val, reg8_val); \
   SET_A(a_val) \
   SET_F(f_h) \
-  SET_F_Z(a_val)
+  MODIFY_ZERO_FLAG(a_val)
 
 #define JIT_XOR_FUNC \
   a_val = block->insn_xor(a_val, reg8_val); \
   SET_A(a_val) \
   SET_F(zero) \
-  SET_F_Z(a_val)
+  MODIFY_ZERO_FLAG(a_val)
 
 #define JIT_OR_FUNC \
   a_val = block_insn_or(a_val, reg8_val); \
   SET_A(a_val) \
   SET_F(zero) \
-  SET_F_Z(a_val)
+  MODIFY_ZERO_FLAG(a_val)
 
 #define JIT_CP_FUNC \
   jit_value temp = block->insn_sub(a_val, reg8_val); \
   SET_F(f_n) \
-  SET_F_Z(temp) \
-  SET_F_C(temp) \
-  SET_F_H(temp)
+  MODIFY_ZERO_FLAG(temp) \
+  MODIFY_CARRY_FLAG(temp) \
+  MODIFY_H_FLAG(temp)
 
-//I need to implement this with two labels to add the case for clearing the flag
-#define SET_F_FLAG(flag) \
-  skip = block->new_label(); \
-  block->insn_branch_if_not(take_branch, skip); \
+/*
+  first, explicitly clear the nth bit in f_val
+    f_val &= ((1 << n) ^ 0xFF)
+  then bitwise OR it with the nth bit's new value
+    flag_val = (1 << n)
+    f_val |= flag_val
+*/
+#define MODIFY_FLAG_BODY(flag) \
   GET_F_VAL \
-  f_val = block->insn_or(f_val, flag); \
-  SET_F(f_val) \
-  block->insn_label(skip);
+  not_flag = block->insn_xor(flag, ff); \
+  f_val = block->insn_and(f_val, not_flag); \
+  flag_val = block->insn_mul(condition, flag); \
+  f_val = block->insn_or(f_val, flag_val); \
+  SET_F(f_val)
 
-#define SET_F_Z(temp) \
-  take_branch = block->insn_eq(temp, zero); \
-  SET_F_FLAG(f_z)
+#define MODIFY_ZERO_FLAG(temp) \
+  condition = block->insn_eq(temp, zero); \
+  MODIFY_FLAG_BODY(f_z)
 
-#define SET_F_C(temp) \
-  take_branch = block->insn_gt(temp, ff); \
-  SET_F_FLAG(f_c)
+#define MODIFY_CARRY_FLAG(temp) \
+  condition = block->insn_gt(temp, ff); \
+  MODIFY_FLAG_BODY(f_c)
 
-#define SET_F_H(temp)
-  //take_branch = block->insn() \
-  //SET_F_FLAG(f_h)
+#define MODIFY_H_FLAG(temp) \
+  /*condition = block->insn_X(temp, Y);*/ \
+  MODIFY_FLAG_BODY(f_h)

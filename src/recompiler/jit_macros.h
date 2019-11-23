@@ -115,8 +115,8 @@
   GET_F_VAL \
   f_val = block->insn_and(f_val, f_c); \
   SET_F(f_val) \
-  SET_F_Z(reg8_val) \
-  SET_F_H(reg8_val) \
+  MODIFY_ZERO_FLAG(reg8_val) \
+  MODIFY_H_FLAG(reg8_val) \
 } while(0)
 
 #define JIT_DEC_REG8(r) do { \
@@ -127,8 +127,8 @@
   f_val = block->insn_and(f_val, f_c); \
   f_val = block->insn_or(f_val, f_n); \
   SET_F(f_val) \
-  SET_F_Z(reg8_val) \
-  SET_F_H(reg8_val) \
+  MODIFY_ZERO_FLAG(reg8_val) \
+  MODIFY_H_FLAG(reg8_val) \
 } while(0)
 
 #define JIT_INC_REG16(r) do { \

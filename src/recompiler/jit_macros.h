@@ -142,3 +142,28 @@
   reg16_val = block->insn_sub(reg16_val, one); \
   SET_REG16(reg16_val) \
 } while(0)
+
+
+#define JIT_RLC(r) JIT_CB(r,RLC)
+#define JIT_RRC(r) JIT_CB(r,RRC)
+#define JIT_RL(r) JIT_CB(r,RL)
+#define JIT_RR(r) JIT_CB(r,RR)
+#define JIT_SLA(r) JIT_CB(r,SLA)
+#define JIT_SRA(r) JIT_CB(r,SRA)
+#define JIT_SRL(r) JIT_CB(r,SRL)
+#define JIT_SWAP(r) JIT_CB(r,SWAP)
+#define JIT_TEST(r,n) JIT_CB_BIT(r,TEST,n)
+#define JIT_RESET(r,n) JIT_CB_BIT(r,RESET,n)
+#define JIT_SET(r,n) JIT_CB_BIT(r,SET,n)
+
+#define JIT_RLC_PTR JIT_CB_PTR(RLC)
+#define JIT_RRC_PTR JIT_CB_PTR(RRC)
+#define JIT_RL_PTR JIT_CB_PTR(RL)
+#define JIT_RR_PTR JIT_CB_PTR(RR)
+#define JIT_SLA_PTR JIT_CB_PTR(SLA)
+#define JIT_SRA_PTR JIT_CB_PTR(SRA)
+#define JIT_SRL_PTR JIT_CB_PTR(SRL)
+#define JIT_SWAP_PTR JIT_CB_PTR(SWAP)
+#define JIT_TEST_PTR(n) JIT_CB_BIT_PTR(TEST,n)
+#define JIT_RESET_PTR(n) JIT_CB_BIT_PTR(RESET,n)
+#define JIT_SET_PTR(n) JIT_CB_BIT_PTR(SET,n)

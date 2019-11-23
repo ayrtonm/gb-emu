@@ -69,7 +69,7 @@
   SET_WRITE_ARGS(addr, val) \
   block->insn_call_native(NULL, (void *)&mem::write_word, write_word_signature, args, 3, 0);
 
-#define JIT_READ_BYTE(addr, val) \
+#define JIT_READ_BYTE(addr, res) \
   SET_READ_ARGS(addr) \
   jit_value res = block->insn_call_native(NULL, (void *)&mem::read_byte, read_byte_signature, args, 2, 0);
 
@@ -181,3 +181,61 @@
 #define MODIFY_H_FLAG(temp) \
   /*condition = block->insn_X(temp, Y);*/ \
   MODIFY_FLAG_BODY(f_h)
+
+#define JIT_CB(r,op) do { \
+  GET_REG8_VAL(r) \
+  JIT_##op##_FUNC \
+} while(0)
+
+#define JIT_CB_PTR(op) do { \
+  GET_REG16_VAL(hl) \
+  JIT_READ_BYTE(reg16_val.raw(), reg8_val) \
+  JIT_##op##_FUNC \
+} while(0)
+
+#define JIT_CB_BIT(r,op,n) do { \
+  GET_REG8_VAL(r) \
+  temp = block->new_constant(n, jit_type_ushort); \
+  JIT_##op##_FUNC(n) \
+} while(0)
+
+#define JIT_CB_BIT_PTR(op,n) do { \
+  GET_REG16_VAL(hl) \
+  JIT_READ_BYTE(reg16_val.raw(), reg8_val) \
+  temp = block->new_constant(n, jit_type_ushort); \
+  JIT_##op##_FUNC(n) \
+} while(0)
+
+#define JIT_SET_FUNC(n) \
+  reg8_val = block->insn_or(reg8_val, temp); \
+  SET_REG8(reg8_val)
+
+#define JIT_RESET_FUNC(n) \
+  temp = block->insn_xor(temp, ff); \
+  reg8_val = block->insn_and(re8_val, temp); \
+  SET_REG8(reg8_val)
+
+#define JIT_TEST_FUNC(n) \
+  reg8_val = block->insn_and(reg8_val, temp); \
+  GET_F_VAL \
+  f_val = block->insn_and(f_val, f_c); \
+  f_val = block->insn_or(f_val, f_h); \
+  SET_F(f_val) \
+  MODIFY_ZERO_FLAG(reg8_val)
+
+#define JIT_SWAP_FUNC \
+  temp = block->insn_or(reg8_val, upper_bits); \
+  temp = block->insn_div(temp, sixteen); \
+  reg8_val = block->insn_or(reg8_val, lower_bits); \
+  reg8_val = block->insn_mul(reg8_val, sixteen); \
+  reg8_val = block->insn_or(reg8_val, temp); \
+  SET_F(zero) \
+  MODIFY_ZERO_FLAG(reg8_val)
+
+#define JIT_RLC_FUNC
+#define JIT_RRC_FUNC
+#define JIT_RL_FUNC
+#define JIT_RR_FUNC
+#define JIT_SLA_FUNC
+#define JIT_SRA_FUNC
+#define JIT_SRL_FUNC

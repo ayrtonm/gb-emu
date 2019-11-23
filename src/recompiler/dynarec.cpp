@@ -68,6 +68,7 @@ dynarec_cpu::~dynarec_cpu() {
 }
 
 void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
+  int timer = 1000;
   cache *storage = new cache();
   optional<int> idx;
   optional<cache_block*> block;
@@ -91,8 +92,14 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
           }
         }
         uint16_t end = pc.w;
+#ifdef DEBUG
         cout << hex << (int)op << " mapped " << hex << (int)start << " to " << hex << (int)end << endl;
+#endif
         //at this point $pc may or may not point to another jump/conditional so we search the cache again
+        timer--;
+        if (timer == 0) {
+          return;
+        }
       }
       //if the translation was successful
       else {
@@ -104,7 +111,18 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
     }
     //at this point idx points to the correct block in the cache
     //execute the block and update pc.w accordingly
+#ifdef DEBUG
+    cout << hex << (int)af.w << " " << hex << (int)bc.w << " " << hex << (int)de.w << " " << hex << (int)hl.w << endl;
+    cout << "executing block " << idx.value() << endl;
+#endif
     pc.w = storage->exec_block(idx.value());
+#ifdef DEBUG
+    cout << hex << (int)af.w << " " << hex << (int)bc.w << " " << hex << (int)de.w << " " << hex << (int)hl.w << endl;
+#endif
+    timer--;
+    if (timer == 0) {
+      return;
+    }
   }
   delete storage;
   return;
@@ -159,8 +177,10 @@ optional<cache_block*> dynarec_cpu::translate(uint16_t address, mem &m, keypad &
   jit_value sp_addr = block->new_constant(&sp, type_uint16_t_ptr);
 
   //unused jit_values will be optimized away so define the majority here
-  jit_value f_val, a_val, sp_val, reg8_addr, reg16_addr, reg8_val, reg16_val, take_branch;
-  jit_label skip;
+  jit_value f_val, a_val, sp_val,
+            reg8_addr, reg16_addr,
+            reg8_val, reg16_val,
+            condition, flag_val, not_flag, temp;
 
   //read in opcodes until we hit a conditional or jump
   //we are guaranteed to have at least one valid instruction due to the check at the beginning of this function

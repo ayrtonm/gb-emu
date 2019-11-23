@@ -1,5 +1,5 @@
 #ifdef DYNAREC_CPU
-#define DYNAREC_DEBUG
+#define DEBUG
 #include <iostream>
 #include <algorithm>
 #include <jit/jit-plus.h>
@@ -185,22 +185,36 @@ optional<cache_block*> dynarec_cpu::translate(uint16_t address, mem &m, keypad &
   //read in opcodes until we hit a conditional or jump
   //we are guaranteed to have at least one valid instruction due to the check at the beginning of this function
   while (!(is_cond(opcode)||is_jump(opcode))) {
-#ifdef DYNAREC_DEBUG
-    //storing the opcode isn't strictly necessary
-    block->store_data(opcode);
-#endif
-    //store opcode arguments if any exist
-    for (int i = 1; i < length[opcode]; i++) {
+    if (opcode == 0xcb) {
       address += 1;
-      block->store_data(m.read_byte(address));
+      opcode = m.read_byte(address);
+      switch(opcode) {
+        #include "cb_translations.h"
+        default: {
+          cout << "ran into unimplemented 0xcb opcode:" << hex << (int)opcode << " at [" << hex << (int)address << "]" << endl;
+          getchar();
+          break;
+        }
+      }
     }
-    //translate an instruction into part of the block's JIT function
-    switch(opcode) {
-      #include "translations.h"
-      default: {
-        cout << "ran into unimplemented opcode:" << hex << (int)opcode << " at [" << hex << (int)address << "]" << endl;
-        getchar();
-        break;
+    else {
+#ifdef DEBUG
+      //storing the opcode isn't strictly necessary
+      block->store_data(opcode);
+#endif
+      //store opcode arguments if any exist
+      for (int i = 1; i < length[opcode]; i++) {
+        address += 1;
+        block->store_data(m.read_byte(address));
+      }
+      //translate an instruction into part of the block's JIT function
+      switch(opcode) {
+        #include "translations.h"
+        default: {
+          cout << "ran into unimplemented opcode:" << hex << (int)opcode << " at [" << hex << (int)address << "]" << endl;
+          getchar();
+          break;
+        }
       }
     }
     //insert calls to the auxilary classes' update functions in the block's JIT function

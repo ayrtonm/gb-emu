@@ -1,5 +1,4 @@
 #ifdef DYNAREC_CPU
-#define DEBUG
 #include <iostream>
 #include <algorithm>
 #include <jit/jit-plus.h>
@@ -167,6 +166,9 @@ optional<cache_block*> dynarec_cpu::translate(uint16_t address, mem &m, keypad &
   jit_value zero = block->new_constant(0, jit_type_ushort);
   jit_value one = block->new_constant(1, jit_type_ushort);
   jit_value two = block->new_constant(2, jit_type_ushort);
+  jit_value lower_bits = block->new_constant(0x0f, jit_type_ushort);
+  jit_value sixteen = block->new_constant(16, jit_type_ushort);
+  jit_value upper_bits = block->new_constant(0xf0, jit_type_ushort);
   jit_value ff = block->new_constant(0xff, jit_type_ushort);
   jit_value f_z = block->new_constant(F_Z, jit_type_ushort);
   jit_value f_n = block->new_constant(F_N, jit_type_ushort);

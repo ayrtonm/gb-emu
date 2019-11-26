@@ -67,7 +67,9 @@ dynarec_cpu::~dynarec_cpu() {
 }
 
 void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
+#ifdef TIMED
   int timer = 1000;
+#endif
   cache *storage = new cache();
   optional<int> idx;
   optional<cache_block*> block;
@@ -91,14 +93,16 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
           }
         }
         uint16_t end = pc.w;
-#ifdef DEBUG
+#ifdef DYNAREC_DEBUG
         cout << hex << (int)op << " mapped " << hex << (int)start << " to " << hex << (int)end << endl;
 #endif
         //at this point $pc may or may not point to another jump/conditional so we search the cache again
+#ifdef TIMED
         timer--;
         if (timer == 0) {
           return;
         }
+#endif
       }
       //if the translation was successful
       else {
@@ -110,18 +114,20 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
     }
     //at this point idx points to the correct block in the cache
     //execute the block and update pc.w accordingly
-#ifdef DEBUG
+#ifdef DYNAREC_DEBUG
     cout << hex << (int)af.w << " " << hex << (int)bc.w << " " << hex << (int)de.w << " " << hex << (int)hl.w << endl;
     cout << "executing block " << idx.value() << endl;
 #endif
     pc.w = storage->exec_block(idx.value());
-#ifdef DEBUG
+#ifdef DYNAREC_DEBUG
     cout << hex << (int)af.w << " " << hex << (int)bc.w << " " << hex << (int)de.w << " " << hex << (int)hl.w << endl;
 #endif
+#ifdef TIMED
     timer--;
     if (timer == 0) {
       return;
     }
+#endif
   }
   delete storage;
   return;
@@ -166,8 +172,9 @@ optional<cache_block*> dynarec_cpu::translate(uint16_t address, mem &m, keypad &
   jit_value zero = block->new_constant(0, jit_type_ushort);
   jit_value one = block->new_constant(1, jit_type_ushort);
   jit_value two = block->new_constant(2, jit_type_ushort);
+  jit_value four = block->new_constant(4, jit_type_ushort);
+  jit_value seven = block->new_constant(7, jit_type_ushort);
   jit_value lower_bits = block->new_constant(0x0f, jit_type_ushort);
-  jit_value sixteen = block->new_constant(16, jit_type_ushort);
   jit_value upper_bits = block->new_constant(0xf0, jit_type_ushort);
   jit_value ff = block->new_constant(0xff, jit_type_ushort);
   jit_value f_z = block->new_constant(F_Z, jit_type_ushort);
@@ -200,7 +207,7 @@ optional<cache_block*> dynarec_cpu::translate(uint16_t address, mem &m, keypad &
       }
     }
     else {
-#ifdef DEBUG
+#ifdef DYNAREC_DEBUG
       //storing the opcode isn't strictly necessary
       block->store_data(opcode);
 #endif

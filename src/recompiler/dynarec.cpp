@@ -87,7 +87,7 @@ long int dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s, long int limi
           #include "conditionals.h"
           default: {
             cout << "ran into unimplemented jump or conditional branch" << endl;
-            break;
+            return 0;
           }
         }
         steps += 1;
@@ -204,8 +204,7 @@ optional<cache_block*> dynarec_cpu::translate(uint16_t address, mem &m, keypad &
         #include "cb_translations.h"
         default: {
           cout << "ran into unimplemented 0xcb opcode:" << hex << (int)opcode << " at [" << hex << (int)address << "]" << endl;
-          getchar();
-          break;
+          return nullopt;
         }
       }
     }
@@ -224,8 +223,7 @@ optional<cache_block*> dynarec_cpu::translate(uint16_t address, mem &m, keypad &
         #include "translations.h"
         default: {
           cout << "ran into unimplemented opcode:" << hex << (int)opcode << " at [" << hex << (int)address << "]" << endl;
-          getchar();
-          break;
+          return nullopt;
         }
       }
     }

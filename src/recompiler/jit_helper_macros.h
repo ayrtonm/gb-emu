@@ -156,6 +156,7 @@
   MODIFY_H_FLAG(temp)
 
 /*
+  Make sure to set `condition` before using this macro
   first, explicitly clear the nth bit in f_val
     f_val &= ((1 << n) ^ 0xFF)
   then bitwise OR it with the nth bit's new value
@@ -174,6 +175,8 @@
   condition = block->insn_eq(temp, zero); \
   MODIFY_FLAG_BODY(f_z)
 
+//this is only the simplest way to check if we need to set the carry flag
+//for some rotate/shift opcodes we have to check by testing one of the lower 8 bits
 #define MODIFY_CARRY_FLAG(temp) \
   condition = block->insn_gt(temp, ff); \
   MODIFY_FLAG_BODY(f_c)
@@ -212,7 +215,7 @@
 
 #define JIT_RESET_FUNC(n) \
   temp = block->insn_xor(temp, ff); \
-  reg8_val = block->insn_and(re8_val, temp); \
+  reg8_val = block->insn_and(reg8_val, temp); \
   SET_REG8(reg8_val)
 
 #define JIT_TEST_FUNC(n) \
@@ -225,16 +228,51 @@
 
 #define JIT_SWAP_FUNC \
   temp = block->insn_or(reg8_val, upper_bits); \
-  temp = block->insn_div(temp, sixteen); \
+  temp = block->insn_shr(temp, four); \
   reg8_val = block->insn_or(reg8_val, lower_bits); \
-  reg8_val = block->insn_mul(reg8_val, sixteen); \
+  reg8_val = block->insn_shl(reg8_val, four); \
   reg8_val = block->insn_or(reg8_val, temp); \
+  SET_REG8(reg8_val) \
   SET_F(zero) \
   MODIFY_ZERO_FLAG(reg8_val)
 
-#define JIT_RLC_FUNC
+#define JIT_RLC_FUNC \
+  temp = block->insn_shl(reg8_val, one); \
+  reg8_val = block->insn_shr(reg8_val, seven); \
+  reg8_val = block->insn_and(reg8_val, one); \
+  condition = block->insn_eq(reg8_val, one); \
+  MODIFY_FLAG_BODY(f_c) \
+  reg8_val = block->insn_or(reg8_val, temp); \
+  SET_REG8(reg8_val) \
+  MODIFY_ZERO_FLAG(reg8_val)
+
 #define JIT_RRC_FUNC
-#define JIT_RL_FUNC
+
+/*
+  first let temp = r << 1
+  then r >>= 7
+  condition = r & 1
+  load f_val
+  f_val &= f_c
+  f_val >>= 4
+  at this point f_val contains 0 or 1 depending on the value of the carry flag
+  note that we will not be storing this f_val since the flags are messed up
+  in other words, we need to reload f_val before modifying the flags
+  r = temp | f_val
+  modify carry flag based on condition (f_val is reloaded here)
+  modify zero flag based on r
+*/
+#define JIT_RL_FUNC \
+  temp = block->insn_shl(reg8_val, one); \
+  reg8_val = block->insn_shr(reg8_val, seven); \
+  condition = block->insn_eq(reg8_val, one); \
+  GET_F_VAL \
+  f_val = block->insn_and(f_val, f_c); \
+  f_val = block->insn_shr(f_val, four); \
+  reg8_val = block->insn_or(temp, f_val); \
+  MODIFY_FLAG_BODY(f_c) \
+  MODIFY_ZERO_FLAG(reg8_val)
+
 #define JIT_RR_FUNC
 #define JIT_SLA_FUNC
 #define JIT_SRA_FUNC

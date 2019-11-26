@@ -1,6 +1,8 @@
 #include "generic_cpu.h"
 #include "states.h"
 
+using namespace std;
+
 void generic_cpu::save_state(emulator_state *st, mem &m, keypad &k, lcd &l, sound &s) {
   if (!st->saved) {
     st->m = new mem(m);
@@ -55,3 +57,37 @@ void generic_cpu::delete_state(emulator_state *st) {
   delete st;
 }
 
+bool generic_cpu::matches_state(cpu_state *st) {
+  bool same = true;
+  uint16_t af_diff = af.w - st->af.w;
+  if (af_diff != 0) {
+    cout << "cpu state differs in AF register " << af.w << " != " << st->af.w << endl;
+    same = false;
+  }
+  uint16_t bc_diff = bc.w - st->bc.w;
+  if (bc_diff != 0) {
+    cout << "cpu state differs in BC register " << bc.w << " != " << st->bc.w << endl;
+    same = false;
+  }
+  uint16_t de_diff = de.w - st->de.w;
+  if (de_diff != 0) {
+    cout << "cpu state differs in DE register " << de.w << " != " << st->de.w << endl;
+    same = false;
+  }
+  uint16_t hl_diff = hl.w - st->hl.w;
+  if (hl_diff != 0) {
+    cout << "cpu state differs in HL register " << hl.w << " != " << st->hl.w << endl;
+    same = false;
+  }
+  uint16_t sp_diff = sp.w - st->sp.w;
+  if (sp_diff != 0) {
+    cout << "cpu state differs in SP register " << sp.w << " != " << st->sp.w << endl;
+    same = false;
+  }
+  uint16_t pc_diff = pc.w - st->pc.w;
+  if (pc_diff != 0) {
+    cout << "cpu state differs in PC register " << pc.w << " != " << st->pc.w << endl;
+    same = false;
+  }
+  return same;
+}

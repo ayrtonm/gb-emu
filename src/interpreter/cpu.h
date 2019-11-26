@@ -17,6 +17,8 @@ class cpu : public generic_cpu {
     bool repeat;
     emulator_state *saved_state, *init_state;
     bool verify_quit(void);
+  private:
+    throttle_controller tp = throttle_controller(0.75);
 };
 
 //opcodes

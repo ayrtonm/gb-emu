@@ -20,6 +20,7 @@ class dynarec_cpu : public generic_cpu {
     optional<cache_block*> translate(uint16_t address, mem &m, keypad &k, lcd &l);
     void emit_code(void);
   private:
+    throttle_controller tp = throttle_controller(2.0);
     jit_type_t type_uint8_t_ptr, type_uint16_t_ptr, type_class_ptr;
     jit_type_t read_byte_signature, read_word_signature,
                write_byte_signature, write_word_signature,

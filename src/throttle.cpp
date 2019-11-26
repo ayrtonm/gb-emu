@@ -22,11 +22,6 @@ void throttle_controller::end_timer(void) {
   clock_gettime(CLOCK_MONOTONIC, &tend);
 }
 
-void throttle_controller::toggle_speed(void) {
-  if (fudge_factor == 0.25) {
-    fudge_factor = 0.75;
-  }
-  else {
-    fudge_factor = 0.25;
-  }
+void throttle_controller::toggle_speed(double fast, double slow) {
+  fudge_factor = (fudge_factor == slow ? fast : slow);
 }

@@ -18,7 +18,6 @@ class generic_cpu {
   protected:
     word16 af, bc, de, hl, sp, pc;
     uint8_t ime, ei_delay, halt;
-    throttle_controller tp;
 };
 
 //these macros should only be used outside JIT code

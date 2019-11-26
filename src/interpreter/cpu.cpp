@@ -108,7 +108,7 @@ void cpu::emulate(mem &m, keypad &k, lcd &l, sound &s, long int steps) {
         break;
       }
       case boost: {
-        tp.toggle_speed();
+        tp.toggle_speed(0.25, 0.75);
         break;
       }
       case savestate: {

@@ -152,14 +152,7 @@ optional<cache_block*> dynarec_cpu::translate(uint16_t address, mem &m, keypad &
   //let's allocate memory for the new block here
   cache_block *block = new cache_block(*cx);
 
-  location start { address, 0 };
-  if (address < 0x8000) {
-    start.bank = m.get_rombank();
-  }
-  else if ((address >= 0xA000) &&
-           (address < 0xC000)) {
-    start.bank = m.get_rambank();
-  }
+  location start = address;
   block->set_start(start);
   block->build_start();
   long int num_ops = 0;
@@ -249,16 +242,9 @@ optional<cache_block*> dynarec_cpu::translate(uint16_t address, mem &m, keypad &
     opcode = m.read_byte(address);
   };
   //end_address is guaranteed to be a jump or conditional
-  location end { address, 0 };
-  if (address < 0x8000) {
-    end.bank = m.get_rombank();
-  }
-  else if ((address >= 0xA000) &&
-           (address < 0xC000)) {
-    end.bank = m.get_rambank();
-  }
-  block->set_num_ops(num_ops);
+  location end = address;
   block->set_end(end);
+  block->set_num_ops(num_ops);
   block->insn_return();
   block->compile();
   block->bind();

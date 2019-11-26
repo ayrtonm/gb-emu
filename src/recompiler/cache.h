@@ -5,15 +5,13 @@
 #include <array>
 #include <utility>
 #include <optional>
+#include <unordered_map>
 #include <jit/jit-plus.h>
 #include "../bits.h"
 
 using namespace std;
 
-typedef struct location {
-  uint16_t address;
-  int bank;
-} location;
+typedef uint16_t location;
 
 class cache_block : public jit_function {
   //this typedef is a placeholder until I figure out what the target functions take as
@@ -108,6 +106,7 @@ class cache {
   private:
     //num_blocks refers to the number of valid blocks
     int num_blocks;
+    std::unordered_map<location, int> cache_map;
     std::array<cache_block*, MAX_BLOCKS> blocks;
     void insert_block_internal(cache_block *block, int idx);
 };

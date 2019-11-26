@@ -183,7 +183,7 @@
 
 #define MODIFY_H_FLAG(temp) \
   /*condition = block->insn_X(temp, Y);*/ \
-  MODIFY_FLAG_BODY(f_h)
+  /*MODIFY_FLAG_BODY(f_h)*/
 
 #define JIT_CB(r,op) do { \
   GET_REG8_VAL(r) \

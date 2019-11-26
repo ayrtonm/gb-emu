@@ -39,7 +39,7 @@ case 0x21: {JIT_LOAD_WORD(hl);break;}
 case 0x22: {JIT_STORE_A_PTR(hl);JIT_INC_REG16(hl);break;}
 case 0x23: {JIT_INC_REG16(hl);break;}
 case 0x24: {JIT_INC_REG8(hl.b.h);break;}
-case 0x25: {JIT_DEC_REG8(hl.b.l);break;}
+case 0x25: {JIT_DEC_REG8(hl.b.h);break;}
 case 0x26: {JIT_LOAD_BYTE(hl.b.h);break;}
 //case 0x27: {break;}
 

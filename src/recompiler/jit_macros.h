@@ -16,7 +16,7 @@
   SET_REG16(temp) \
 } while (0)
 
-//to avoid a naming nightmare let's define loading as getting a value from memory into a register
+//let's define loading as getting a value from memory into a register
 //and storing as moving a value from a register to memory
 //moving a value from register to register is also loading
 #define JIT_LOAD_WORD(r) do { \

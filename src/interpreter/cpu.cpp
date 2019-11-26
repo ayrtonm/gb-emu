@@ -20,7 +20,8 @@ cpu::cpu() {
 }
 
 //one cpu click is approximately 0.953674 microseconds
-void cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
+void cpu::emulate(mem &m, keypad &k, lcd &l, sound &s, long int steps) {
+  long int num_steps = steps;
   //local variables
   uint8_t op;
   int dt = 0;
@@ -66,6 +67,21 @@ void cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
         switch(op) {
           #include "opcodes.h"
         }
+      }
+    }
+    if (steps != 0) {
+      steps -= 1;
+      if (steps < 10) {
+        if (m.read_byte(pc.w - length[op]) == 0xcb) {
+          cout << "(" << dec << num_steps - steps << ") cb " << hex << (int)op << endl;
+        }
+        else {
+          cout << "(" << dec << num_steps - steps << ") " << hex << (int)op << endl;
+        }
+      }
+      if (steps == 0) {
+        cout << "executed " << dec << num_steps << " opcodes in the interpreter" << endl;
+        return;
       }
     }
     if (repeat) {repeat = false; pc.w -= length[op]-1;}

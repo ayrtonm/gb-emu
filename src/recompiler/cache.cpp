@@ -60,4 +60,8 @@ uint16_t cache::exec_block(int idx) {
   blocks[idx]->exec();
   return blocks[idx]->get_end().address;
 }
+
+long int cache::get_num_ops(int idx) {
+  return blocks[idx]->get_num_ops();
+}
 #endif

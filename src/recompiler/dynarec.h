@@ -16,7 +16,7 @@ class dynarec_cpu : public generic_cpu {
   public:
     dynarec_cpu();
     ~dynarec_cpu();
-    void emulate(mem &m, keypad &k, lcd &l, sound &s);
+    long int emulate(mem &m, keypad &k, lcd &l, sound &s, long int limit);
     optional<cache_block*> translate(uint16_t address, mem &m, keypad &k, lcd &l);
     void emit_code(void);
   private:

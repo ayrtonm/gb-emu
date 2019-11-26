@@ -259,6 +259,7 @@
   note that we will not be storing this f_val since the flags are messed up
   in other words, we need to reload f_val before modifying the flags
   r = temp | f_val
+  store r
   modify carry flag based on condition (f_val is reloaded here)
   modify zero flag based on r
 */
@@ -270,6 +271,7 @@
   f_val = block->insn_and(f_val, f_c); \
   f_val = block->insn_shr(f_val, four); \
   reg8_val = block->insn_or(temp, f_val); \
+  SET_REG8(reg8_val) \
   MODIFY_FLAG_BODY(f_c) \
   MODIFY_ZERO_FLAG(reg8_val)
 

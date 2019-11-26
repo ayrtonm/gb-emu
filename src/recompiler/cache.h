@@ -46,6 +46,12 @@ class cache_block : public jit_function {
     void set_end(location en) {
       end = en;
     }
+    long int get_num_ops() {
+      return num_ops;
+    }
+    void set_num_ops(long int num) {
+      num_ops = num;
+    }
     void store_data(uint8_t data) {
       raw_data.push_back(data);
     }
@@ -77,6 +83,7 @@ class cache_block : public jit_function {
     vector<uint8_t> raw_data;
     location start, end;
     bool valid;
+    long int num_ops;
 };
 
 class cache {
@@ -97,6 +104,7 @@ class cache {
     optional<int> find_block(uint16_t start_address);
     uint16_t exec_block(int idx);
     void invalidate_blocks(uint16_t modified_address);
+    long int get_num_ops(int idx);
   private:
     //num_blocks refers to the number of valid blocks
     int num_blocks;

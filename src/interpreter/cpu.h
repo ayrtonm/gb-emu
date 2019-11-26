@@ -13,6 +13,7 @@ class cpu : public generic_cpu {
   public:
     cpu();
     void emulate(mem &m, keypad &k, lcd &l, sound &s);
+    void emulate(mem &m, keypad &k, lcd &l, sound &s, long int steps);
     bool repeat;
     emulator_state *saved_state, *init_state;
     bool verify_quit(void);

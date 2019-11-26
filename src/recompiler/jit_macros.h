@@ -47,7 +47,7 @@
 #define JIT_LOAD_PTR(r, ptr) do { \
   GET_REG8_ADDR(r) \
   GET_REG16_VAL(ptr) \
-  JIT_READ_WORD(reg16_val.raw(), temp) \
+  JIT_READ_BYTE(reg16_val.raw(), temp) \
   SET_REG8(temp) \
 } while(0)
 
@@ -57,14 +57,14 @@
 
 #define JIT_LOAD_A_IMM16 do { \
   GET_WORD(word) \
-  JIT_READ_WORD(word.raw(), temp) \
+  JIT_READ_BYTE(word.raw(), temp) \
   SET_A(temp) \
 } while(0)
 
 #define JIT_STORE_A_IMM16 do { \
   GET_A_VAL \
   GET_WORD(word) \
-  JIT_WRITE_WORD(word.raw(), a_val.raw()) \
+  JIT_WRITE_BYTE(word.raw(), a_val.raw()) \
 } while(0)
 
 #define JIT_ADD(r) JIT_ARITHMETIC(r,ADD)

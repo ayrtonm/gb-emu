@@ -14,6 +14,7 @@ class generic_cpu {
     void load_state(emulator_state *st, mem &m, keypad &k, lcd &l, sound &s);
     void delete_state(emulator_state *st);
     bool matches_state(cpu_state *st);
+    cpu_state *dump_cpu_state();
   protected:
     word16 af, bc, de, hl, sp, pc;
     uint8_t ime, ei_delay, halt;

@@ -66,10 +66,8 @@ dynarec_cpu::~dynarec_cpu() {
   jit_type_free(throttle_signature);
 }
 
-void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
-#ifdef TIMED
-  int timer = 1000;
-#endif
+long int dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s, long int limit) {
+  long int steps = 0;
   cache *storage = new cache();
   optional<int> idx;
   optional<cache_block*> block;
@@ -92,17 +90,19 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
             break;
           }
         }
+        steps += 1;
+        if (limit != 0) {
+          if (steps >= limit) {
+            delete storage;
+            cout << "executed " << steps << " opcodes in the dynarec" << endl;
+            return steps;
+          }
+        }
         uint16_t end = pc.w;
 #ifdef DYNAREC_DEBUG
         cout << hex << (int)op << " mapped " << hex << (int)start << " to " << hex << (int)end << endl;
 #endif
         //at this point $pc may or may not point to another jump/conditional so we search the cache again
-#ifdef TIMED
-        timer--;
-        if (timer == 0) {
-          return;
-        }
-#endif
       }
       //if the translation was successful
       else {
@@ -119,18 +119,20 @@ void dynarec_cpu::emulate(mem &m, keypad &k, lcd &l, sound &s) {
     cout << "executing block " << idx.value() << endl;
 #endif
     pc.w = storage->exec_block(idx.value());
+    steps += storage->get_num_ops(idx.value());
+    if (limit != 0) {
+      if (steps >= limit) {
+        delete storage;
+        cout << "executed " << steps << " opcodes in the dynarec" << endl;
+        return steps;
+      }
+    }
 #ifdef DYNAREC_DEBUG
     cout << hex << (int)af.w << " " << hex << (int)bc.w << " " << hex << (int)de.w << " " << hex << (int)hl.w << endl;
 #endif
-#ifdef TIMED
-    timer--;
-    if (timer == 0) {
-      return;
-    }
-#endif
   }
   delete storage;
-  return;
+  return 0;
 }
 
 /*
@@ -160,6 +162,7 @@ optional<cache_block*> dynarec_cpu::translate(uint16_t address, mem &m, keypad &
   }
   block->set_start(start);
   block->build_start();
+  long int num_ops = 0;
 
   //get the addresses of the four auxilary classes
   //we have to do this for each block since they don't share a context
@@ -226,6 +229,7 @@ optional<cache_block*> dynarec_cpu::translate(uint16_t address, mem &m, keypad &
         }
       }
     }
+    num_ops += 1;
     //insert calls to the auxilary classes' update functions in the block's JIT function
     //first get the arguments we are going to pass them
     //since these all depend on dt, we have to do this for each instruction
@@ -254,6 +258,7 @@ optional<cache_block*> dynarec_cpu::translate(uint16_t address, mem &m, keypad &
            (address < 0xC000)) {
     end.bank = m.get_rambank();
   }
+  block->set_num_ops(num_ops);
   block->set_end(end);
   block->insn_return();
   block->compile();

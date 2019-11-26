@@ -104,9 +104,12 @@
   MODIFY_CARRY_FLAG(a_val) \
   MODIFY_H_FLAG(a_val)
 
-//FIXME: add the carry
 #define JIT_ADC_FUNC \
   a_val = block->insn_add(a_val, reg8_val); \
+  GET_F_VAL \
+  temp = block->insn_and(f_val, f_c); \
+  temp = block->insn_shr(temp, four); \
+  a_val = block->insn_add(a_val, temp); \
   SET_A(a_val) \
   SET_F(zero) \
   MODIFY_ZERO_FLAG(a_val) \
@@ -121,9 +124,12 @@
   MODIFY_CARRY_FLAG(a_val) \
   MODIFY_H_FLAG(a_val)
 
-//FIXME: add the carry
 #define JIT_SBC_FUNC \
   a_val = block->insn_sub(a_val, reg8_val); \
+  GET_F_VAL \
+  temp = block->insn_and(f_val, f_c); \
+  temp = block->insn_shr(temp, four); \
+  a_val = block->insn_sub(a_val, temp); \
   SET_A(a_val) \
   SET_F(f_n) \
   MODIFY_ZERO_FLAG(a_val) \
@@ -143,7 +149,7 @@
   MODIFY_ZERO_FLAG(a_val)
 
 #define JIT_OR_FUNC \
-  a_val = block_insn_or(a_val, reg8_val); \
+  a_val = block->insn_or(a_val, reg8_val); \
   SET_A(a_val) \
   SET_F(zero) \
   MODIFY_ZERO_FLAG(a_val)

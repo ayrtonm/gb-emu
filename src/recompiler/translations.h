@@ -143,13 +143,76 @@ case 0x7e: {JIT_LOAD_PTR(af.b.h, hl);break;}
 case 0x7f: {JIT_LOAD_REG(af.b.h, af.b.h);break;}
 
 case 0x80: {JIT_ADD(bc.b.h);break;}
+case 0x81: {JIT_ADD(bc.b.l);break;}
+case 0x82: {JIT_ADD(de.b.h);break;}
+case 0x83: {JIT_ADD(de.b.l);break;}
+case 0x84: {JIT_ADD(hl.b.h);break;}
+case 0x85: {JIT_ADD(hl.b.l);break;}
+case 0x86: {JIT_ADD_PTR;break;}
+case 0x87: {JIT_ADD(af.b.h);break;}
+
+case 0x88: {JIT_ADC(bc.b.h);break;}
+case 0x89: {JIT_ADC(bc.b.l);break;}
+case 0x8a: {JIT_ADC(de.b.h);break;}
+case 0x8b: {JIT_ADC(de.b.l);break;}
+case 0x8c: {JIT_ADC(hl.b.h);break;}
+case 0x8d: {JIT_ADC(hl.b.l);break;}
+case 0x8e: {JIT_ADC_PTR;break;}
+case 0x8f: {JIT_ADC(af.b.h);break;}
 
 case 0x90: {JIT_SUB(bc.b.h);break;}
+case 0x91: {JIT_SUB(bc.b.l);break;}
+case 0x92: {JIT_SUB(de.b.h);break;}
+case 0x93: {JIT_SUB(de.b.l);break;}
+case 0x94: {JIT_SUB(hl.b.h);break;}
+case 0x95: {JIT_SUB(hl.b.l);break;}
+case 0x96: {JIT_SUB_PTR;break;}
 case 0x97: {JIT_SUB(af.b.h);break;}
 
+case 0x98: {JIT_SBC(bc.b.h);break;}
+case 0x99: {JIT_SBC(bc.b.l);break;}
+case 0x9a: {JIT_SBC(de.b.h);break;}
+case 0x9b: {JIT_SBC(de.b.l);break;}
+case 0x9c: {JIT_SBC(hl.b.h);break;}
+case 0x9d: {JIT_SBC(hl.b.l);break;}
+case 0x9e: {JIT_SBC_PTR;break;}
+case 0x9f: {JIT_SBC(af.b.h);break;}
+
+case 0xa0: {JIT_AND(bc.b.h);break;}
+case 0xa1: {JIT_AND(bc.b.l);break;}
+case 0xa2: {JIT_AND(de.b.h);break;}
+case 0xa3: {JIT_AND(de.b.l);break;}
+case 0xa4: {JIT_AND(hl.b.h);break;}
+case 0xa5: {JIT_AND(hl.b.l);break;}
+case 0xa6: {JIT_AND_PTR;break;}
+case 0xa7: {JIT_AND(af.b.h);break;}
+
 case 0xa8: {JIT_XOR(bc.b.h);break;}
+case 0xa9: {JIT_XOR(bc.b.l);break;}
+case 0xaa: {JIT_XOR(de.b.h);break;}
+case 0xab: {JIT_XOR(de.b.l);break;}
+case 0xac: {JIT_XOR(hl.b.h);break;}
+case 0xad: {JIT_XOR(hl.b.l);break;}
+case 0xae: {JIT_XOR_PTR;break;}
+case 0xaf: {JIT_XOR(af.b.h);break;}
+
+case 0xb0: {JIT_OR(bc.b.h);break;}
+case 0xb1: {JIT_OR(bc.b.l);break;}
+case 0xb2: {JIT_OR(de.b.h);break;}
+case 0xb3: {JIT_OR(de.b.l);break;}
+case 0xb4: {JIT_OR(hl.b.h);break;}
+case 0xb5: {JIT_OR(hl.b.l);break;}
+case 0xb6: {JIT_OR_PTR;break;}
+case 0xb7: {JIT_OR(af.b.h);break;}
 
 case 0xb8: {JIT_CP(bc.b.h);break;}
+case 0xb9: {JIT_CP(bc.b.l);break;}
+case 0xba: {JIT_CP(de.b.h);break;}
+case 0xbb: {JIT_CP(de.b.l);break;}
+case 0xbc: {JIT_CP(hl.b.h);break;}
+case 0xbd: {JIT_CP(hl.b.l);break;}
+case 0xbe: {JIT_CP_PTR;break;}
+case 0xbf: {JIT_CP(af.b.h);break;}
 
 case 0xc1: {JIT_POP(bc);break;}
 case 0xc5: {JIT_PUSH(bc);break;}

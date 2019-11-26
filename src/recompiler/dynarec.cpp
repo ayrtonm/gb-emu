@@ -179,7 +179,8 @@ optional<cache_block*> dynarec_cpu::translate(uint16_t address, mem &m, keypad &
   jit_value seven = block->new_constant(7, jit_type_ushort);
   jit_value lower_bits = block->new_constant(0x0f, jit_type_ushort);
   jit_value upper_bits = block->new_constant(0xf0, jit_type_ushort);
-  jit_value ff = block->new_constant(0xff, jit_type_ushort);
+  jit_value lower_byte = block->new_constant(0x00ff, jit_type_ushort);
+  jit_value upper_byte = block->new_constant(0xff00, jit_type_ushort);
   jit_value f_z = block->new_constant(F_Z, jit_type_ushort);
   jit_value f_n = block->new_constant(F_N, jit_type_ushort);
   jit_value f_h = block->new_constant(F_H, jit_type_ushort);

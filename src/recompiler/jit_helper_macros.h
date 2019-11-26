@@ -171,7 +171,7 @@
 */
 #define MODIFY_FLAG_BODY(flag) \
   GET_F_VAL \
-  not_flag = block->insn_xor(flag, ff); \
+  not_flag = block->insn_xor(flag, lower_byte); \
   f_val = block->insn_and(f_val, not_flag); \
   flag_val = block->insn_mul(condition, flag); \
   f_val = block->insn_or(f_val, flag_val); \
@@ -184,7 +184,7 @@
 //this is only the simplest way to check if we need to set the carry flag
 //for some rotate/shift opcodes we have to check by testing one of the lower 8 bits
 #define MODIFY_CARRY_FLAG(temp) \
-  condition = block->insn_gt(temp, ff); \
+  condition = block->insn_gt(temp, lower_byte); \
   MODIFY_FLAG_BODY(f_c)
 
 #define MODIFY_H_FLAG(temp) \
@@ -220,7 +220,7 @@
   SET_REG8(reg8_val)
 
 #define JIT_RESET_FUNC(n) \
-  temp = block->insn_xor(temp, ff); \
+  temp = block->insn_xor(temp, lower_byte); \
   reg8_val = block->insn_and(reg8_val, temp); \
   SET_REG8(reg8_val)
 

@@ -67,6 +67,20 @@
   JIT_WRITE_BYTE(word.raw(), a_val.raw()) \
 } while(0)
 
+#define JIT_LOAD_A_HI do { \
+  GET_BYTE(byte) \
+  temp = block->insn_add(upper_byte, byte); \
+  JIT_READ_BYTE(temp.raw(), a_val) \
+  SET_A(a_val) \
+} while(0)
+
+#define JIT_STORE_A_HI do { \
+  GET_BYTE(byte) \
+  temp = block->insn_add(upper_byte, byte); \
+  GET_A_VAL \
+  JIT_WRITE_BYTE(temp.raw(), a_val.raw()) \
+} while(0)
+
 #define JIT_ADD(r) JIT_ARITHMETIC(r,ADD)
 #define JIT_ADD_PTR JIT_ARITHMETIC_PTR(ADD)
 #define JIT_ADD_IMM8 JIT_ARITHMETIC_IMM8(ADD)
@@ -101,7 +115,7 @@
 
 #define JIT_CPL do { \
   GET_A_VAL \
-  a_val = block->insn_xor(a_val, ff); \
+  a_val = block->insn_xor(a_val, lower_byte); \
   SET_A(a_val) \
   GET_F_VAL \
   f_val = block->insn_or(f_val, block->insn_or(f_n, f_h)); \

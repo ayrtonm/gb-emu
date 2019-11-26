@@ -226,7 +226,11 @@ case 0xe1: {JIT_POP(hl);break;}
 case 0xe5: {JIT_PUSH(hl);break;}
 case 0xe6: {JIT_AND_IMM8;break;}
 
+case 0xe0: {JIT_STORE_A_HI;break;}
+
 case 0xea: {JIT_STORE_A_IMM16;break;}
+
+case 0xf0: {JIT_LOAD_A_HI;break;}
 
 case 0xfa: {JIT_LOAD_A_IMM16;break;}
 case 0xfe: {JIT_CP_IMM8;break;}

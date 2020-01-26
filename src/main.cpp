@@ -89,6 +89,7 @@ int main(int argc, char *argv[]) {
   k = new keypad(configfile);
   l = new lcd(configfile);
   s = new sound(configfile);
+#ifdef DYNAREC_CPU
   if (arguments.testmode) {
     dynarec_cpu *c = new dynarec_cpu;
     long int num_steps = c->emulate(*m,*k,*l,*s, std::stoi(arguments.testlimit));
@@ -117,7 +118,6 @@ int main(int argc, char *argv[]) {
     delete c_ref;
     return 0;
   }
-#ifdef DYNAREC_CPU
   //if we are not dynamically recompiling, make a pointer to an instance of the cpu class and start emulator
   if (!arguments.recompiled) {
 #endif

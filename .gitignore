@@ -1,1 +1,5 @@
-*.o roms/*.gb perf.data*
+*.o
+gb-emu
+test/
+perf.data*
+saves/*.sav

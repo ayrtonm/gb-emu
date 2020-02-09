@@ -3,3 +3,4 @@ gb-emu
 test/
 perf.data*
 saves/*.sav
+ace.*
